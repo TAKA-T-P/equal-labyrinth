@@ -16,7 +16,7 @@
   <section id="screen-title" class="screen" data-screen="title">
     <div class="screen-inner title-screen">
       <header class="title-header">
-        <h1 class="app-title">イコール・ラビリンス</h1>
+        <h1 class="app-title">EQUAL LABYRINTH</h1>
         <p class="app-subtitle">～方程式の迷宮～</p>
         <p class="app-description">
           文章題を読んで、正しい方程式を立てよう！
@@ -28,7 +28,6 @@
       </button>
 
       <div class="setting-card">
-        <h2 class="setting-heading">モード</h2>
         <div class="choice-group" role="group" aria-label="モード選択">
           <button type="button" class="choice-button is-selected" id="mode-training" data-mode="training" aria-pressed="true">
             トレーニング
@@ -40,7 +39,6 @@
       </div>
 
       <div class="setting-card">
-        <h2 class="setting-heading">単元</h2>
         <div class="choice-group" role="group" aria-label="単元選択">
           <button type="button" class="choice-button is-selected" id="unit-linear" data-unit="linear" aria-pressed="true">
             1次方程式
@@ -55,7 +53,6 @@
       </div>
 
       <div class="setting-card">
-        <h2 class="setting-heading">問題数</h2>
         <label class="slider-row" for="question-count-slider">
           <span id="question-count-label" class="slider-value">問題数：5問</span>
           <input
@@ -83,7 +80,6 @@
       </div>
 
       <div class="setting-card">
-        <h2 class="setting-heading">効果音</h2>
         <label class="toggle-row" for="sound-toggle">
           <input type="checkbox" id="sound-toggle" checked />
           <span>効果音 ON / OFF</span>
@@ -130,21 +126,23 @@
         </div>
 
         <p id="judge-message" class="judge-message" aria-live="assertive"></p>
-
-        <div id="answer-reveal-panel" class="answer-reveal-panel" hidden>
-          <p class="answer-reveal-row">
-            模範式：<span id="model-equation-text"></span>
-          </p>
-          <p class="answer-reveal-row">
-            方程式の解：<span id="solution-text"></span>
-          </p>
-        </div>
       </div>
 
       <div id="hint-backdrop" class="hint-backdrop" hidden></div>
       <div id="hint-panel" class="hint-panel" hidden role="dialog" aria-label="ヒント">
         <p class="hint-panel-title">ヒント</p>
         <p id="hint-text" class="hint-panel-text"></p>
+      </div>
+
+      <div id="answer-reveal-backdrop" class="hint-backdrop" hidden></div>
+      <div id="answer-reveal-panel" class="answer-reveal-panel" hidden role="status" aria-live="assertive">
+        <p id="answer-reveal-status" class="answer-reveal-status"></p>
+        <p class="answer-reveal-row">
+          模範式：<span id="model-equation-text"></span>
+        </p>
+        <p class="answer-reveal-row">
+          方程式の解：<span id="solution-text"></span>
+        </p>
       </div>
 
       <div class="game-bottom">
@@ -202,13 +200,13 @@
         </div>
       </div>
 
+      <div class="result-actions">
+        <button type="button" id="replay-button" class="primary-button">もう一度</button>
+        <button type="button" id="result-to-title-button" class="secondary-button">タイトルへ</button>
+      </div>
+
       <h3 class="history-heading">問題履歴</h3>
       <div id="history-list" class="history-list"></div>
-
-      <div class="result-actions">
-        <button type="button" id="replay-button" class="primary-button">同じ設定でもう一度</button>
-        <button type="button" id="result-to-title-button" class="secondary-button">タイトルに戻る</button>
-      </div>
     </div>
   </section>
 

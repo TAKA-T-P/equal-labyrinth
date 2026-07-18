@@ -37,7 +37,9 @@ const elements = {
   hintBackdrop: document.getElementById("hint-backdrop"),
   hintPanel: document.getElementById("hint-panel"),
   hintText: document.getElementById("hint-text"),
+  answerRevealBackdrop: document.getElementById("answer-reveal-backdrop"),
   answerRevealPanel: document.getElementById("answer-reveal-panel"),
+  answerRevealStatus: document.getElementById("answer-reveal-status"),
   modelEquationText: document.getElementById("model-equation-text"),
   solutionText: document.getElementById("solution-text"),
   hintButton: document.getElementById("hint-button"),
@@ -142,12 +144,7 @@ export function renderCategoryCheckboxes(selectedCategoryIds, onToggle) {
     nameEl.className = "category-item-name";
     nameEl.textContent = category.name;
 
-    const descEl = document.createElement("span");
-    descEl.className = "category-item-description";
-    descEl.textContent = category.description;
-
     textWrap.appendChild(nameEl);
-    textWrap.appendChild(descEl);
 
     item.appendChild(checkbox);
     item.appendChild(textWrap);
@@ -252,7 +249,7 @@ export function showPassButton(show) {
 }
 
 export function showHintPanel(hintText) {
-  elements.hintText.textContent = hintText;
+  renderTextWithStyledVariable(elements.hintText, hintText);
   elements.hintPanel.hidden = false;
   elements.hintBackdrop.hidden = false;
 }
@@ -266,14 +263,35 @@ export function isHintPanelOpen() {
   return !elements.hintPanel.hidden;
 }
 
-export function showAnswerReveal(displayEquation, solutionDisplay) {
-  elements.modelEquationText.textContent = displayEquation;
-  elements.solutionText.textContent = solutionDisplay;
+const ANSWER_STATUS_CLASS = {
+  correct: "is-correct",
+  pass: "is-pass"
+};
+
+/**
+ * 正解・パス時の判定文と模範式・解を、前面の不透明なカードで表示する。
+ * @param {"correct"|"pass"} statusType
+ * @param {string} statusText
+ * @param {string} displayEquation
+ * @param {string} solutionDisplay
+ */
+export function showAnswerReveal(statusType, statusText, displayEquation, solutionDisplay) {
+  elements.answerRevealStatus.textContent = statusText;
+  elements.answerRevealStatus.className = "answer-reveal-status";
+  const statusClass = ANSWER_STATUS_CLASS[statusType];
+  if (statusClass) {
+    elements.answerRevealStatus.classList.add(statusClass);
+  }
+
+  renderTextWithStyledVariable(elements.modelEquationText, displayEquation);
+  renderTextWithStyledVariable(elements.solutionText, solutionDisplay);
   elements.answerRevealPanel.hidden = false;
+  elements.answerRevealBackdrop.hidden = false;
 }
 
 export function hideAnswerReveal() {
   elements.answerRevealPanel.hidden = true;
+  elements.answerRevealBackdrop.hidden = true;
 }
 
 const JUDGE_CLASS_BY_STATUS = {
@@ -411,10 +429,10 @@ export function renderResultSummary(stats) {
 function createHistoryRow(label, valueText) {
   const row = document.createElement("p");
   row.className = "history-item-row";
-  row.textContent = `${label}：`;
+  renderTextWithStyledVariable(row, `${label}：`);
   const value = document.createElement("span");
   value.className = "value";
-  value.textContent = valueText;
+  renderTextWithStyledVariable(value, valueText);
   row.appendChild(value);
   return row;
 }

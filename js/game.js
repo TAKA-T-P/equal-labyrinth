@@ -391,8 +391,9 @@ async function handleCorrectAnswer() {
   lockQuestionInput();
 
   audio.playCorrectSound();
-  ui.showJudgeMessage("correct", "正解です！");
   ui.showAnswerReveal(
+    "correct",
+    "正解です！",
     gameState.currentQuestion.displayEquation,
     gameState.currentQuestion.solutionDisplay
   );
@@ -411,8 +412,9 @@ async function handlePass() {
   lockQuestionInput();
 
   audio.playPassSound();
-  ui.showJudgeMessage("pass", "パスしました");
   ui.showAnswerReveal(
+    "pass",
+    "パスしました",
     gameState.currentQuestion.displayEquation,
     gameState.currentQuestion.solutionDisplay
   );
@@ -430,6 +432,7 @@ function lockQuestionInput() {
   ui.setSubmitButtonEnabled(false);
   ui.showHintButton(false);
   ui.showPassButton(false);
+  ui.clearJudgeMessage();
 }
 
 function recordHistory(result, elapsedSeconds) {

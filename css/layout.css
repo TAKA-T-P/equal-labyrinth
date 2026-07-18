@@ -131,7 +131,7 @@
 .result-summary {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 @media (min-width: 480px) {
@@ -151,15 +151,17 @@
 
 .result-actions {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.result-actions > button {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 @media (min-width: 480px) {
   .result-actions {
-    flex-direction: row;
-  }
-  .result-actions > button {
-    flex: 1 1 0;
+    gap: 10px;
   }
 }
