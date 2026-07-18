@@ -71,19 +71,22 @@
   min-height: 100vh;
   min-height: 100dvh;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  gap: 10px;
 }
 
 .game-topbar {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
 }
 
 .game-topbar-info {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 8px;
 }
 
 .game-topbar-actions {
@@ -94,17 +97,17 @@
 .game-main {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   flex: 1 1 auto;
 }
 
 .game-bottom {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
   position: sticky;
   bottom: 0;
-  padding-top: 8px;
+  padding-top: 6px;
   background: linear-gradient(
     to top,
     var(--color-bg-gradient-end) 60%,
