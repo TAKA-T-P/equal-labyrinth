@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>イコール・ラビリンス ～方程式の迷宮～</title>
+<link rel="stylesheet" href="./css/base.css" />
+<link rel="stylesheet" href="./css/layout.css" />
+<link rel="stylesheet" href="./css/components.css" />
+<link rel="stylesheet" href="./css/animations.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- タイトル・設定画面 -->
+  <section id="screen-title" class="screen" data-screen="title">
+    <div class="screen-inner title-screen">
+      <header class="title-header">
+        <h1 class="app-title">イコール・ラビリンス</h1>
+        <p class="app-subtitle">～方程式の迷宮～</p>
+        <p class="app-description">
+          文章題を読んで、正しい方程式を立てよう！
+        </p>
+      </header>
+
+      <button type="button" id="start-button" class="primary-button" disabled>
+        スタート
+      </button>
+
+      <div class="setting-card">
+        <h2 class="setting-heading">モード</h2>
+        <div class="choice-group" role="group" aria-label="モード選択">
+          <button type="button" class="choice-button is-selected" id="mode-training" data-mode="training" aria-pressed="true">
+            トレーニング
+          </button>
+          <button type="button" class="choice-button is-disabled" id="mode-rank" disabled aria-disabled="true">
+            段位認定<span class="badge-wip">準備中</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <h2 class="setting-heading">単元</h2>
+        <div class="choice-group" role="group" aria-label="単元選択">
+          <button type="button" class="choice-button is-selected" id="unit-linear" data-unit="linear" aria-pressed="true">
+            1次方程式
+          </button>
+          <button type="button" class="choice-button is-disabled" id="unit-simultaneous" disabled aria-disabled="true">
+            連立方程式<span class="badge-wip">準備中</span>
+          </button>
+          <button type="button" class="choice-button is-disabled" id="unit-quadratic" disabled aria-disabled="true">
+            2次方程式<span class="badge-wip">準備中</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <h2 class="setting-heading">問題数</h2>
+        <label class="slider-row" for="question-count-slider">
+          <span id="question-count-label" class="slider-value">問題数：5問</span>
+          <input
+            type="range"
+            id="question-count-slider"
+            min="3"
+            max="10"
+            step="1"
+            value="5"
+            aria-labelledby="question-count-label"
+          />
+        </label>
+      </div>
+
+      <div class="setting-card">
+        <h2 class="setting-heading">出題するカテゴリ</h2>
+        <div class="category-toolbar">
+          <button type="button" class="small-button" id="category-select-all">すべて選択</button>
+          <button type="button" class="small-button" id="category-select-none">すべて解除</button>
+        </div>
+        <div id="category-list" class="category-list" role="group" aria-label="カテゴリ選択"></div>
+        <p id="category-warning" class="warning-text" hidden>
+          出題するカテゴリを1つ以上選んでください。
+        </p>
+      </div>
+
+      <div class="setting-card">
+        <h2 class="setting-heading">効果音</h2>
+        <label class="toggle-row" for="sound-toggle">
+          <input type="checkbox" id="sound-toggle" checked />
+          <span>効果音 ON / OFF</span>
+        </label>
+      </div>
+
+      <footer class="title-footer">
+        <p class="credit">©2026 T.TAKEMOTO / KEC Glows</p>
+      </footer>
+    </div>
+  </section>
+
+  <!-- カウントダウン画面 -->
+  <section id="screen-countdown" class="screen" data-screen="countdown" hidden>
+    <div class="screen-inner countdown-screen">
+      <p id="countdown-display" class="countdown-number" aria-live="assertive">3</p>
+    </div>
+  </section>
+
+  <!-- ゲーム画面 -->
+  <section id="screen-game" class="screen" data-screen="game" hidden>
+    <div class="screen-inner game-screen">
+
+      <div class="game-topbar">
+        <div class="game-topbar-info">
+          <span class="unit-label">1次方程式</span>
+          <span id="question-progress" class="question-progress">第1問 / 5問</span>
+        </div>
+        <div class="game-topbar-actions">
+          <button type="button" id="retry-button" class="icon-button" aria-label="リトライ">リトライ</button>
+          <button type="button" id="back-to-title-button" class="icon-button" aria-label="タイトルへ戻る">戻る</button>
+        </div>
+      </div>
+
+      <div class="game-main">
+        <div class="prompt-card">
+          <p id="question-prompt" class="question-prompt">問題文がここに表示されます。</p>
+        </div>
+
+        <div class="equation-input-card">
+          <div id="equation-input-scroll" class="equation-input-scroll">
+            <div id="equation-input-display" class="equation-input-display" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <p id="judge-message" class="judge-message" aria-live="assertive"></p>
+
+        <div id="answer-reveal-panel" class="answer-reveal-panel" hidden>
+          <p class="answer-reveal-row">
+            模範式：<span id="model-equation-text"></span>
+          </p>
+          <p class="answer-reveal-row">
+            方程式の解：<span id="solution-text"></span>
+          </p>
+        </div>
+      </div>
+
+      <div id="hint-backdrop" class="hint-backdrop" hidden></div>
+      <div id="hint-panel" class="hint-panel" hidden role="dialog" aria-label="ヒント">
+        <p class="hint-panel-title">ヒント</p>
+        <p id="hint-text" class="hint-panel-text"></p>
+      </div>
+
+      <div class="game-bottom">
+        <div class="action-row">
+          <button type="button" id="hint-button" class="secondary-button" hidden>ヒント</button>
+          <button type="button" id="pass-button" class="secondary-button" hidden>パス</button>
+          <button type="button" id="submit-button" class="primary-button" disabled>解答する</button>
+        </div>
+
+        <div id="math-keyboard" class="math-keyboard" role="group" aria-label="数式キーボード">
+          <div id="keypad-numbers" class="keypad-numbers" role="group" aria-label="数値キー"></div>
+
+          <div id="keypad-symbols" class="keypad-symbols" role="group" aria-label="記号キー"></div>
+
+          <div id="keypad-edit" class="keypad-edit" role="group" aria-label="編集キー">
+            <button type="button" class="key-button key-control" data-action="cursor-left" aria-label="カーソルを左へ移動">←</button>
+            <button type="button" class="key-button key-control" data-action="cursor-right" aria-label="カーソルを右へ移動">→</button>
+            <button type="button" class="key-button key-control" data-action="backspace" aria-label="1つ消す">1つ消す</button>
+            <button type="button" class="key-button key-control key-clear" data-action="clear" aria-label="全消去">全消去</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 結果画面 -->
+  <section id="screen-result" class="screen" data-screen="result" hidden>
+    <div class="screen-inner result-screen">
+      <h2 class="result-heading">結果発表</h2>
+
+      <div class="result-summary" id="result-summary">
+        <div class="result-stat">
+          <span class="result-stat-label">出題問題数</span>
+          <span id="stat-total" class="result-stat-value">0問</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">正解問題数</span>
+          <span id="stat-correct" class="result-stat-value">0問</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">不正解回数</span>
+          <span id="stat-incorrect" class="result-stat-value">0回</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">パス回数</span>
+          <span id="stat-pass" class="result-stat-value">0回</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">正答率</span>
+          <span id="stat-accuracy" class="result-stat-value">0%</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">平均正解時間</span>
+          <span id="stat-average-time" class="result-stat-value">―</span>
+        </div>
+      </div>
+
+      <h3 class="history-heading">問題履歴</h3>
+      <div id="history-list" class="history-list"></div>
+
+      <div class="result-actions">
+        <button type="button" id="replay-button" class="primary-button">同じ設定でもう一度</button>
+        <button type="button" id="result-to-title-button" class="secondary-button">タイトルに戻る</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>

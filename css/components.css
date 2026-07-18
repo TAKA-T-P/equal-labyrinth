@@ -1,0 +1,576 @@
+/* ==========================================================
+   components.css
+   ボタン・カード・数式入力欄・数式キーボード・チェックボックス・
+   スライダー・問題履歴・ヒント・正解不正解表示
+   ========================================================== */
+
+/* ---------------- 見出し類 ---------------- */
+
+.app-title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: linear-gradient(90deg, #ffe9a8, #d8b4ff 60%, #9fc4ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.app-subtitle {
+  margin-top: 2px;
+  font-size: 1rem;
+  color: var(--color-text-muted);
+}
+
+.app-description {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.credit {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+/* ---------------- カード ---------------- */
+
+.setting-card,
+.prompt-card,
+.equation-input-card,
+.answer-reveal-panel,
+.result-summary,
+.history-item {
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+  padding: 14px 16px;
+}
+
+.setting-heading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+
+.prompt-card {
+  background: var(--color-parchment);
+  color: var(--color-parchment-text);
+  border-color: #b89b5e;
+}
+
+.question-prompt {
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+/* ---------------- 選択ボタン群（モード・単元） ---------------- */
+
+.choice-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.choice-button {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 120px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-panel-border);
+  background: transparent;
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.choice-button.is-selected {
+  background: linear-gradient(
+    135deg,
+    var(--color-button-purple),
+    var(--color-button-blue)
+  );
+  border-color: var(--color-correct-gold);
+}
+
+.choice-button.is-disabled {
+  background: rgba(255, 255, 255, 0.04);
+  border-style: dashed;
+}
+
+.badge-wip {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+}
+
+/* ---------------- スライダー ---------------- */
+
+.slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slider-value {
+  font-weight: 700;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 44px;
+  accent-color: var(--color-button-gold);
+}
+
+/* ---------------- カテゴリチェックボックス ---------------- */
+
+.category-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.small-button {
+  min-height: 30px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-panel-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-main);
+  font-size: 0.8rem;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.category-item input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--color-button-gold);
+}
+
+.category-item-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-item-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.category-item-description {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.warning-text {
+  margin-top: 8px;
+  color: var(--color-incorrect);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+
+.toggle-row input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--color-button-gold);
+}
+
+/* ---------------- ボタン ---------------- */
+
+.primary-button {
+  min-height: 38px;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: linear-gradient(
+    135deg,
+    var(--color-button-gold),
+    #a9791f
+  );
+  color: #2a1c02;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: var(--shadow-panel);
+}
+
+.primary-button:disabled {
+  background: #4b4560;
+  color: #a9a3c2;
+  box-shadow: none;
+}
+
+.secondary-button {
+  min-height: 38px;
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-panel-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.secondary-button[hidden] {
+  display: none;
+}
+
+.icon-button {
+  min-height: 30px;
+  min-width: 44px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--color-panel-border);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* ---------------- 上部進行表示 ---------------- */
+
+.unit-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.question-progress {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+/* ---------------- 数式入力欄 ---------------- */
+
+.equation-input-card {
+  padding: 10px 12px;
+}
+
+.equation-input-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+.equation-input-display {
+  display: inline-flex;
+  align-items: center;
+  min-width: 100%;
+  min-height: 44px;
+  font-size: 1.35rem;
+  letter-spacing: 0.02em;
+  color: var(--color-text-main);
+}
+
+.equation-token {
+  display: inline-block;
+}
+
+.equation-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.4em;
+  margin: 0 1px;
+  background: var(--color-correct-gold);
+  vertical-align: middle;
+}
+
+.equation-input-placeholder {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+/* ---------------- 判定メッセージ ---------------- */
+/* メッセージがある間だけ、不透明なカードとして表示する */
+
+.judge-message {
+  min-height: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.judge-message:not(:empty) {
+  min-height: 1.4em;
+  background: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-panel);
+}
+
+.judge-message.is-correct {
+  color: var(--color-correct);
+  border-color: var(--color-correct);
+}
+
+.judge-message.is-incorrect {
+  color: var(--color-incorrect);
+  border-color: var(--color-incorrect);
+}
+
+.judge-message.is-input-error {
+  color: var(--color-text-muted);
+}
+
+.judge-message.is-pass {
+  color: var(--color-correct-gold);
+  border-color: var(--color-correct-gold);
+}
+
+/* ---------------- ヒント（前面に表示するカード） ---------------- */
+
+.hint-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 3, 15, 0.65);
+  z-index: 60;
+}
+
+.hint-backdrop[hidden] {
+  display: none;
+}
+
+.hint-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 61;
+  width: min(92vw, 440px);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--color-panel);
+  border: 2px solid var(--color-correct-gold);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  padding: 18px 20px;
+}
+
+.hint-panel[hidden] {
+  display: none;
+}
+
+.hint-panel-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-correct-gold);
+  margin-bottom: 6px;
+}
+
+.hint-panel-text {
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+/* ---------------- 模範解答 ---------------- */
+
+.answer-reveal-panel[hidden] {
+  display: none;
+}
+
+.answer-reveal-panel {
+  opacity: 1;
+  background: var(--color-panel);
+  border: 2px solid var(--color-correct-gold);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+
+.answer-reveal-row {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 6px;
+}
+
+.answer-reveal-row:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------------- 数式キーボード ---------------- */
+
+.action-row {
+  display: flex;
+  gap: 8px;
+}
+
+.action-row .primary-button {
+  flex: 1 1 auto;
+}
+
+.math-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 数値エリア・記号エリアは、問題ごとにJSで再描画される */
+.keypad-numbers,
+.keypad-symbols,
+.keypad-edit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 8px;
+  padding: 6px;
+  border-radius: 12px;
+}
+
+/* 数値エリアと記号エリアを見た目で区別する */
+.keypad-numbers {
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  background: rgba(201, 161, 59, 0.1);
+  border: 1px solid rgba(201, 161, 59, 0.35);
+}
+
+.keypad-symbols {
+  background: rgba(63, 95, 214, 0.12);
+  border: 1px solid rgba(63, 95, 214, 0.4);
+}
+
+.keypad-edit {
+  grid-template-columns: repeat(4, 1fr);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.key-button {
+  min-height: 38px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--color-panel-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-main);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.key-button:active {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.key-button--number {
+  font-size: 1rem;
+  padding: 0 6px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-correct-gold);
+}
+
+.key-op {
+  color: var(--color-correct-gold);
+}
+
+.key-variable {
+  font-family: var(--font-variable);
+  font-style: italic;
+  color: #9fd6ff;
+}
+
+.key-control {
+  font-size: 0.78rem;
+}
+
+.key-clear {
+  color: var(--color-incorrect);
+}
+
+/* ---------------- 結果画面 ---------------- */
+
+.result-heading {
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.result-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  text-align: center;
+}
+
+.result-stat-label {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.result-stat-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.history-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.history-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+}
+
+.history-item-status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.history-item-status.is-correct {
+  background: rgba(53, 196, 106, 0.2);
+  color: var(--color-correct);
+}
+
+.history-item-status.is-pass {
+  background: rgba(201, 161, 59, 0.22);
+  color: var(--color-correct-gold);
+}
+
+.history-item-row {
+  color: var(--color-text-muted);
+}
+
+.history-item-row .value {
+  color: var(--color-text-main);
+}

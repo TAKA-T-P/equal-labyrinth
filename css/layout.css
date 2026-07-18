@@ -1,0 +1,162 @@
+/* ==========================================================
+   layout.css
+   画面全体の配置・タイトル画面・ゲーム画面・結果画面・
+   スマートフォン対応・PC対応・スクロール領域
+   ========================================================== */
+
+#app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+}
+
+.screen {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+}
+
+.screen[hidden] {
+  display: none;
+}
+
+.screen-inner {
+  width: 100%;
+  max-width: 480px;
+  padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* PCでは最大幅を広げて中央配置 */
+@media (min-width: 768px) {
+  .screen-inner {
+    max-width: 720px;
+    padding: 32px 24px 40px;
+  }
+}
+
+/* ---------------- タイトル画面 ---------------- */
+
+.title-screen {
+  align-items: stretch;
+}
+
+.title-header {
+  text-align: center;
+  padding: 12px 0 4px;
+}
+
+.title-footer {
+  text-align: center;
+  padding-top: 8px;
+}
+
+/* ---------------- カウントダウン画面 ---------------- */
+
+.countdown-screen {
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ---------------- ゲーム画面 ---------------- */
+
+.game-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+.game-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.game-topbar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.game-topbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.game-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 auto;
+}
+
+.game-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  bottom: 0;
+  padding-top: 8px;
+  background: linear-gradient(
+    to top,
+    var(--color-bg-gradient-end) 60%,
+    transparent
+  );
+}
+
+/* 問題文が長い場合は問題文領域だけ縦スクロール */
+.prompt-card {
+  max-height: 34vh;
+  overflow-y: auto;
+}
+
+/* ---------------- 結果画面 ---------------- */
+
+.result-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.result-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 480px) {
+  .result-summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.history-list {
+  max-height: 46vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 2px;
+}
+
+.result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (min-width: 480px) {
+  .result-actions {
+    flex-direction: row;
+  }
+  .result-actions > button {
+    flex: 1 1 0;
+  }
+}

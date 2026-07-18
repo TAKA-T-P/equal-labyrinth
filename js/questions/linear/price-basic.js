@@ -1,0 +1,144 @@
+// カテゴリ：個数・代金
+// 基本式：単価×個数＋追加料金＝合計金額
+
+import {
+  createUniqueId,
+  randomInt,
+  randomChoice,
+  buildKeypadNumbers
+} from "./categories.js";
+
+const CATEGORY_ID = "L1-01";
+const CATEGORY_NAME = "個数・代金";
+
+// このカテゴリの式は「単価×個数＋追加料金＝合計金額」で固定のため、
+// 使用する記号も問題によらず一定になる。
+const KEYPAD_SYMBOLS = ["x", "+", "="];
+
+export const priceBasicTemplates = [
+  {
+    templateId: "L1-01-apple-box",
+    categoryId: CATEGORY_ID,
+
+    generate() {
+      const unitPrice = randomChoice([80, 100, 120, 150, 180]);
+      const boxFee = randomChoice([50, 80, 100, 150]);
+      const expectedX = randomInt(3, 12);
+      const total = unitPrice * expectedX + boxFee;
+
+      return {
+        id: createUniqueId(this.templateId),
+        templateId: this.templateId,
+        categoryId: CATEGORY_ID,
+        categoryName: CATEGORY_NAME,
+
+        prompt:
+          `1個${unitPrice}円のりんごを何個か買い、箱代${boxFee}円を` +
+          `別に払ったところ、代金の合計が${total}円になりました。` +
+          `りんごの個数をx個として方程式を立てなさい。`,
+
+        variableDefinition: "りんごの個数",
+
+        expectedX,
+
+        canonicalEquation: `${unitPrice}*x+${boxFee}=${total}`,
+        displayEquation: `${unitPrice}x＋${boxFee}＝${total}`,
+        solutionDisplay: `x＝${expectedX}`,
+
+        keypadNumbers: buildKeypadNumbers([unitPrice, boxFee, total]),
+        keypadSymbols: KEYPAD_SYMBOLS,
+
+        hint:
+          `りんごの代金は「1個${unitPrice}円×個数」で表せます。` +
+          `そこに箱代${boxFee}円を足すと合計になります。`,
+
+        explanation:
+          "りんごの代金と箱代を合わせた金額が、代金の合計と等しくなります。"
+      };
+    }
+  },
+
+  {
+    templateId: "L1-01-notebook-shipping",
+    categoryId: CATEGORY_ID,
+
+    generate() {
+      const unitPrice = randomChoice([90, 100, 110, 130, 160]);
+      const shippingFee = randomChoice([150, 200, 250, 300]);
+      const expectedX = randomInt(4, 15);
+      const total = unitPrice * expectedX + shippingFee;
+
+      return {
+        id: createUniqueId(this.templateId),
+        templateId: this.templateId,
+        categoryId: CATEGORY_ID,
+        categoryName: CATEGORY_NAME,
+
+        prompt:
+          `1冊${unitPrice}円のノートを何冊か注文し、送料${shippingFee}円を` +
+          `別に払ったところ、支払い金額の合計が${total}円になりました。` +
+          `ノートの冊数をx冊として方程式を立てなさい。`,
+
+        variableDefinition: "ノートの冊数",
+
+        expectedX,
+
+        canonicalEquation: `${unitPrice}*x+${shippingFee}=${total}`,
+        displayEquation: `${unitPrice}x＋${shippingFee}＝${total}`,
+        solutionDisplay: `x＝${expectedX}`,
+
+        keypadNumbers: buildKeypadNumbers([unitPrice, shippingFee, total]),
+        keypadSymbols: KEYPAD_SYMBOLS,
+
+        hint:
+          `ノートの代金は「1冊${unitPrice}円×冊数」で表せます。` +
+          `送料${shippingFee}円を足すと支払い金額の合計になります。`,
+
+        explanation:
+          "ノートの代金と送料を合わせた金額が、支払い金額の合計と等しくなります。"
+      };
+    }
+  },
+
+  {
+    templateId: "L1-01-ticket-pamphlet",
+    categoryId: CATEGORY_ID,
+
+    generate() {
+      const unitPrice = randomChoice([600, 700, 800, 900, 1000]);
+      const pamphletFee = randomChoice([200, 300, 400]);
+      const expectedX = randomInt(3, 8);
+      const total = unitPrice * expectedX + pamphletFee;
+
+      return {
+        id: createUniqueId(this.templateId),
+        templateId: this.templateId,
+        categoryId: CATEGORY_ID,
+        categoryName: CATEGORY_NAME,
+
+        prompt:
+          `1枚${unitPrice}円の入場券を何枚か買い、パンフレット代${pamphletFee}円を` +
+          `別に払ったところ、支払った金額の合計が${total}円になりました。` +
+          `入場券の枚数をx枚として方程式を立てなさい。`,
+
+        variableDefinition: "入場券の枚数",
+
+        expectedX,
+
+        canonicalEquation: `${unitPrice}*x+${pamphletFee}=${total}`,
+        displayEquation: `${unitPrice}x＋${pamphletFee}＝${total}`,
+        solutionDisplay: `x＝${expectedX}`,
+
+        keypadNumbers: buildKeypadNumbers([unitPrice, pamphletFee, total]),
+        keypadSymbols: KEYPAD_SYMBOLS,
+
+        hint:
+          `入場券の代金は「1枚${unitPrice}円×枚数」で表せます。` +
+          `パンフレット代${pamphletFee}円を足すと合計になります。`,
+
+        explanation:
+          "入場券の代金とパンフレット代を合わせた金額が、支払い金額の合計と等しくなります。"
+      };
+    }
+  }
+];
