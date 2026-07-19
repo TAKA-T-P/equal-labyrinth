@@ -39,6 +39,7 @@ export const catchUpTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `弟が分速${speedSlow}mで家を出発しました。その${headStartMinutes}分後に、` +
@@ -92,6 +93,7 @@ export const catchUpTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `歩行者が分速${speedSlow}mで歩き始めました。その${headStartMinutes}分後に、` +
@@ -145,6 +147,7 @@ export const catchUpTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `姉が分速${speedSlow}mで学校に向かって歩き始めました。その` +

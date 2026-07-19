@@ -42,6 +42,7 @@ export const twoProductsTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `1個${priceA}円のりんごと1個${priceB}円のみかんを合わせて` +
@@ -95,6 +96,7 @@ export const twoProductsTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `1個${priceA}円のあんぱんと1個${priceB}円のクリームパンを合わせて` +
@@ -148,6 +150,7 @@ export const twoProductsTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `1冊${priceA}円のノートと1個${priceB}円の消しゴムを合わせて` +

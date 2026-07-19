@@ -2,6 +2,7 @@
 
 import { validateEquation } from "../equation/equation-validator.js";
 import { tokenize, TokenType } from "../equation/tokenizer.js";
+import { LINEAR_CATEGORIES } from "./linear/categories.js";
 
 const REQUIRED_STRING_FIELDS = [
   "id",
@@ -13,9 +14,34 @@ const REQUIRED_STRING_FIELDS = [
   "canonicalEquation",
   "displayEquation",
   "solutionDisplay",
+  "rankDifficulty",
   "hint",
   "explanation"
 ];
+
+const VALID_RANK_DIFFICULTIES = new Set(["NORMAL", "HARD"]);
+const CATEGORY_DIFFICULTY_BY_ID = new Map(
+  LINEAR_CATEGORIES.map((category) => [category.id, category.difficulty])
+);
+
+/**
+ * rankDifficultyが妥当な値であり、カテゴリ定義の難易度と一致することを確認する。
+ */
+function validateRankDifficulty(question) {
+  if (!VALID_RANK_DIFFICULTIES.has(question.rankDifficulty)) {
+    return `rankDifficultyがNORMALまたはHARDではありません：${question.rankDifficulty}`;
+  }
+
+  const expectedDifficulty = CATEGORY_DIFFICULTY_BY_ID.get(question.categoryId);
+  if (expectedDifficulty && expectedDifficulty !== question.rankDifficulty) {
+    return (
+      `rankDifficulty（${question.rankDifficulty}）が` +
+      `カテゴリ定義の難易度（${expectedDifficulty}）と一致しません。`
+    );
+  }
+
+  return null;
+}
 
 // キーボードに表示してよい記号（将来のy・x²も見据えて許可しておく）
 const ALLOWED_KEYPAD_SYMBOLS = new Set([
@@ -173,6 +199,11 @@ export function validateQuestion(question) {
       valid: false,
       reason: "expectedXが正の整数ではありません。"
     };
+  }
+
+  const rankDifficultyReason = validateRankDifficulty(question);
+  if (rankDifficultyReason) {
+    return { valid: false, reason: rankDifficultyReason };
   }
 
   const keypadNumbersReason = validateKeypadNumbers(question.keypadNumbers);

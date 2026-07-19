@@ -25,6 +25,7 @@ import {
 import { LINEAR_CATEGORIES } from "./questions/linear/categories.js";
 import { validateEquation } from "./equation/equation-validator.js";
 import { tokenize, TokenType } from "./equation/tokenizer.js";
+import * as rankMode from "./modes/rank-mode.js";
 
 let questionQueue = [];
 
@@ -122,6 +123,8 @@ export function initGame() {
     onSelectAllCategories: handleSelectAllCategories,
     onDeselectAllCategories: handleDeselectAllCategories,
     onSoundToggle: handleSoundToggle,
+    onModeSelect: handleModeSelect,
+    onDifficultySelect: handleDifficultySelect,
     onStart: handleStart,
     onKeyPress: handleKeyPress,
     onHintPartPress: handleHintPartPress,
@@ -137,12 +140,16 @@ export function initGame() {
     onBackToTitle: handleBackToTitle,
     onReplay: handleReplay,
     onResultToTitle: handleBackToTitle,
+    onRankReplay: handleReplay,
+    onRankResultToTitle: handleBackToTitle,
     onPhysicalKeyDown: handlePhysicalKeyDown
   });
 
   ui.renderQuestionCountLabel(gameState.totalQuestions);
   ui.renderCategoryCheckboxes(gameState.selectedCategories, handleCategoryToggle);
   ui.setSoundToggleState(gameState.soundEnabled);
+  ui.renderModeSelection(gameState.mode);
+  ui.renderDifficultySelection(gameState.rankDifficulty);
   updateStartButtonAvailability();
   ui.showScreen("title");
 }
@@ -152,9 +159,27 @@ export function initGame() {
 // ============================================================
 
 function updateStartButtonAvailability() {
+  if (gameState.mode === "rank") {
+    // 段位認定モードは、難易度に既定値があるため常に開始できる
+    ui.setStartButtonEnabled(true);
+    ui.showCategoryWarning(false);
+    return;
+  }
+
   const result = validateSelectedCategories(gameState.selectedCategories);
   ui.setStartButtonEnabled(result.valid);
   ui.showCategoryWarning(!result.valid);
+}
+
+function handleModeSelect(mode) {
+  gameState.mode = mode;
+  ui.renderModeSelection(mode);
+  updateStartButtonAvailability();
+}
+
+function handleDifficultySelect(difficulty) {
+  gameState.rankDifficulty = difficulty;
+  ui.renderDifficultySelection(difficulty);
 }
 
 function handleQuestionCountChange(value) {
@@ -209,12 +234,21 @@ async function handleStart() {
 
 async function startNewGame() {
   resetGameState();
-  questionQueue = buildQuestionQueue(
-    gameState.selectedCategories,
-    gameState.totalQuestions
-  );
+
+  if (gameState.mode === "training") {
+    questionQueue = buildQuestionQueue(
+      gameState.selectedCategories,
+      gameState.totalQuestions
+    );
+  }
+
   await runCountdown();
-  beginQuestion(0);
+
+  if (gameState.mode === "rank") {
+    rankMode.startRankGame(gameState.rankDifficulty);
+  } else {
+    beginQuestion(0);
+  }
 }
 
 async function runCountdown() {
@@ -244,6 +278,7 @@ function beginQuestion(index) {
 
   ui.showScreen("game");
   ui.resetGameScreenPanels();
+  ui.showRankHud(false);
   ui.renderQuestionProgress(index + 1, gameState.totalQuestions);
   ui.renderQuestionPrompt(gameState.currentQuestion.prompt);
   ui.renderEquationInput(gameState.currentInputTokens, gameState.cursorPosition);
@@ -381,6 +416,14 @@ function handlePhysicalKeyDown(event) {
 // ============================================================
 
 function handleSubmit() {
+  if (gameState.mode === "rank") {
+    rankMode.handleSubmit();
+    return;
+  }
+  handleTrainingSubmit();
+}
+
+function handleTrainingSubmit() {
   if (gameState.inputLocked) return;
 
   const inputString = getCurrentInputString();
@@ -406,7 +449,7 @@ function handleIncorrectAnswer() {
   ui.showJudgeMessage("incorrect", "もう一度考えよう");
 }
 
-async function handleCorrectAnswer() {
+function handleCorrectAnswer() {
   const elapsedSeconds = timer.stopQuestionTimer();
   lockQuestionInput();
 
@@ -421,15 +464,8 @@ async function handleCorrectAnswer() {
   gameState.correctCount += 1;
   recordHistory("correct", elapsedSeconds);
 
-  if (gameState.mode === "training") {
-    // トレーニングモードでは、生徒が「次へ」を押すまで正解表示を残す
-    ui.showNextQuestionButton(true);
-    return;
-  }
-
-  // 段位認定モードなど（将来実装）では、一定時間で自動的に次へ進む
-  await sleep(APP_CONFIG.correctDisplayMilliseconds);
-  advanceToNextQuestionOrResult();
+  // トレーニングモードでは、生徒が「次へ」を押すまで正解表示を残す
+  ui.showNextQuestionButton(true);
 }
 
 /**
@@ -440,7 +476,15 @@ function handleNextQuestion() {
   advanceToNextQuestionOrResult();
 }
 
-async function handlePass() {
+function handlePass() {
+  if (gameState.mode === "rank") {
+    rankMode.handlePass();
+    return;
+  }
+  handleTrainingPass();
+}
+
+async function handleTrainingPass() {
   if (!gameState.passAvailable || gameState.inputLocked) return;
 
   const elapsedSeconds = timer.stopQuestionTimer();
@@ -578,6 +622,9 @@ function endGame() {
 
 function handleRetry() {
   timer.stopQuestionTimer();
+  if (gameState.mode === "rank") {
+    rankMode.stopRankSession();
+  }
   ui.hideAnswerReveal();
   ui.hideHintPanel();
   startNewGame();
@@ -585,6 +632,9 @@ function handleRetry() {
 
 function handleReplay() {
   timer.stopQuestionTimer();
+  if (gameState.mode === "rank") {
+    rankMode.stopRankSession();
+  }
   ui.hideAnswerReveal();
   ui.hideHintPanel();
   startNewGame();
@@ -592,6 +642,9 @@ function handleReplay() {
 
 function handleBackToTitle() {
   timer.stopQuestionTimer();
+  if (gameState.mode === "rank") {
+    rankMode.stopRankSession();
+  }
   ui.hideAnswerReveal();
   ui.hideHintPanel();
   resetGameState();

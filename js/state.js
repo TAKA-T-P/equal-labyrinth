@@ -5,8 +5,9 @@ import { APP_CONFIG } from "./config.js";
 export const gameState = {
   screen: "title",
 
-  mode: "training",
+  mode: "training", // "training" | "rank"
   unit: "linear",
+  rankDifficulty: "NORMAL", // "NORMAL" | "HARD"（段位認定モードでのみ使用）
 
   selectedCategories: [],
   totalQuestions: APP_CONFIG.defaultQuestions,
@@ -41,7 +42,31 @@ export const gameState = {
   recentTemplateIds: [],
   recentCategoryIds: [],
 
-  history: []
+  history: [],
+
+  // ============================================================
+  // 段位認定モード専用の状態（トレーニングモードでは使用しない）
+  // ============================================================
+
+  remainingTimeMs: APP_CONFIG.rankDurationMs,
+  globalTimerRunning: false,
+  globalTimeExpired: false,
+  finalGracePeriodRunning: false,
+  finalTimedOut: false,
+
+  score: 0,
+  displayedScore: 0,
+  lastScoreChange: 0,
+
+  combo: 0,
+  maxCombo: 0,
+  comboGaugeRatio: 1,
+  comboGaugeRunning: false,
+  comboGaugeStartTime: 0,
+  comboGaugeDurationMs: 0,
+  comboBuildPending: true,
+
+  rankResult: null
 };
 
 export function resetGameState() {
@@ -56,6 +81,26 @@ export function resetGameState() {
   gameState.recentCategoryIds = [];
 
   gameState.history = [];
+
+  gameState.remainingTimeMs = APP_CONFIG.rankDurationMs;
+  gameState.globalTimerRunning = false;
+  gameState.globalTimeExpired = false;
+  gameState.finalGracePeriodRunning = false;
+  gameState.finalTimedOut = false;
+
+  gameState.score = 0;
+  gameState.displayedScore = 0;
+  gameState.lastScoreChange = 0;
+
+  gameState.combo = 0;
+  gameState.maxCombo = 0;
+  gameState.comboGaugeRatio = 1;
+  gameState.comboGaugeRunning = false;
+  gameState.comboGaugeStartTime = 0;
+  gameState.comboGaugeDurationMs = 0;
+  gameState.comboBuildPending = true;
+
+  gameState.rankResult = null;
 
   resetQuestionState();
 }

@@ -114,3 +114,50 @@ export function playResultSound() {
     { frequency: 1046.5, startOffset: 0.36, duration: 0.35, type: "triangle", peakGain: 0.22 }
   ]);
 }
+
+// ============================================================
+// 段位認定モード専用の効果音
+// ============================================================
+
+export function playComboSound(combo) {
+  // コンボ数が増えるほど、少しだけ音程を上げる（上がりすぎないよう上限を設ける）
+  const step = Math.min(combo, 12);
+  const frequency = 587.33 * Math.pow(2, step / 24);
+  playTone({ frequency, duration: 0.1, type: "triangle", peakGain: 0.18 });
+}
+
+export function playComboBreakSound() {
+  playSequence([
+    { frequency: 349.23, startOffset: 0, duration: 0.12, type: "sawtooth", peakGain: 0.16 },
+    { frequency: 261.63, startOffset: 0.1, duration: 0.18, type: "sawtooth", peakGain: 0.16 }
+  ]);
+}
+
+export function playUrgentTickSound() {
+  playTone({ frequency: 880, duration: 0.06, type: "square", peakGain: 0.14 });
+}
+
+export function playTimeUpSound() {
+  playSequence([
+    { frequency: 220, startOffset: 0, duration: 0.3, type: "sawtooth", peakGain: 0.2 },
+    { frequency: 164.81, startOffset: 0.22, duration: 0.4, type: "sawtooth", peakGain: 0.2 }
+  ]);
+}
+
+export function playRankDecidedSound() {
+  playSequence([
+    { frequency: 392, startOffset: 0, duration: 0.16, type: "triangle", peakGain: 0.2 },
+    { frequency: 523.25, startOffset: 0.14, duration: 0.16, type: "triangle", peakGain: 0.22 },
+    { frequency: 659.25, startOffset: 0.28, duration: 0.16, type: "triangle", peakGain: 0.24 },
+    { frequency: 783.99, startOffset: 0.42, duration: 0.5, type: "triangle", peakGain: 0.26 }
+  ]);
+}
+
+export function playHighScoreSound() {
+  playSequence([
+    { frequency: 659.25, startOffset: 0, duration: 0.1, type: "square", peakGain: 0.2 },
+    { frequency: 830.61, startOffset: 0.09, duration: 0.1, type: "square", peakGain: 0.2 },
+    { frequency: 1046.5, startOffset: 0.18, duration: 0.1, type: "square", peakGain: 0.22 },
+    { frequency: 1318.5, startOffset: 0.27, duration: 0.4, type: "square", peakGain: 0.24 }
+  ]);
+}

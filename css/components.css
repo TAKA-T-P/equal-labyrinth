@@ -33,6 +33,14 @@
   padding: 0 12px;
 }
 
+.mode-description {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  white-space: pre-line;
+  text-align: center;
+}
+
 .credit {
   font-size: 0.7rem;
   color: var(--color-text-muted);
@@ -78,6 +86,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.choice-group[hidden] {
+  display: none;
 }
 
 .choice-button {
@@ -268,6 +280,95 @@ input[type="range"] {
 .question-progress {
   font-size: 1rem;
   font-weight: 800;
+}
+
+.question-progress[hidden] {
+  display: none;
+}
+
+/* ---------------- 段位認定 上部表示（残り時間・スコア・コンボ） ---------------- */
+/* カード状の背景は持たず、game-topbar-infoの中に直接並べる */
+
+.rank-topbar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rank-topbar-info[hidden] {
+  display: none;
+}
+
+.rank-topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rank-hud-time {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+}
+
+.rank-hud-time.is-urgent {
+  color: var(--color-incorrect);
+  animation: rank-time-urgent-pulse 1s ease-in-out infinite;
+}
+
+.rank-hud-score-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.rank-hud-score {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-correct-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-score-change {
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: left;
+  white-space: pre-line;
+}
+
+.rank-score-change[hidden] {
+  display: none;
+}
+
+.rank-score-change.is-positive {
+  color: var(--color-correct);
+  animation: rank-score-change-float 0.9s ease-out;
+}
+
+.rank-score-change.is-negative {
+  color: var(--color-incorrect);
+  animation: rank-score-change-float 0.9s ease-out;
+}
+
+.rank-combo-gauge-track {
+  flex: 1 1 auto;
+  min-width: 50px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.rank-combo-gauge-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-button-gold), var(--color-correct-gold));
+  transition: width 0.1s linear;
+}
+
+.rank-combo-gauge-fill.is-empty {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* ---------------- 数式入力欄 ---------------- */
@@ -603,6 +704,52 @@ input[type="range"] {
   text-align: center;
 }
 
+/* ---------------- 段位認定 結果画面 ---------------- */
+
+#rank-result-heading {
+  font-size: 1.05rem;
+}
+
+.rank-result-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.rank-result-name {
+  font-size: clamp(2.2rem, 12vw, 3.2rem);
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 0.04em;
+  background: linear-gradient(90deg, #ffe9a8, #d8b4ff 60%, #9fc4ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+}
+
+.rank-full-combo-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--color-correct-gold);
+  background: rgba(232, 201, 104, 0.15);
+  color: var(--color-correct-gold);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.rank-full-combo-badge[hidden] {
+  display: none;
+}
+
 .result-summary {
   padding: 10px 12px;
 }
@@ -660,6 +807,11 @@ input[type="range"] {
 .history-item-status.is-pass {
   background: rgba(201, 161, 59, 0.22);
   color: var(--color-correct-gold);
+}
+
+.history-item-status.is-timeout {
+  background: rgba(239, 95, 108, 0.2);
+  color: var(--color-incorrect);
 }
 
 .history-item-row {

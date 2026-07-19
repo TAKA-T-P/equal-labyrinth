@@ -80,3 +80,51 @@ export function loadSelectedCategories(defaultValue) {
     return defaultValue;
   }
 }
+
+// ============================================================
+// 段位認定モードのハイスコア（単元・難易度の組み合わせごとに保存する）
+// ============================================================
+
+function rankHighScoreKey(unit, difficulty) {
+  return `${APP_CONFIG.storageKeyPrefix}.rank.${unit}.${difficulty}`;
+}
+
+/**
+ * 段位認定のハイスコア記録を保存する。
+ * @param {string} unit 例："linear"
+ * @param {"NORMAL"|"HARD"} difficulty
+ * @param {{
+ *   highScore: number,
+ *   bestRankCoefficient: number,
+ *   bestRankName: string,
+ *   maxCorrectCount: number,
+ *   maxCombo: number,
+ *   updatedAt: string
+ * }} record
+ */
+export function saveRankHighScore(unit, difficulty, record) {
+  try {
+    safeSetItem(rankHighScoreKey(unit, difficulty), JSON.stringify(record));
+  } catch (error) {
+    // JSON化に失敗してもアプリは続行する
+  }
+}
+
+/**
+ * 段位認定のハイスコア記録を読み込む。未保存・破損時はnullを返す。
+ */
+export function loadRankHighScore(unit, difficulty) {
+  const raw = safeGetItem(rankHighScoreKey(unit, difficulty));
+  if (raw === null) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
+    return parsed;
+  } catch (error) {
+    return null;
+  }
+}

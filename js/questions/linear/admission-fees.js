@@ -42,6 +42,7 @@ export const admissionFeeTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `水族館の入館料は、大人1人${adultFee}円、子ども1人${childFee}円です。` +
@@ -95,6 +96,7 @@ export const admissionFeeTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `動物園の入園料は、大人1人${adultFee}円、子ども1人${childFee}円です。` +
@@ -148,6 +150,7 @@ export const admissionFeeTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `遊園地の入園料は、大人1人${adultFee}円、子ども1人${childFee}円です。` +

@@ -40,6 +40,7 @@ export const distributionTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `あめを何人かの子どもに配ります。1人${perPersonA}個ずつ配ると` +
@@ -94,6 +95,7 @@ export const distributionTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `鉛筆を、クラスの生徒に配ります。1人${perPersonA}本ずつ配ると` +
@@ -148,6 +150,7 @@ export const distributionTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `カードを、いくつかの班に配ります。1班${perPersonA}枚ずつ配ると` +

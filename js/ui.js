@@ -3,16 +3,25 @@
 
 import { LINEAR_CATEGORIES } from "./questions/linear/categories.js";
 import { APP_CONFIG } from "./config.js";
+import { formatScore } from "./rank/score-manager.js";
 
 const elements = {
   screens: {
     title: document.getElementById("screen-title"),
     countdown: document.getElementById("screen-countdown"),
     game: document.getElementById("screen-game"),
-    result: document.getElementById("screen-result")
+    result: document.getElementById("screen-result"),
+    "rank-result": document.getElementById("screen-rank-result")
   },
 
   // タイトル画面
+  modeTrainingButton: document.getElementById("mode-training"),
+  modeRankButton: document.getElementById("mode-rank"),
+  modeDescription: document.getElementById("mode-description"),
+  rankDifficultyGroup: document.getElementById("rank-difficulty-group"),
+  difficultyNormalButton: document.getElementById("difficulty-normal"),
+  difficultyHardButton: document.getElementById("difficulty-hard"),
+  trainingOnlySettings: document.getElementById("training-only-settings"),
   questionCountSlider: document.getElementById("question-count-slider"),
   questionCountLabel: document.getElementById("question-count-label"),
   categoryList: document.getElementById("category-list"),
@@ -26,9 +35,15 @@ const elements = {
   countdownDisplay: document.getElementById("countdown-display"),
 
   // ゲーム画面
+  unitLabel: document.getElementById("unit-label"),
   questionProgress: document.getElementById("question-progress"),
   retryButton: document.getElementById("retry-button"),
   backToTitleButton: document.getElementById("back-to-title-button"),
+  rankTopbarInfo: document.getElementById("rank-topbar-info"),
+  rankRemainingTime: document.getElementById("rank-remaining-time"),
+  rankScore: document.getElementById("rank-score"),
+  rankScoreChange: document.getElementById("rank-score-change"),
+  rankComboGaugeFill: document.getElementById("rank-combo-gauge-fill"),
   questionPrompt: document.getElementById("question-prompt"),
   equationInputCard: document.querySelector(".equation-input-card"),
   equationInputScroll: document.getElementById("equation-input-scroll"),
@@ -52,7 +67,7 @@ const elements = {
   hintPartsKeypad: document.getElementById("hint-parts-keypad"),
   hintPartsList: document.getElementById("hint-parts-list"),
 
-  // 結果画面
+  // 結果画面（トレーニング）
   statTotal: document.getElementById("stat-total"),
   statCorrect: document.getElementById("stat-correct"),
   statIncorrect: document.getElementById("stat-incorrect"),
@@ -61,30 +76,28 @@ const elements = {
   statAverageTime: document.getElementById("stat-average-time"),
   historyList: document.getElementById("history-list"),
   replayButton: document.getElementById("replay-button"),
-  resultToTitleButton: document.getElementById("result-to-title-button")
+  resultToTitleButton: document.getElementById("result-to-title-button"),
+
+  // 結果画面（段位認定）
+  rankResultHeading: document.getElementById("rank-result-heading"),
+  rankResultName: document.getElementById("rank-result-name"),
+  rankFullComboBadge: document.getElementById("rank-full-combo-badge"),
+  rankStatCorrect: document.getElementById("rank-stat-correct"),
+  rankStatIncorrect: document.getElementById("rank-stat-incorrect"),
+  rankStatPass: document.getElementById("rank-stat-pass"),
+  rankStatAverageTime: document.getElementById("rank-stat-average-time"),
+  rankStatScore: document.getElementById("rank-stat-score"),
+  rankStatHighScore: document.getElementById("rank-stat-high-score"),
+  rankHistoryList: document.getElementById("rank-history-list"),
+  rankReplayButton: document.getElementById("rank-replay-button"),
+  rankResultToTitleButton: document.getElementById("rank-result-to-title-button")
 };
 
 /**
- * "x" を斜体太字のTimes New Romanで表示するためのノードを作る。
+ * テキスト中の "x" だけを、斜体太字のTimes New Romanのspanへ差し替えながら
+ * containerへ子要素として追加する（containerの既存の中身はクリアしない）。
  */
-function createEquationCharacterNode(char) {
-  if (char === "x") {
-    const span = document.createElement("span");
-    span.className = "var-x equation-token";
-    span.textContent = "x";
-    return span;
-  }
-  const span = document.createElement("span");
-  span.className = "equation-token";
-  span.textContent = char;
-  return span;
-}
-
-/**
- * 問題文などの日本語文中にある "x" だけを、斜体太字のTimes New Romanで表示する。
- */
-function renderTextWithStyledVariable(container, text) {
-  container.innerHTML = "";
+function appendStyledVariableParts(container, text) {
   const parts = text.split("x");
 
   parts.forEach((part, index) => {
@@ -98,6 +111,26 @@ function renderTextWithStyledVariable(container, text) {
       container.appendChild(span);
     }
   });
+}
+
+/**
+ * 数式入力欄の1トークン分のノードを作る。数値ボタン・記号ボタンだけでなく、
+ * ヒントパーツ（"(15-x)"など複数文字のトークン）の中に含まれる"x"も、
+ * 斜体太字のTimes New Romanで表示する。
+ */
+function createEquationCharacterNode(token) {
+  const wrapper = document.createElement("span");
+  wrapper.className = "equation-token";
+  appendStyledVariableParts(wrapper, token);
+  return wrapper;
+}
+
+/**
+ * 問題文などの日本語文中にある "x" だけを、斜体太字のTimes New Romanで表示する。
+ */
+function renderTextWithStyledVariable(container, text) {
+  container.innerHTML = "";
+  appendStyledVariableParts(container, text);
 }
 
 // ============================================================
@@ -178,6 +211,40 @@ export function setStartButtonEnabled(enabled) {
 
 export function setSoundToggleState(enabled) {
   elements.soundToggle.checked = enabled;
+}
+
+const MODE_DESCRIPTIONS = {
+  training: "問題数とカテゴリを選んで、時間を気にせず練習します。",
+  rank:
+    "120秒以内に、できるだけ多くの方程式を立てよう！\n" +
+    "正解数・解答時間・ミス・パスから段位を認定します。"
+};
+
+/**
+ * モード選択（トレーニング／段位認定）の見た目を切り替える。
+ * トレーニング専用設定（問題数・カテゴリ）と、段位認定専用設定（難易度）の
+ * 表示・非表示もあわせて切り替える。
+ */
+export function renderModeSelection(mode) {
+  const isTraining = mode === "training";
+
+  elements.modeTrainingButton.classList.toggle("is-selected", isTraining);
+  elements.modeTrainingButton.setAttribute("aria-pressed", String(isTraining));
+  elements.modeRankButton.classList.toggle("is-selected", !isTraining);
+  elements.modeRankButton.setAttribute("aria-pressed", String(!isTraining));
+
+  elements.trainingOnlySettings.hidden = !isTraining;
+  elements.rankDifficultyGroup.hidden = isTraining;
+
+  elements.modeDescription.textContent = MODE_DESCRIPTIONS[mode] || "";
+}
+
+export function renderDifficultySelection(difficulty) {
+  const isNormal = difficulty === "NORMAL";
+  elements.difficultyNormalButton.classList.toggle("is-selected", isNormal);
+  elements.difficultyNormalButton.setAttribute("aria-pressed", String(isNormal));
+  elements.difficultyHardButton.classList.toggle("is-selected", !isNormal);
+  elements.difficultyHardButton.setAttribute("aria-pressed", String(!isNormal));
 }
 
 // ============================================================
@@ -466,6 +533,87 @@ export function resetGameScreenPanels() {
 }
 
 // ============================================================
+// 段位認定モードのHUD（残り時間・スコア・コンボ・コンボゲージ）
+// ============================================================
+
+let scoreAnimationFrameId = null;
+
+/**
+ * 段位認定HUDの表示・非表示を切り替える。
+ * 表示中は、トレーニング用の問題数表示（第N問／M問）を隠す。
+ */
+export function showRankHud(show) {
+  elements.rankTopbarInfo.hidden = !show;
+  elements.unitLabel.hidden = show;
+  elements.questionProgress.hidden = show;
+}
+
+export function renderRankRemainingTime(remainingSeconds, isUrgent) {
+  elements.rankRemainingTime.textContent =
+    remainingSeconds <= 0 ? "最終問題" : `残り ${remainingSeconds}秒`;
+  elements.rankRemainingTime.classList.toggle("is-urgent", isUrgent);
+}
+
+/**
+ * スコア表示を、現在の表示値から目標値までドラムロール風に変化させる。
+ * ゲーム内部の正式なスコア（gameState.score）は、呼び出し前に即座に更新済みである前提。
+ * 連続して呼び出された場合は、直前のアニメーションを打ち切って新しい目標値へ向けて描画し直す。
+ */
+export function animateScoreTo(targetScore) {
+  if (scoreAnimationFrameId !== null) {
+    cancelAnimationFrame(scoreAnimationFrameId);
+    scoreAnimationFrameId = null;
+  }
+
+  const startScore = Number(elements.rankScore.dataset.rawScore || "0");
+  const startTime = performance.now();
+  const durationMs = 500;
+
+  function step(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(1, elapsed / durationMs);
+    const currentValue = Math.round(
+      startScore + (targetScore - startScore) * progress
+    );
+    elements.rankScore.textContent = formatScore(currentValue);
+    elements.rankScore.dataset.rawScore = String(currentValue);
+
+    if (progress < 1) {
+      scoreAnimationFrameId = requestAnimationFrame(step);
+    } else {
+      scoreAnimationFrameId = null;
+      elements.rankScore.dataset.rawScore = String(targetScore);
+    }
+  }
+
+  scoreAnimationFrameId = requestAnimationFrame(step);
+}
+
+/**
+ * 正解・不正解時のスコア増減を、短時間のポップアップで表示する。
+ */
+export function showRankScoreChange(deltaText, isPositive) {
+  const el = elements.rankScoreChange;
+  window.clearTimeout(el._hideTimeoutId);
+
+  el.textContent = deltaText;
+  el.className = "rank-score-change";
+  void el.offsetWidth;
+  el.classList.add(isPositive ? "is-positive" : "is-negative");
+  el.hidden = false;
+
+  el._hideTimeoutId = window.setTimeout(() => {
+    el.hidden = true;
+  }, 900);
+}
+
+export function renderRankComboGauge(ratio) {
+  const percent = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+  elements.rankComboGaugeFill.style.width = `${percent}%`;
+  elements.rankComboGaugeFill.classList.toggle("is-empty", percent === 0);
+}
+
+// ============================================================
 // 結果画面
 // ============================================================
 
@@ -489,56 +637,78 @@ function createHistoryRow(label, valueText) {
   return row;
 }
 
+const HISTORY_STATUS_INFO = {
+  correct: { className: "is-correct", text: "正解" },
+  pass: { className: "is-pass", text: "パス" },
+  timeout: { className: "is-timeout", text: "時間切れ" }
+};
+
+/**
+ * 問題履歴の1件分のカードを作る。トレーニング・段位認定の両方で共通利用する。
+ * @param {object} entry
+ */
+function createHistoryItem(entry) {
+  const item = document.createElement("article");
+  item.className = "history-item";
+
+  const head = document.createElement("div");
+  head.className = "history-item-head";
+
+  const title = document.createElement("span");
+  title.textContent = `第${entry.questionNumber}問　${entry.categoryName}`;
+
+  const statusInfo = HISTORY_STATUS_INFO[entry.result] || HISTORY_STATUS_INFO.pass;
+  const status = document.createElement("span");
+  status.className = `history-item-status ${statusInfo.className}`;
+  status.textContent = statusInfo.text;
+
+  head.appendChild(title);
+  head.appendChild(status);
+  item.appendChild(head);
+
+  item.appendChild(createHistoryRow("問題文", entry.prompt));
+  item.appendChild(
+    createHistoryRow("入力した式", entry.lastInput || "（未入力）")
+  );
+  item.appendChild(createHistoryRow("模範式", entry.modelEquation));
+  item.appendChild(createHistoryRow("解", entry.solutionDisplay));
+  item.appendChild(createHistoryRow("解答時間", `${entry.elapsedTimeText}秒`));
+
+  return item;
+}
+
 export function renderHistory(historyEntries) {
   elements.historyList.innerHTML = "";
-
   historyEntries.forEach((entry) => {
-    const item = document.createElement("article");
-    item.className = "history-item";
-
-    const head = document.createElement("div");
-    head.className = "history-item-head";
-
-    const title = document.createElement("span");
-    title.textContent = `第${entry.questionNumber}問　${entry.categoryName}`;
-
-    const status = document.createElement("span");
-    status.className = `history-item-status ${
-      entry.result === "correct" ? "is-correct" : "is-pass"
-    }`;
-    status.textContent = entry.result === "correct" ? "正解" : "パス";
-
-    head.appendChild(title);
-    head.appendChild(status);
-    item.appendChild(head);
-
-    item.appendChild(createHistoryRow("問題文", entry.prompt));
-    item.appendChild(createHistoryRow("xの意味", entry.variableDefinition));
-    item.appendChild(
-      createHistoryRow("入力した式", entry.lastInput || "（未入力）")
-    );
-    item.appendChild(createHistoryRow("模範式", entry.modelEquation));
-    item.appendChild(createHistoryRow("解", entry.solutionDisplay));
-    item.appendChild(
-      createHistoryRow("解答時間", `${entry.elapsedTimeText}秒`)
-    );
-    item.appendChild(
-      createHistoryRow("不正解回数", `${entry.incorrectCount}回`)
-    );
-    item.appendChild(
-      createHistoryRow("ヒント", entry.hintUsed ? "使用" : "未使用")
-    );
-
-    let hintPartStatusText = "未表示";
-    if (entry.hintPartUsed) {
-      hintPartStatusText = "使用";
-    } else if (entry.hintPartsRevealed) {
-      hintPartStatusText = "未使用";
-    }
-    item.appendChild(createHistoryRow("式パーツ", hintPartStatusText));
-
-    elements.historyList.appendChild(item);
+    elements.historyList.appendChild(createHistoryItem(entry));
   });
+}
+
+/**
+ * 段位認定モードの問題履歴を描画する。
+ */
+export function renderRankHistory(historyEntries) {
+  elements.rankHistoryList.innerHTML = "";
+  historyEntries.forEach((entry) => {
+    elements.rankHistoryList.appendChild(createHistoryItem(entry));
+  });
+}
+
+/**
+ * 段位認定モードの結果画面を描画する。
+ */
+export function renderRankResult(data) {
+  elements.rankResultHeading.textContent = `段位認定／1次方程式 ${data.difficulty}`;
+  elements.rankResultName.textContent = data.displayRankName;
+  elements.rankFullComboBadge.hidden = !(
+    data.correctCount > 0 && data.correctCount === data.maxCombo
+  );
+  elements.rankStatCorrect.textContent = `${data.correctCount}問`;
+  elements.rankStatIncorrect.textContent = `${data.incorrectCount}回`;
+  elements.rankStatPass.textContent = `${data.passCount}回`;
+  elements.rankStatAverageTime.textContent = data.averageTimeText;
+  elements.rankStatScore.textContent = data.scoreText;
+  elements.rankStatHighScore.textContent = data.highScoreText;
 }
 
 // ============================================================
@@ -568,6 +738,22 @@ export function initUI(callbacks) {
 
   elements.startButton.addEventListener("click", () => {
     callbacks.onStart();
+  });
+
+  elements.modeTrainingButton.addEventListener("click", () => {
+    callbacks.onModeSelect("training");
+  });
+
+  elements.modeRankButton.addEventListener("click", () => {
+    callbacks.onModeSelect("rank");
+  });
+
+  elements.difficultyNormalButton.addEventListener("click", () => {
+    callbacks.onDifficultySelect("NORMAL");
+  });
+
+  elements.difficultyHardButton.addEventListener("click", () => {
+    callbacks.onDifficultySelect("HARD");
   });
 
   elements.retryButton.addEventListener("click", () => {
@@ -600,6 +786,14 @@ export function initUI(callbacks) {
 
   elements.resultToTitleButton.addEventListener("click", () => {
     callbacks.onResultToTitle();
+  });
+
+  elements.rankReplayButton.addEventListener("click", () => {
+    callbacks.onRankReplay();
+  });
+
+  elements.rankResultToTitleButton.addEventListener("click", () => {
+    callbacks.onRankResultToTitle();
   });
 
   elements.mathKeyboard.addEventListener("click", (event) => {

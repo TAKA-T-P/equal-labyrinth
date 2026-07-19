@@ -31,6 +31,7 @@ export const priceBasicTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `1個${unitPrice}円のりんごを何個か買い、箱代${boxFee}円を` +
@@ -76,6 +77,7 @@ export const priceBasicTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `1冊${unitPrice}円のノートを何冊か注文し、送料${shippingFee}円を` +
@@ -121,6 +123,7 @@ export const priceBasicTemplates = [
         templateId: this.templateId,
         categoryId: CATEGORY_ID,
         categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
 
         prompt:
           `1枚${unitPrice}円の入場券を何枚か買い、パンフレット代${pamphletFee}円を` +

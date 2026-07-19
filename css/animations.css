@@ -4,6 +4,56 @@
    魔法陣や光の簡易演出・prefers-reduced-motion対応
    ========================================================== */
 
+/* ---------------- 段位認定HUD ---------------- */
+/* 残り10秒以下は、強い点滅ではなく穏やかなフェードで目立たせる */
+
+@keyframes rank-time-urgent-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes rank-score-change-float {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.rank-result-name {
+  animation: rank-result-name-appear 0.5s ease-out;
+}
+
+@keyframes rank-result-name-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* ---------------- カウントダウン ---------------- */
 
 .countdown-number {

@@ -28,10 +28,14 @@
         <button type="button" class="choice-button is-selected" id="mode-training" data-mode="training" aria-pressed="true">
           トレーニング
         </button>
-        <button type="button" class="choice-button is-disabled" id="mode-rank" disabled aria-disabled="true">
-          段位認定<span class="badge-wip">準備中</span>
+        <button type="button" class="choice-button" id="mode-rank" data-mode="rank" aria-pressed="false">
+          段位認定
         </button>
       </div>
+
+      <p id="mode-description" class="mode-description">
+        問題数とカテゴリを選んで、時間を気にせず練習します。
+      </p>
 
       <div class="choice-group" role="group" aria-label="単元選択">
         <button type="button" class="choice-button is-selected" id="unit-linear" data-unit="linear" aria-pressed="true">
@@ -45,29 +49,40 @@
         </button>
       </div>
 
-      <label class="slider-row" for="question-count-slider">
-        <span id="question-count-label" class="slider-value">問題数：5問</span>
-        <input
-          type="range"
-          id="question-count-slider"
-          min="3"
-          max="10"
-          step="1"
-          value="5"
-          aria-labelledby="question-count-label"
-        />
-      </label>
+      <div class="choice-group" role="group" aria-label="難易度選択" id="rank-difficulty-group" hidden>
+        <button type="button" class="choice-button is-selected" id="difficulty-normal" data-difficulty="NORMAL" aria-pressed="true">
+          NORMAL
+        </button>
+        <button type="button" class="choice-button" id="difficulty-hard" data-difficulty="HARD" aria-pressed="false">
+          HARD
+        </button>
+      </div>
 
-      <div class="setting-card">
-        <h2 class="setting-heading">出題するカテゴリ</h2>
-        <div class="category-toolbar">
-          <button type="button" class="small-button" id="category-select-all">すべて選択</button>
-          <button type="button" class="small-button" id="category-select-none">すべて解除</button>
+      <div id="training-only-settings">
+        <label class="slider-row" for="question-count-slider">
+          <span id="question-count-label" class="slider-value">問題数：5問</span>
+          <input
+            type="range"
+            id="question-count-slider"
+            min="3"
+            max="20"
+            step="1"
+            value="5"
+            aria-labelledby="question-count-label"
+          />
+        </label>
+
+        <div class="setting-card">
+          <h2 class="setting-heading">出題するカテゴリ</h2>
+          <div class="category-toolbar">
+            <button type="button" class="small-button" id="category-select-all">すべて選択</button>
+            <button type="button" class="small-button" id="category-select-none">すべて解除</button>
+          </div>
+          <div id="category-list" class="category-list" role="group" aria-label="カテゴリ選択"></div>
+          <p id="category-warning" class="warning-text" hidden>
+            出題するカテゴリを1つ以上選んでください。
+          </p>
         </div>
-        <div id="category-list" class="category-list" role="group" aria-label="カテゴリ選択"></div>
-        <p id="category-warning" class="warning-text" hidden>
-          出題するカテゴリを1つ以上選んでください。
-        </p>
       </div>
 
       <label class="toggle-row" for="sound-toggle">
@@ -95,8 +110,23 @@
 
       <div class="game-topbar">
         <div class="game-topbar-info">
-          <span class="unit-label">1次方程式</span>
+          <span id="unit-label" class="unit-label">1次方程式</span>
           <span id="question-progress" class="question-progress">第1問 / 5問</span>
+
+          <div id="rank-topbar-info" class="rank-topbar-info" hidden>
+            <div class="rank-topbar-row">
+              <span id="rank-remaining-time" class="rank-hud-time">残り 120秒</span>
+              <span class="rank-hud-score-wrap">
+                <span id="rank-score" class="rank-hud-score">0点</span>
+              </span>
+              <span id="rank-score-change" class="rank-score-change" hidden></span>
+            </div>
+            <div class="rank-topbar-row">
+              <div class="rank-combo-gauge-track">
+                <div id="rank-combo-gauge-fill" class="rank-combo-gauge-fill"></div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="game-topbar-actions">
           <button type="button" id="retry-button" class="icon-button" aria-label="リトライ">リトライ</button>
@@ -203,6 +233,52 @@
 
       <h3 class="history-heading">問題履歴</h3>
       <div id="history-list" class="history-list"></div>
+    </div>
+  </section>
+
+  <!-- 段位認定 結果画面 -->
+  <section id="screen-rank-result" class="screen" data-screen="rank-result" hidden>
+    <div class="screen-inner result-screen">
+      <h2 id="rank-result-heading" class="result-heading">段位認定</h2>
+      <div class="rank-result-name-row">
+        <p id="rank-result-name" class="rank-result-name">―</p>
+        <span id="rank-full-combo-badge" class="rank-full-combo-badge" hidden>Full<br />Combo!</span>
+      </div>
+
+      <div class="result-summary" id="rank-result-summary">
+        <div class="result-stat">
+          <span class="result-stat-label">正解問題数</span>
+          <span id="rank-stat-correct" class="result-stat-value">0問</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">不正解回数</span>
+          <span id="rank-stat-incorrect" class="result-stat-value">0回</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">パス回数</span>
+          <span id="rank-stat-pass" class="result-stat-value">0回</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">平均正解時間</span>
+          <span id="rank-stat-average-time" class="result-stat-value">―</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">スコア</span>
+          <span id="rank-stat-score" class="result-stat-value">0点</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">ハイスコア</span>
+          <span id="rank-stat-high-score" class="result-stat-value">0点</span>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button type="button" id="rank-replay-button" class="primary-button">もう一度</button>
+        <button type="button" id="rank-result-to-title-button" class="secondary-button">タイトルへ</button>
+      </div>
+
+      <h3 class="history-heading">問題履歴</h3>
+      <div id="rank-history-list" class="history-list"></div>
     </div>
   </section>
 

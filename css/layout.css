@@ -56,6 +56,16 @@
   padding-top: 8px;
 }
 
+#training-only-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#training-only-settings[hidden] {
+  display: none;
+}
+
 /* ---------------- カウントダウン画面 ---------------- */
 
 .countdown-screen {
