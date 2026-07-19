@@ -86,6 +86,11 @@ export function astToLinearExpression(node) {
       return createExpression(0, node.value);
 
     case NodeType.VARIABLE:
+      if (node.name && node.name !== "x") {
+        throw new EquationError(
+          `この問題ではxのみを使用します（${node.name}は使用できません）。`
+        );
+      }
       return createExpression(1, 0);
 
     case NodeType.UNARY_MINUS:

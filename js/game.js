@@ -2,7 +2,7 @@
 // 数式解析の詳細はequation/、問題生成の詳細はquestions/、
 // DOM操作の詳細はui.jsへ任せる。
 
-import { APP_CONFIG } from "./config.js";
+import { APP_CONFIG, UNIT_IDS } from "./config.js";
 import {
   gameState,
   resetGameState,
@@ -10,20 +10,30 @@ import {
   insertCharacterAtCursor,
   moveCursorLeft,
   moveCursorRight,
+  setCursorPosition,
   deleteCharacterBeforeCursor,
   clearInput,
-  getCurrentInputString
+  getCurrentInputString,
+  insertCharacterAtSystemCursor,
+  moveSystemCursorLeft,
+  moveSystemCursorRight,
+  setSystemCursorPosition,
+  deleteSystemCharacterBeforeCursor,
+  clearActiveSystemInput,
+  setActiveSystemEquationIndex,
+  getCurrentSystemInputStrings
 } from "./state.js";
 import * as ui from "./ui.js";
 import * as timer from "./timer.js";
 import * as audio from "./audio.js";
 import * as storage from "./storage.js";
 import {
-  buildQuestionQueue,
-  validateSelectedCategories
+  buildTrainingQuestionQueue,
+  validateSelectedCategories,
+  getCategoriesForUnit
 } from "./questions/question-manager.js";
-import { LINEAR_CATEGORIES } from "./questions/linear/categories.js";
 import { validateEquation } from "./equation/equation-validator.js";
+import { validateSystemEquations } from "./equation/system-equation-validator.js";
 import { tokenize, TokenType } from "./equation/tokenizer.js";
 import * as rankMode from "./modes/rank-mode.js";
 
@@ -52,7 +62,11 @@ function isParensBalanced(tokens) {
   return depth === 0;
 }
 
-function isInputStructurallyValid(inputString) {
+/**
+ * @param {string} inputString
+ * @param {string[]} requiredVariableNames 1次方程式では["x"]、連立方程式では["x","y"]
+ */
+function isInputStructurallyValid(inputString, requiredVariableNames = ["x"]) {
   if (!inputString || inputString.trim() === "") {
     return false;
   }
@@ -68,8 +82,12 @@ function isInputStructurallyValid(inputString) {
     return false;
   }
 
-  const hasVariable = tokens.some((token) => token.type === TokenType.VARIABLE);
-  if (!hasVariable) {
+  const hasAllRequiredVariables = requiredVariableNames.every((variableName) =>
+    tokens.some(
+      (token) => token.type === TokenType.VARIABLE && token.name === variableName
+    )
+  );
+  if (!hasAllRequiredVariables) {
     return false;
   }
 
@@ -96,6 +114,28 @@ function isInputStructurallyValid(inputString) {
   return true;
 }
 
+function getRequiredVariableNamesForUnit() {
+  return gameState.unit === UNIT_IDS.SIMULTANEOUS ? ["x", "y"] : ["x"];
+}
+
+/**
+ * 現在の単元・入力状態から、解答ボタンを有効にしてよいか（Enterで解答してよいか）を判定する。
+ * 連立方程式では、式①・式②の両方が構造的に妥当な場合のみtrueになる。
+ */
+function isCurrentInputSubmittable() {
+  const requiredVariableNames = getRequiredVariableNamesForUnit();
+
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    const [input1, input2] = getCurrentSystemInputStrings();
+    return (
+      isInputStructurallyValid(input1, requiredVariableNames) &&
+      isInputStructurallyValid(input2, requiredVariableNames)
+    );
+  }
+
+  return isInputStructurallyValid(getCurrentInputString(), requiredVariableNames);
+}
+
 // ============================================================
 // 初期化
 // ============================================================
@@ -105,9 +145,11 @@ export function initGame() {
   const savedTotalQuestions = storage.loadTotalQuestions(
     APP_CONFIG.defaultQuestions
   );
-  const validCategoryIds = LINEAR_CATEGORIES.map((category) => category.id);
+  const validCategoryIds = getCategoriesForUnit(gameState.unit).map(
+    (category) => category.id
+  );
   const savedCategories = storage
-    .loadSelectedCategories(validCategoryIds)
+    .loadSelectedCategories(gameState.unit, validCategoryIds)
     .filter((id) => validCategoryIds.includes(id));
 
   gameState.soundEnabled = savedSoundEnabled;
@@ -123,6 +165,7 @@ export function initGame() {
     onCategorySelectToggle: handleCategorySelectToggle,
     onSoundToggle: handleSoundToggle,
     onModeSelect: handleModeSelect,
+    onUnitSelect: handleUnitSelect,
     onDifficultySelect: handleDifficultySelect,
     onStart: handleStart,
     onKeyPress: handleKeyPress,
@@ -131,6 +174,9 @@ export function initGame() {
     onCursorRight: handleCursorRight,
     onBackspace: handleBackspace,
     onClear: handleClear,
+    onEquationSwitch: handleEquationSwitch,
+    onEquationSlotSelect: handleEquationSlotSelect,
+    onEquationInputTap: handleEquationInputTap,
     onSubmit: handleSubmit,
     onNextQuestion: handleNextQuestion,
     onHintRequest: handleHintRequest,
@@ -146,9 +192,14 @@ export function initGame() {
   });
 
   ui.renderQuestionCountLabel(gameState.totalQuestions);
-  ui.renderCategoryCheckboxes(gameState.selectedCategories, handleCategoryToggle);
+  ui.renderCategoryCheckboxes(
+    getCategoriesForUnit(gameState.unit),
+    gameState.selectedCategories,
+    handleCategoryToggle
+  );
   ui.setSoundToggleState(gameState.soundEnabled);
   ui.renderModeSelection(gameState.mode);
+  ui.renderUnitSelection(gameState.unit);
   ui.renderDifficultySelection(gameState.rankDifficulty);
   updateStartButtonAvailability();
   ui.showScreen("title");
@@ -160,7 +211,7 @@ export function initGame() {
 
 function updateStartButtonAvailability() {
   ui.renderCategorySelectToggle(
-    gameState.selectedCategories.length === LINEAR_CATEGORIES.length
+    gameState.selectedCategories.length === getCategoriesForUnit(gameState.unit).length
   );
 
   if (gameState.mode === "rank") {
@@ -170,7 +221,7 @@ function updateStartButtonAvailability() {
     return;
   }
 
-  const result = validateSelectedCategories(gameState.selectedCategories);
+  const result = validateSelectedCategories(gameState.selectedCategories, gameState.unit);
   ui.setStartButtonEnabled(result.valid);
   ui.showCategoryWarning(!result.valid);
 }
@@ -178,6 +229,30 @@ function updateStartButtonAvailability() {
 function handleModeSelect(mode) {
   gameState.mode = mode;
   ui.renderModeSelection(mode);
+  updateStartButtonAvailability();
+}
+
+/**
+ * 単元（1次方程式／連立方程式）を切り替える。
+ * 中1で選択していたカテゴリを、中2のカテゴリ選択へ誤って引き継がないよう、
+ * 単元ごとに保存されたカテゴリ選択を読み直す。
+ */
+function handleUnitSelect(unit) {
+  gameState.unit = unit;
+  ui.renderUnitSelection(unit);
+
+  const validCategoryIds = getCategoriesForUnit(unit).map((category) => category.id);
+  const savedCategories = storage
+    .loadSelectedCategories(unit, validCategoryIds)
+    .filter((id) => validCategoryIds.includes(id));
+  gameState.selectedCategories =
+    savedCategories.length > 0 ? savedCategories : validCategoryIds;
+
+  ui.renderCategoryCheckboxes(
+    getCategoriesForUnit(unit),
+    gameState.selectedCategories,
+    handleCategoryToggle
+  );
   updateStartButtonAvailability();
 }
 
@@ -202,29 +277,29 @@ function handleCategoryToggle(categoryId, checked) {
       (id) => id !== categoryId
     );
   }
-  storage.saveSelectedCategories(gameState.selectedCategories);
+  storage.saveSelectedCategories(gameState.unit, gameState.selectedCategories);
   updateStartButtonAvailability();
 }
 
 function handleSelectAllCategories() {
-  gameState.selectedCategories = LINEAR_CATEGORIES.map(
+  gameState.selectedCategories = getCategoriesForUnit(gameState.unit).map(
     (category) => category.id
   );
-  ui.setAllCategoryCheckboxes(true);
-  storage.saveSelectedCategories(gameState.selectedCategories);
+  ui.setAllCategoryCheckboxes(getCategoriesForUnit(gameState.unit), true);
+  storage.saveSelectedCategories(gameState.unit, gameState.selectedCategories);
   updateStartButtonAvailability();
 }
 
 function handleDeselectAllCategories() {
   gameState.selectedCategories = [];
-  ui.setAllCategoryCheckboxes(false);
-  storage.saveSelectedCategories(gameState.selectedCategories);
+  ui.setAllCategoryCheckboxes(getCategoriesForUnit(gameState.unit), false);
+  storage.saveSelectedCategories(gameState.unit, gameState.selectedCategories);
   updateStartButtonAvailability();
 }
 
 function handleCategorySelectToggle() {
   const allSelected =
-    gameState.selectedCategories.length === LINEAR_CATEGORIES.length;
+    gameState.selectedCategories.length === getCategoriesForUnit(gameState.unit).length;
   if (allSelected) {
     handleDeselectAllCategories();
   } else {
@@ -251,7 +326,8 @@ async function startNewGame() {
   resetGameState();
 
   if (gameState.mode === "training") {
-    questionQueue = buildQuestionQueue(
+    questionQueue = buildTrainingQuestionQueue(
+      gameState.unit,
       gameState.selectedCategories,
       gameState.totalQuestions
     );
@@ -260,7 +336,7 @@ async function startNewGame() {
   await runCountdown();
 
   if (gameState.mode === "rank") {
-    rankMode.startRankGame(gameState.rankDifficulty);
+    rankMode.startRankGame(gameState.unit, gameState.rankDifficulty);
   } else {
     beginQuestion(0);
   }
@@ -295,9 +371,11 @@ function beginQuestion(index) {
   ui.resetGameScreenPanels();
   ui.showRankHud(false);
   ui.showRetireButton(true);
+  ui.renderUnitLabel(gameState.unit);
+  ui.showEquationInputMode(gameState.unit);
   ui.renderQuestionProgress(index + 1, gameState.totalQuestions);
   ui.renderQuestionPrompt(gameState.currentQuestion.prompt);
-  ui.renderEquationInput(gameState.currentInputTokens, gameState.cursorPosition);
+  refreshEquationDisplay();
   ui.renderEquationKeypad(gameState.currentQuestion);
   ui.setSubmitButtonEnabled(false);
 
@@ -309,12 +387,12 @@ function beginQuestion(index) {
 
 function handleHintAvailable() {
   gameState.hintAvailable = true;
-  ui.showHintButton(true);
+  ui.setHintButtonEnabled(true);
 }
 
 function handlePassAvailable() {
   gameState.passAvailable = true;
-  ui.showPassButton(true);
+  ui.setPassButtonEnabled(true);
 }
 
 // ============================================================
@@ -322,18 +400,29 @@ function handlePassAvailable() {
 // ============================================================
 
 function refreshEquationDisplay() {
-  ui.renderEquationInput(gameState.currentInputTokens, gameState.cursorPosition);
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    ui.renderSystemEquationInput(
+      gameState.currentSystemInputTokens,
+      gameState.systemCursorPositions,
+      gameState.activeSystemEquationIndex
+    );
+  } else {
+    ui.renderEquationInput(gameState.currentInputTokens, gameState.cursorPosition);
+  }
 }
 
 function updateSubmitButtonState() {
-  const valid =
-    !gameState.inputLocked && isInputStructurallyValid(getCurrentInputString());
+  const valid = !gameState.inputLocked && isCurrentInputSubmittable();
   ui.setSubmitButtonEnabled(valid);
 }
 
 function insertValueAtCursor(value) {
   if (gameState.inputLocked) return false;
-  insertCharacterAtCursor(value);
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    insertCharacterAtSystemCursor(value);
+  } else {
+    insertCharacterAtCursor(value);
+  }
   audio.playKeySound();
   refreshEquationDisplay();
   updateSubmitButtonState();
@@ -345,7 +434,8 @@ function handleKeyPress(char) {
 }
 
 /**
- * ヒントで公開された式パーツ（(15-x)など）を、1つの塊としてカーソル位置へ挿入する。
+ * ヒントで公開された式パーツ（(15-x)など）を、1つの塊として現在アクティブな
+ * 入力欄のカーソル位置へ挿入する（連立方程式でも、式①・式②を自動判断しない）。
  */
 function handleHintPartPress(value) {
   const inserted = insertValueAtCursor(value);
@@ -359,28 +449,84 @@ function handleHintPartPress(value) {
 
 function handleCursorLeft() {
   if (gameState.inputLocked) return;
-  moveCursorLeft();
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    moveSystemCursorLeft();
+  } else {
+    moveCursorLeft();
+  }
   refreshEquationDisplay();
 }
 
 function handleCursorRight() {
   if (gameState.inputLocked) return;
-  moveCursorRight();
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    moveSystemCursorRight();
+  } else {
+    moveCursorRight();
+  }
   refreshEquationDisplay();
 }
 
 function handleBackspace() {
   if (gameState.inputLocked) return;
-  deleteCharacterBeforeCursor();
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    deleteSystemCharacterBeforeCursor();
+  } else {
+    deleteCharacterBeforeCursor();
+  }
   refreshEquationDisplay();
   updateSubmitButtonState();
 }
 
+/**
+ * 全消去は、連立方程式ではアクティブな式だけを消す（もう一方は残す）。
+ */
 function handleClear() {
   if (gameState.inputLocked) return;
-  clearInput();
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    clearActiveSystemInput();
+  } else {
+    clearInput();
+  }
   refreshEquationDisplay();
   updateSubmitButtonState();
+}
+
+/**
+ * 連立方程式で、アクティブな入力欄（式①／式②）を切り替える
+ * （「式切替」ボタン・PCキーボードのTabキーから呼ばれる）。
+ */
+function handleEquationSwitch() {
+  if (gameState.inputLocked) return;
+  if (gameState.unit !== UNIT_IDS.SIMULTANEOUS) return;
+  const nextIndex = gameState.activeSystemEquationIndex === 0 ? 1 : 0;
+  setActiveSystemEquationIndex(nextIndex);
+  refreshEquationDisplay();
+}
+
+/**
+ * 連立方程式で、式①・式②の入力欄を直接タップしてアクティブ欄を切り替える。
+ * tapIndexが指定されている場合は、タップした位置へカーソルも移動する
+ * （キーボード操作（Enter／Space）からの呼び出しではtapIndexを渡さず、切替のみ行う）。
+ */
+function handleEquationSlotSelect(index, tapIndex) {
+  if (gameState.inputLocked) return;
+  if (gameState.unit !== UNIT_IDS.SIMULTANEOUS) return;
+  setActiveSystemEquationIndex(index);
+  if (tapIndex !== undefined) {
+    setSystemCursorPosition(index, tapIndex);
+  }
+  refreshEquationDisplay();
+}
+
+/**
+ * 1次方程式で、入力欄をタップした位置へカーソルを直接移動する。
+ */
+function handleEquationInputTap(tapIndex) {
+  if (gameState.inputLocked) return;
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) return;
+  setCursorPosition(tapIndex);
+  refreshEquationDisplay();
 }
 
 const PHYSICAL_KEY_MAP = {
@@ -391,6 +537,29 @@ const PHYSICAL_KEY_MAP = {
 
 function handlePhysicalKeyDown(event) {
   if (gameState.inputLocked) return;
+
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    if (event.key === "Tab") {
+      event.preventDefault();
+      handleEquationSwitch();
+      return;
+    }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if (gameState.activeSystemEquationIndex === 0) {
+        handleEquationSwitch();
+      } else if (isCurrentInputSubmittable()) {
+        handleSubmit();
+      }
+      return;
+    }
+  } else if (event.key === "Enter") {
+    if (isCurrentInputSubmittable()) {
+      event.preventDefault();
+      handleSubmit();
+    }
+    return;
+  }
 
   if (event.key === "ArrowLeft") {
     event.preventDefault();
@@ -407,18 +576,15 @@ function handlePhysicalKeyDown(event) {
     handleBackspace();
     return;
   }
-  if (event.key === "Enter") {
-    if (isInputStructurallyValid(getCurrentInputString())) {
-      event.preventDefault();
-      handleSubmit();
-    }
-    return;
-  }
 
   const key = event.key;
-  if (/^[0-9.()=+xX]$/.test(key)) {
+  if (/^[0-9.()=+xXyY]$/.test(key)) {
     event.preventDefault();
-    handleKeyPress(key === "X" ? "x" : key);
+    if (key === "X" || key === "Y") {
+      handleKeyPress(key.toLowerCase());
+    } else {
+      handleKeyPress(key);
+    }
     return;
   }
   if (PHYSICAL_KEY_MAP[key]) {
@@ -442,8 +608,10 @@ function handleSubmit() {
 function handleTrainingSubmit() {
   if (gameState.inputLocked) return;
 
-  const inputString = getCurrentInputString();
-  const result = validateEquation(inputString, gameState.currentQuestion.expectedX);
+  const result =
+    gameState.unit === UNIT_IDS.SIMULTANEOUS
+      ? validateSystemEquations(getCurrentSystemInputStrings(), gameState.currentQuestion)
+      : validateEquation(getCurrentInputString(), gameState.currentQuestion.expectedX);
 
   if (result.status === "correct") {
     handleCorrectAnswer();
@@ -452,6 +620,19 @@ function handleTrainingSubmit() {
   } else {
     handleInputError(result);
   }
+}
+
+/**
+ * 正解・パス演出で表示する模範式を、単元に応じて組み立てる。
+ * 1次方程式は文字列1つ、連立方程式は[式①, 式②]の配列を返す。
+ */
+function getDisplayEquationForCurrentQuestion() {
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    return gameState.currentQuestion.canonicalEquations.map(
+      (equation) => equation.display
+    );
+  }
+  return gameState.currentQuestion.displayEquation;
 }
 
 function handleInputError(result) {
@@ -473,7 +654,7 @@ function handleCorrectAnswer() {
   ui.showAnswerReveal(
     "correct",
     "正解です！",
-    gameState.currentQuestion.displayEquation,
+    getDisplayEquationForCurrentQuestion(),
     gameState.currentQuestion.solutionDisplay
   );
 
@@ -510,7 +691,7 @@ async function handleTrainingPass() {
   ui.showAnswerReveal(
     "pass",
     "パスしました",
-    gameState.currentQuestion.displayEquation,
+    getDisplayEquationForCurrentQuestion(),
     gameState.currentQuestion.solutionDisplay
   );
 
@@ -525,19 +706,17 @@ function lockQuestionInput() {
   gameState.inputLocked = true;
   ui.setKeyboardEnabled(false);
   ui.setSubmitButtonEnabled(false);
-  ui.showHintButton(false);
-  ui.showPassButton(false);
+  ui.setHintButtonEnabled(false);
+  ui.setPassButtonEnabled(false);
   ui.clearJudgeMessage();
 }
 
 function recordHistory(result, elapsedSeconds) {
-  gameState.history.push({
+  const baseEntry = {
     questionNumber: gameState.currentQuestionIndex + 1,
+    unit: gameState.unit,
     categoryName: gameState.currentQuestion.categoryName,
     prompt: gameState.currentQuestion.prompt,
-    variableDefinition: gameState.currentQuestion.variableDefinition,
-    lastInput: getCurrentInputString(),
-    modelEquation: gameState.currentQuestion.displayEquation,
     solutionDisplay: gameState.currentQuestion.solutionDisplay,
     result,
     elapsedSeconds,
@@ -547,6 +726,25 @@ function recordHistory(result, elapsedSeconds) {
     hintPartsRevealed: gameState.currentQuestionHintPartsRevealed,
     hintPartUsed: gameState.currentQuestionHintPartUsed,
     usedHintPartValues: [...gameState.usedHintPartValues]
+  };
+
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    const [lastInput1, lastInput2] = getCurrentSystemInputStrings();
+    gameState.history.push({
+      ...baseEntry,
+      lastInput1,
+      lastInput2,
+      modelEquation1: gameState.currentQuestion.canonicalEquations[0].display,
+      modelEquation2: gameState.currentQuestion.canonicalEquations[1].display
+    });
+    return;
+  }
+
+  gameState.history.push({
+    ...baseEntry,
+    variableDefinition: gameState.currentQuestion.variableDefinition,
+    lastInput: getCurrentInputString(),
+    modelEquation: gameState.currentQuestion.displayEquation
   });
 }
 
@@ -627,6 +825,7 @@ function endGame() {
   ui.hideAnswerReveal();
   ui.hideHintPanel();
   audio.playResultSound();
+  ui.renderResultHeading(gameState.unit);
   ui.renderResultSummary(computeResultSummary());
   ui.renderHistory(gameState.history);
   ui.showScreen("result");

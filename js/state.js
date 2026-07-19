@@ -22,6 +22,13 @@ export const gameState = {
   currentInputTokens: [],
   cursorPosition: 0,
 
+  // ============================================================
+  // 連立方程式（中2）専用：式①・式②の2入力欄
+  // ============================================================
+  currentSystemInputTokens: [[], []],
+  activeSystemEquationIndex: 0,
+  systemCursorPositions: [0, 0],
+
   questionStartTime: 0,
   questionElapsedTime: 0,
 
@@ -109,6 +116,10 @@ export function resetQuestionState() {
   gameState.currentInputTokens = [];
   gameState.cursorPosition = 0;
 
+  gameState.currentSystemInputTokens = [[], []];
+  gameState.activeSystemEquationIndex = 0;
+  gameState.systemCursorPositions = [0, 0];
+
   gameState.questionStartTime = 0;
   gameState.questionElapsedTime = 0;
 
@@ -154,6 +165,14 @@ export function moveCursorRight() {
   }
 }
 
+/**
+ * 入力欄をタップした位置へ、カーソルを直接移動する（範囲外は端へ丸める）。
+ */
+export function setCursorPosition(position) {
+  const max = gameState.currentInputTokens.length;
+  gameState.cursorPosition = Math.max(0, Math.min(position, max));
+}
+
 export function deleteCharacterBeforeCursor() {
   if (gameState.cursorPosition > 0) {
     gameState.currentInputTokens.splice(gameState.cursorPosition - 1, 1);
@@ -168,4 +187,73 @@ export function clearInput() {
 
 export function getCurrentInputString() {
   return gameState.currentInputTokens.join("");
+}
+
+// ============================================================
+// 連立方程式（中2）専用：式①・式②の入力欄を操作する専用関数
+// 常に「現在アクティブな式（activeSystemEquationIndex）」へ適用する。
+// ============================================================
+
+export function setActiveSystemEquationIndex(index) {
+  gameState.activeSystemEquationIndex = index;
+}
+
+export function insertCharacterAtSystemCursor(char) {
+  const index = gameState.activeSystemEquationIndex;
+  gameState.currentSystemInputTokens[index].splice(
+    gameState.systemCursorPositions[index],
+    0,
+    char
+  );
+  gameState.systemCursorPositions[index] += 1;
+}
+
+export function moveSystemCursorLeft() {
+  const index = gameState.activeSystemEquationIndex;
+  if (gameState.systemCursorPositions[index] > 0) {
+    gameState.systemCursorPositions[index] -= 1;
+  }
+}
+
+export function moveSystemCursorRight() {
+  const index = gameState.activeSystemEquationIndex;
+  if (
+    gameState.systemCursorPositions[index] <
+    gameState.currentSystemInputTokens[index].length
+  ) {
+    gameState.systemCursorPositions[index] += 1;
+  }
+}
+
+/**
+ * 式①・式②いずれかの入力欄をタップした位置へ、カーソルを直接移動する
+ * （どちらの式をタップしたかに関わらず、対象の式番号を明示的に指定する）。
+ */
+export function setSystemCursorPosition(equationIndex, position) {
+  const max = gameState.currentSystemInputTokens[equationIndex].length;
+  gameState.systemCursorPositions[equationIndex] = Math.max(0, Math.min(position, max));
+}
+
+export function deleteSystemCharacterBeforeCursor() {
+  const index = gameState.activeSystemEquationIndex;
+  if (gameState.systemCursorPositions[index] > 0) {
+    gameState.currentSystemInputTokens[index].splice(
+      gameState.systemCursorPositions[index] - 1,
+      1
+    );
+    gameState.systemCursorPositions[index] -= 1;
+  }
+}
+
+/**
+ * アクティブな式だけを消去する（もう一方の式は残す）。
+ */
+export function clearActiveSystemInput() {
+  const index = gameState.activeSystemEquationIndex;
+  gameState.currentSystemInputTokens[index] = [];
+  gameState.systemCursorPositions[index] = 0;
+}
+
+export function getCurrentSystemInputStrings() {
+  return gameState.currentSystemInputTokens.map((tokens) => tokens.join(""));
 }

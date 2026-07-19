@@ -1,8 +1,13 @@
 // 問題の選択と出題順を管理するモジュール
+// 単元（linear／simultaneous）による分岐は、このファイルの中の
+// getTemplatesForUnit() / getCategoriesForUnit() / createFallbackQuestion() の
+// 数か所へ集中させている。
 
-import { APP_CONFIG } from "../config.js";
+import { APP_CONFIG, UNIT_IDS } from "../config.js";
 import { LINEAR_CATEGORIES } from "./linear/categories.js";
 import { linearQuestionTemplates } from "./linear/index.js";
+import { SIMULTANEOUS_CATEGORIES } from "./simultaneous/categories.js";
+import { simultaneousQuestionTemplates } from "./simultaneous/index.js";
 import { validateQuestion } from "./question-validator.js";
 
 // テンプレート生成に失敗し続けた場合の固定問題（フォールバック）
@@ -234,6 +239,283 @@ const FALLBACK_QUESTIONS = {
   }
 };
 
+// 中2「連立方程式」のテンプレート生成に失敗し続けた場合の固定問題（フォールバック）
+const SIMULTANEOUS_FALLBACK_QUESTIONS = {
+  "L2-01": {
+    templateId: "L2-01-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-01",
+    categoryName: "2種類の品物と代金",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "1個120円のパンと1個150円のパンを合わせて10個買うと、代金は1320円でした。" +
+      "120円のパンをx個、150円のパンをy個として、連立方程式を立てなさい。",
+    variableDefinitions: { x: "120円のパンの個数", y: "150円のパンの個数" },
+    expectedSolution: { x: 6, y: 4 },
+    canonicalEquations: [
+      { internal: "x+y=10", display: "x＋y＝10", relationName: "個数の合計" },
+      { internal: "120*x+150*y=1320", display: "120x＋150y＝1320", relationName: "代金の合計" }
+    ],
+    solutionDisplay: "x＝6、y＝4",
+    keypadNumbers: ["120", "150", "10", "1320"],
+    keypadSymbols: ["x", "y", "+", "="],
+    hint: "1本目は個数の合計、2本目は代金の合計を式にしましょう。",
+    hintKeypadParts: [],
+    explanation: "2種類のパンの個数の合計と、代金の合計から2本の式を作ります。"
+  },
+  "L2-02": {
+    templateId: "L2-02-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-02",
+    categoryName: "人数と料金",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "ある水族館の入館料は、おとな2人と中学生3人で5400円、おとな1人と中学生4人で4700円です。" +
+      "おとな1人の料金をx円、中学生1人の料金をy円として連立方程式を立てなさい。",
+    variableDefinitions: { x: "おとな1人の料金", y: "中学生1人の料金" },
+    expectedSolution: { x: 1500, y: 800 },
+    canonicalEquations: [
+      { internal: "2*x+3*y=5400", display: "2x＋3y＝5400", relationName: "おとな2人・中学生3人の合計" },
+      { internal: "x+4*y=4700", display: "x＋4y＝4700", relationName: "おとな1人・中学生4人の合計" }
+    ],
+    solutionDisplay: "x＝1500、y＝800",
+    keypadNumbers: ["2", "3", "5400", "4", "4700"],
+    keypadSymbols: ["x", "y", "+", "="],
+    hint: "2つの人数の組み合わせを、それぞれx・yを使った式にしましょう。",
+    hintKeypadParts: [],
+    explanation: "2通りの人数の組み合わせから、料金を表す2本の式を作ります。"
+  },
+  "L2-03": {
+    templateId: "L2-03-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-03",
+    categoryName: "硬貨・紙幣",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "50円硬貨と100円硬貨が合わせて24枚あり、合計金額は1800円です。" +
+      "50円硬貨をx枚、100円硬貨をy枚として連立方程式を立てなさい。",
+    variableDefinitions: { x: "50円硬貨の枚数", y: "100円硬貨の枚数" },
+    expectedSolution: { x: 12, y: 12 },
+    canonicalEquations: [
+      { internal: "x+y=24", display: "x＋y＝24", relationName: "枚数の合計" },
+      { internal: "50*x+100*y=1800", display: "50x＋100y＝1800", relationName: "合計金額" }
+    ],
+    solutionDisplay: "x＝12、y＝12",
+    keypadNumbers: ["24", "50", "100", "1800"],
+    keypadSymbols: ["x", "y", "+", "="],
+    hint: "1本目は枚数の合計、2本目は合計金額を式にしましょう。",
+    hintKeypadParts: [],
+    explanation: "硬貨の枚数の合計と、合計金額から2本の式を作ります。"
+  },
+  "L2-04": {
+    templateId: "L2-04-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-04",
+    categoryName: "2けたの自然数",
+    rankDifficulty: "HARD",
+    prompt:
+      "2けたの自然数があります。各位の数字の和は11で、十の位と一の位を入れ替えると、" +
+      "元の数より27大きくなります。十の位の数字をx、一の位の数字をyとして連立方程式を立てなさい。",
+    variableDefinitions: { x: "十の位の数字", y: "一の位の数字" },
+    expectedSolution: { x: 4, y: 7 },
+    canonicalEquations: [
+      { internal: "x+y=11", display: "x＋y＝11", relationName: "各位の数字の和" },
+      { internal: "10*y+x=10*x+y+27", display: "10y＋x＝10x＋y＋27", relationName: "入れ替えた数との関係" }
+    ],
+    solutionDisplay: "x＝4、y＝7",
+    keypadNumbers: ["11", "10", "27"],
+    keypadSymbols: ["x", "y", "+", "="],
+    hint: "十の位がx、一の位がyの数は「10x＋y」、入れ替えた数は「10y＋x」と表せます。",
+    hintKeypadParts: [{ display: "10x＋y", value: "10x+y", ariaLabel: "10xたすy" }],
+    explanation: "各位の数字の和と、入れ替えた数と元の数の関係から2本の式を作ります。"
+  },
+  "L2-05": {
+    templateId: "L2-05-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-05",
+    categoryName: "年齢",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "現在、母と子の年齢の和は50歳です。5年前、母の年齢は子どもの年齢の4倍でした。" +
+      "現在の母の年齢をx歳、子どもの年齢をy歳として連立方程式を立てなさい。",
+    variableDefinitions: { x: "母の現在の年齢", y: "子どもの現在の年齢" },
+    expectedSolution: { x: 37, y: 13 },
+    canonicalEquations: [
+      { internal: "x+y=50", display: "x＋y＝50", relationName: "現在の年齢の和" },
+      { internal: "x-5=4*(y-5)", display: "x−5＝4(y−5)", relationName: "5年前の年齢の関係" }
+    ],
+    solutionDisplay: "x＝37、y＝13",
+    keypadNumbers: ["50", "5", "4"],
+    keypadSymbols: ["x", "y", "+", "-", "(", ")", "="],
+    hint: "5年前の年齢は「x−5」「y−5」と表せます。",
+    hintKeypadParts: [{ display: "（y−5）", value: "(y-5)", ariaLabel: "yひく5" }],
+    explanation: "現在の年齢の和と、過去の年齢の倍率の関係から2本の式を作ります。"
+  },
+  "L2-06": {
+    templateId: "L2-06-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-06",
+    categoryName: "速さ・道のり",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "A地点から11km離れたB地点へ行くのに、はじめは時速10kmで走り、途中から時速4kmで" +
+      "歩いたところ、2時間かかりました。走った道のりをxkm、歩いた道のりをykmとして" +
+      "連立方程式を立てなさい。",
+    variableDefinitions: { x: "走った道のり（km）", y: "歩いた道のり（km）" },
+    expectedSolution: { x: 5, y: 6 },
+    canonicalEquations: [
+      { internal: "x+y=11", display: "x＋y＝11", relationName: "道のりの合計" },
+      { internal: "x/10+y/4=2", display: "x÷10＋y÷4＝2", relationName: "かかった時間の合計" }
+    ],
+    solutionDisplay: "x＝5、y＝6",
+    keypadNumbers: ["11", "10", "4", "2"],
+    keypadSymbols: ["x", "y", "+", "÷", "="],
+    hint: "時速10kmでxkm進むのにかかる時間は「x÷10」と表せます。",
+    hintKeypadParts: [],
+    explanation: "道のりの合計と、かかった時間の合計から2本の式を作ります。"
+  },
+  "L2-07": {
+    templateId: "L2-07-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-07",
+    categoryName: "電車の通過",
+    rankDifficulty: "HARD",
+    prompt:
+      "ある電車が1400mの鉄橋を渡り始めてから渡り終わるまでに90秒かかりました。また、" +
+      "2000mのトンネルに入り始めてから出るまでに120秒かかりました。電車の長さをxm、" +
+      "電車の速さを毎秒ymとして連立方程式を立てなさい。",
+    variableDefinitions: { x: "電車の長さ（m）", y: "電車の速さ（毎秒m）" },
+    expectedSolution: { x: 400, y: 20 },
+    canonicalEquations: [
+      { internal: "x+1400=90*y", display: "x＋1400＝90y", relationName: "鉄橋を渡る関係" },
+      { internal: "x+2000=120*y", display: "x＋2000＝120y", relationName: "トンネルを通る関係" }
+    ],
+    solutionDisplay: "x＝400、y＝20",
+    keypadNumbers: ["1400", "90", "2000", "120"],
+    keypadSymbols: ["x", "y", "+", "="],
+    hint: "電車が渡り始めてから渡り終わるまでに進む道のりは「電車の長さ＋鉄橋の長さ」です。",
+    hintKeypadParts: [{ display: "（x＋1400）", value: "(x+1400)", ariaLabel: "xたす1400" }],
+    explanation: "鉄橋・トンネルそれぞれについて、進んだ道のりと速さ×時間の関係から2本の式を作ります。"
+  },
+  "L2-08": {
+    templateId: "L2-08-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-08",
+    categoryName: "池・トラックの周回",
+    rankDifficulty: "HARD",
+    prompt:
+      "1周1500mの池のまわりを、AさんとB君が同じ地点から同時に出発しました。反対方向に" +
+      "走ると5分後に初めて出会い、同じ方向に走ると30分後にAさんがB君に追いつきました。" +
+      "Aさんの速さを毎分xm、B君の速さを毎分ymとして連立方程式を立てなさい。",
+    variableDefinitions: { x: "Aさんの速さ（毎分m）", y: "B君の速さ（毎分m）" },
+    expectedSolution: { x: 175, y: 125 },
+    canonicalEquations: [
+      { internal: "5*x+5*y=1500", display: "5x＋5y＝1500", relationName: "反対方向に進んで出会う関係" },
+      { internal: "30*x-30*y=1500", display: "30x−30y＝1500", relationName: "同じ方向に進んで追いつく関係" }
+    ],
+    solutionDisplay: "x＝175、y＝125",
+    keypadNumbers: ["5", "1500", "30"],
+    keypadSymbols: ["x", "y", "+", "-", "="],
+    hint: "反対方向では2人の道のりの和が1周分、同じ方向では2人の道のりの差が1周分になります。",
+    hintKeypadParts: [],
+    explanation: "出会う関係と追いつく関係から、2人の速さについての2本の式を作ります。"
+  },
+  "L2-09": {
+    templateId: "L2-09-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-09",
+    categoryName: "食塩水の混合",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "5％の食塩水と12％の食塩水を混ぜて、8％の食塩水を350g作ります。5％の食塩水をxg、" +
+      "12％の食塩水をygとして連立方程式を立てなさい。",
+    variableDefinitions: { x: "5％の食塩水の重さ（g）", y: "12％の食塩水の重さ（g）" },
+    expectedSolution: { x: 200, y: 150 },
+    canonicalEquations: [
+      { internal: "x+y=350", display: "x＋y＝350", relationName: "食塩水の重さの合計" },
+      {
+        internal: "0.05*x+0.12*y=0.08*350",
+        display: "0.05x＋0.12y＝0.08×350",
+        relationName: "食塩の重さの合計"
+      }
+    ],
+    solutionDisplay: "x＝200、y＝150",
+    keypadNumbers: ["350", "0.05", "0.12", "0.08"],
+    keypadSymbols: ["x", "y", "+", "×", "="],
+    hint: "含まれる食塩の重さは「濃度×食塩水の重さ」で表せます。",
+    hintKeypadParts: [],
+    explanation: "食塩水の重さの合計と、含まれる食塩の重さの合計から2本の式を作ります。"
+  },
+  "L2-10": {
+    templateId: "L2-10-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-10",
+    categoryName: "割合の増減・人数",
+    rankDifficulty: "HARD",
+    prompt:
+      "昨年、A組とB組の生徒は合わせて60人でした。今年はA組が10％増え、B組が5％減った" +
+      "結果、合わせて63人になりました。昨年のA組の人数をx人、B組の人数をy人として" +
+      "連立方程式を立てなさい。",
+    variableDefinitions: { x: "昨年のA組の人数", y: "昨年のB組の人数" },
+    expectedSolution: { x: 40, y: 20 },
+    canonicalEquations: [
+      { internal: "x+y=60", display: "x＋y＝60", relationName: "昨年の人数の合計" },
+      { internal: "1.1*x+0.95*y=63", display: "1.1x＋0.95y＝63", relationName: "今年の人数の合計" }
+    ],
+    solutionDisplay: "x＝40、y＝20",
+    keypadNumbers: ["60", "1.1", "0.95", "63"],
+    keypadSymbols: ["x", "y", "+", "="],
+    hint: "今年のA組の人数は「1.1×x」、B組の人数は「0.95×y」と表せます。",
+    hintKeypadParts: [],
+    explanation: "昨年の人数の合計と、今年の人数の合計から2本の式を作ります。"
+  },
+  "L2-11": {
+    templateId: "L2-11-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-11",
+    categoryName: "割合の増減・代金",
+    rankDifficulty: "HARD",
+    prompt:
+      "定価の合計が5200円のシャツとズボンを、シャツは2割引き、ズボンは3割引きで購入した" +
+      "ところ、代金は3840円でした。シャツの定価をx円、ズボンの定価をy円として" +
+      "連立方程式を立てなさい。",
+    variableDefinitions: { x: "シャツの定価", y: "ズボンの定価" },
+    expectedSolution: { x: 2000, y: 3200 },
+    canonicalEquations: [
+      { internal: "x+y=5200", display: "x＋y＝5200", relationName: "定価の合計" },
+      { internal: "0.8*x+0.7*y=3840", display: "0.8x＋0.7y＝3840", relationName: "割引後の代金の合計" }
+    ],
+    solutionDisplay: "x＝2000、y＝3200",
+    keypadNumbers: ["5200", "0.8", "0.7", "3840"],
+    keypadSymbols: ["x", "y", "+", "="],
+    hint: "割引後のシャツの代金は「0.8×x」、ズボンの代金は「0.7×y」と表せます。",
+    hintKeypadParts: [],
+    explanation: "定価の合計と、割引後の代金の合計から2本の式を作ります。"
+  },
+  "L2-12": {
+    templateId: "L2-12-fallback",
+    unit: UNIT_IDS.SIMULTANEOUS,
+    categoryId: "L2-12",
+    categoryName: "平均",
+    rankDifficulty: "HARD",
+    prompt:
+      "男子と女子を合わせて30人のテストの平均点は72点でした。男子の平均点は68点、" +
+      "女子の平均点は78点です。男子の人数をx人、女子の人数をy人として連立方程式を立てなさい。",
+    variableDefinitions: { x: "男子の人数", y: "女子の人数" },
+    expectedSolution: { x: 18, y: 12 },
+    canonicalEquations: [
+      { internal: "x+y=30", display: "x＋y＝30", relationName: "人数の合計" },
+      { internal: "68*x+78*y=72*30", display: "68x＋78y＝72×30", relationName: "合計点の関係" }
+    ],
+    solutionDisplay: "x＝18、y＝12",
+    keypadNumbers: ["30", "68", "78", "72"],
+    keypadSymbols: ["x", "y", "+", "×", "="],
+    hint: "全体の合計点は「72×30」、男女それぞれの合計点の和と等しくなります。",
+    hintKeypadParts: [],
+    explanation: "人数の合計と、合計点の関係から2本の式を作ります。"
+  }
+};
+
 /**
  * 配列をシャッフルした新しい配列を返す（Fisher-Yates）。
  */
@@ -246,15 +528,43 @@ export function shuffleArray(array) {
   return result;
 }
 
+// ============================================================
+// 単元（linear／simultaneous）による分岐
+// ============================================================
+
+/**
+ * 単元に対応する問題テンプレート一覧を返す。
+ * @param {string} unit
+ */
+export function getTemplatesForUnit(unit) {
+  return unit === UNIT_IDS.SIMULTANEOUS
+    ? simultaneousQuestionTemplates
+    : linearQuestionTemplates;
+}
+
+/**
+ * 単元に対応するカテゴリ一覧を返す。
+ * @param {string} unit
+ */
+export function getCategoriesForUnit(unit) {
+  return unit === UNIT_IDS.SIMULTANEOUS ? SIMULTANEOUS_CATEGORIES : LINEAR_CATEGORIES;
+}
+
+function getFallbackQuestionsForUnit(unit) {
+  return unit === UNIT_IDS.SIMULTANEOUS ? SIMULTANEOUS_FALLBACK_QUESTIONS : FALLBACK_QUESTIONS;
+}
+
 /**
  * 選択されたカテゴリが有効か検証する。
+ * @param {string[]} selectedCategoryIds
+ * @param {string} unit
  */
-export function validateSelectedCategories(selectedCategoryIds) {
+export function validateSelectedCategories(selectedCategoryIds, unit = UNIT_IDS.LINEAR) {
   if (!Array.isArray(selectedCategoryIds) || selectedCategoryIds.length === 0) {
     return { valid: false, reason: "出題するカテゴリを1つ以上選んでください。" };
   }
 
-  const validIds = new Set(LINEAR_CATEGORIES.map((category) => category.id));
+  const validIds = new Set(getCategoriesForUnit(unit).map((category) => category.id));
   const hasInvalidId = selectedCategoryIds.some((id) => !validIds.has(id));
 
   if (hasInvalidId) {
@@ -264,8 +574,8 @@ export function validateSelectedCategories(selectedCategoryIds) {
   return { valid: true };
 }
 
-function createFallbackQuestion(categoryId) {
-  const base = FALLBACK_QUESTIONS[categoryId];
+function createFallbackQuestion(categoryId, unit) {
+  const base = getFallbackQuestionsForUnit(unit)[categoryId];
   return {
     ...base,
     id: `${base.templateId}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
@@ -273,16 +583,22 @@ function createFallbackQuestion(categoryId) {
 }
 
 /**
- * canonicalEquationに含まれる数値を、重複なく抽出する。
- * keypadNumbers未設定時のフォールバックとしてのみ使用する。
+ * canonicalEquation（中1）またはcanonicalEquationsの各internal（中2）に
+ * 含まれる数値を、重複なく抽出する。keypadNumbers未設定時のフォールバックとしてのみ使用する。
  */
-function extractNumbersFromEquation(equation) {
-  const matches = equation.match(/\d+(?:\.\d+)?/g) ?? [];
+function extractNumbersFromEquation(question) {
+  const equationStrings = Array.isArray(question.canonicalEquations)
+    ? question.canonicalEquations.map((equation) => equation.internal)
+    : [question.canonicalEquation];
+
+  const matches = equationStrings
+    .join(" ")
+    .match(/\d+(?:\.\d+)?/g) ?? [];
   return [...new Set(matches)];
 }
 
 /**
- * keypadNumbersが未設定の問題データに対し、canonicalEquationから
+ * keypadNumbersが未設定の問題データに対し、canonicalEquation(s)から
  * 数値を自動抽出して補う。正式なテンプレートでは通常発生しない。
  */
 function ensureKeypadNumbers(question) {
@@ -297,7 +613,7 @@ function ensureKeypadNumbers(question) {
 
   return {
     ...question,
-    keypadNumbers: extractNumbersFromEquation(question.canonicalEquation)
+    keypadNumbers: extractNumbersFromEquation(question)
   };
 }
 
@@ -324,8 +640,10 @@ function ensureHintKeypadParts(question) {
 /**
  * テンプレートから、検証を通過した問題データを1つ生成する。
  * 最大試行回数を超えた場合は、固定問題へフォールバックする。
+ * @param {object} template
+ * @param {string} unit フォールバック問題の選択に使用する
  */
-export function generateQuestionFromTemplate(template) {
+export function generateQuestionFromTemplate(template, unit = UNIT_IDS.LINEAR) {
   for (let attempt = 0; attempt < APP_CONFIG.maxGenerationAttempts; attempt += 1) {
     let question;
     try {
@@ -343,7 +661,7 @@ export function generateQuestionFromTemplate(template) {
     }
   }
 
-  return createFallbackQuestion(template.categoryId);
+  return createFallbackQuestion(template.categoryId, unit);
 }
 
 /**
@@ -395,12 +713,13 @@ function pickNextTemplate(candidateTemplates, recentTemplateIds, recentCategoryI
 }
 
 /**
- * 選択されたカテゴリから、出題する問題のキューを作成する。
+ * 選択されたカテゴリから、出題する問題のキューを作成する（トレーニングモード用）。
+ * @param {string} unit
  * @param {string[]} selectedCategoryIds
  * @param {number} totalQuestions
  */
-export function buildQuestionQueue(selectedCategoryIds, totalQuestions) {
-  const candidateTemplates = linearQuestionTemplates.filter((template) =>
+export function buildTrainingQuestionQueue(unit, selectedCategoryIds, totalQuestions) {
+  const candidateTemplates = getTemplatesForUnit(unit).filter((template) =>
     selectedCategoryIds.includes(template.categoryId)
   );
 
@@ -419,7 +738,7 @@ export function buildQuestionQueue(selectedCategoryIds, totalQuestions) {
       recentCategoryIds
     );
 
-    const question = generateQuestionFromTemplate(template);
+    const question = generateQuestionFromTemplate(template, unit);
     queue.push(question);
 
     recentTemplateIds.push(template.templateId);
@@ -439,36 +758,32 @@ export function getNextQuestion(queue, index) {
   return queue[index];
 }
 
-const CATEGORY_IDS_BY_DIFFICULTY = {
-  NORMAL: LINEAR_CATEGORIES.filter((c) => c.difficulty === "NORMAL").map(
-    (c) => c.id
-  ),
-  HARD: LINEAR_CATEGORIES.filter((c) => c.difficulty === "HARD").map(
-    (c) => c.id
-  )
-};
-
 /**
- * 指定した難易度（NORMAL・HARD）のカテゴリだけからテンプレート候補を絞り込む。
+ * 指定した単元・難易度（NORMAL・HARD）のカテゴリだけからテンプレート候補を絞り込む。
  */
-function getTemplatesByDifficulty(difficulty) {
-  const categoryIds = new Set(CATEGORY_IDS_BY_DIFFICULTY[difficulty] || []);
-  return linearQuestionTemplates.filter((template) =>
+function getTemplatesByDifficulty(unit, difficulty) {
+  const categoryIds = new Set(
+    getCategoriesForUnit(unit)
+      .filter((c) => c.difficulty === difficulty)
+      .map((c) => c.id)
+  );
+  return getTemplatesForUnit(unit).filter((template) =>
     categoryIds.has(template.categoryId)
   );
 }
 
 /**
- * 段位認定モード用に、難易度に応じた問題を1問生成する。
+ * 段位認定モード用に、単元・難易度に応じた問題を1問生成する。
  * 問題数の上限を設けない終了条件（120秒経過）のため、キューを事前構築せず
  * 1問ずつ呼び出す設計にしている。
+ * @param {string} unit
  * @param {"NORMAL"|"HARD"} difficulty
  * @param {string[]} recentTemplateIds 直近に出題したtemplateIdの履歴
  * @param {string[]} recentCategoryIds 直近に出題したcategoryIdの履歴
  * @returns {{question: object, template: object}}
  */
-export function getNextRankQuestion(difficulty, recentTemplateIds, recentCategoryIds) {
-  const candidateTemplates = getTemplatesByDifficulty(difficulty);
+export function getNextRankQuestion(unit, difficulty, recentTemplateIds, recentCategoryIds) {
+  const candidateTemplates = getTemplatesByDifficulty(unit, difficulty);
 
   if (candidateTemplates.length === 0) {
     throw new Error(`難易度「${difficulty}」に対応する問題テンプレートがありません。`);
@@ -479,7 +794,7 @@ export function getNextRankQuestion(difficulty, recentTemplateIds, recentCategor
     recentTemplateIds,
     recentCategoryIds
   );
-  const question = generateQuestionFromTemplate(template);
+  const question = generateQuestionFromTemplate(template, unit);
 
   return { question, template };
 }

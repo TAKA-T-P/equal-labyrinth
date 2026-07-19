@@ -17,6 +17,31 @@ export const APP_CONFIG = {
   rankDurationMs: 120000,
   rankFinalGracePeriodMs: 30000,
   rankUrgentThresholdSeconds: 10,
-  rankBaseTimeSeconds: 12,
   rankDefaultDifficulty: "NORMAL"
 };
+
+// 単元の内部識別子
+export const UNIT_IDS = {
+  LINEAR: "linear",
+  SIMULTANEOUS: "simultaneous",
+  QUADRATIC: "quadratic"
+};
+
+// 単元ごとの表示名・段位計算とコンボゲージの基準時間（timeB、秒）
+export const UNIT_CONFIG = {
+  [UNIT_IDS.LINEAR]: {
+    displayName: "1次方程式",
+    baseTimeSeconds: 12
+  },
+  [UNIT_IDS.SIMULTANEOUS]: {
+    displayName: "連立方程式",
+    baseTimeSeconds: 20
+  },
+  [UNIT_IDS.QUADRATIC]: {
+    displayName: "2次方程式",
+    baseTimeSeconds: 14
+  }
+};
+
+// 今回選択可能な単元（2次方程式は準備中のまま）
+export const SELECTABLE_UNIT_IDS = [UNIT_IDS.LINEAR, UNIT_IDS.SIMULTANEOUS];

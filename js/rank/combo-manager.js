@@ -2,16 +2,17 @@
 // setInterval()の回数ではなく、渡された時刻(performance.now())との差で計算する。
 // 実際のポーリング（何ms間隔で tick() を呼ぶか）はrank-mode.js側が担当する。
 
-const BASE_TIME_SECONDS = 12; // 1次方程式の基準時間 timeB
-const BASE_GAUGE_DURATION_MS = BASE_TIME_SECONDS * 2 * 1000; // timeB×2
+const DEFAULT_BASE_TIME_SECONDS = 12; // 1次方程式の基準時間 timeB（既定値）
 
 /**
  * 新しいコンボ状態を作る。
+ * baseTimeSecondsは単元ごとの基準時間（timeB）。省略時は中1の基準時間を使う。
  * buildPending: true の間は、次に正解してもゲージを動かさず1コンボ目として扱う
  * （第1問・パス直後・ゲージ切れ直後に相当する）。
  */
-export function createComboState() {
+export function createComboState(baseTimeSeconds = DEFAULT_BASE_TIME_SECONDS) {
   return {
+    baseTimeSeconds,
     combo: 0,
     maxCombo: 0,
     gaugeRunning: false,
@@ -23,9 +24,10 @@ export function createComboState() {
   };
 }
 
-function gaugeDurationForCombo(combo) {
+function gaugeDurationForCombo(combo, baseTimeSeconds) {
+  const baseGaugeDurationMs = baseTimeSeconds * 2 * 1000; // timeB×2
   const speedMultiplier = 1 + 0.05 * combo;
-  return BASE_GAUGE_DURATION_MS / speedMultiplier;
+  return baseGaugeDurationMs / speedMultiplier;
 }
 
 /**
@@ -67,7 +69,10 @@ export function registerCorrect(comboState) {
   comboState.combo += 1;
   comboState.maxCombo = Math.max(comboState.maxCombo, comboState.combo);
   comboState.buildPending = false;
-  comboState.pendingGaugeDurationMs = gaugeDurationForCombo(comboState.combo);
+  comboState.pendingGaugeDurationMs = gaugeDurationForCombo(
+    comboState.combo,
+    comboState.baseTimeSeconds
+  );
   comboState.gaugeRunning = false;
   comboState.gaugeRatio = 1;
   return comboState.combo;
@@ -107,7 +112,8 @@ export function startGaugeForNextQuestion(comboState, nowMs) {
   comboState.gaugeRunning = true;
   comboState.gaugeStartTime = nowMs;
   comboState.gaugeDurationMs =
-    comboState.pendingGaugeDurationMs || gaugeDurationForCombo(comboState.combo);
+    comboState.pendingGaugeDurationMs ||
+    gaugeDurationForCombo(comboState.combo, comboState.baseTimeSeconds);
   comboState.gaugeRatio = 1;
 }
 

@@ -283,6 +283,13 @@ input[type="range"] {
   display: none;
 }
 
+/* ヒント・パスボタン：解禁時間が来るまでは薄暗く表示し、押しても反応しない状態にする */
+.secondary-button:disabled {
+  opacity: 0.35;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--color-text-muted);
+}
+
 .icon-button {
   min-height: 30px;
   min-width: 44px;
@@ -427,6 +434,75 @@ input[type="range"] {
 .equation-input-placeholder {
   color: var(--color-text-muted);
   font-size: 0.95rem;
+}
+
+/* ---------------- 連立方程式：式①・式②の2入力欄 ---------------- */
+/* スマートフォンでは常に縦並び（横並びにはしない） */
+
+.equation-system-input {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.equation-system-input[hidden] {
+  display: none;
+}
+
+.equation-brace {
+  flex: 0 0 auto;
+  width: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 2.6rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-text-muted);
+  transform: scaleY(1.5);
+}
+
+.equation-slots {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.equation-slot {
+  min-width: 0;
+  background: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+  padding: 6px 10px;
+}
+
+.equation-slot.is-active {
+  border-color: var(--color-correct-gold);
+  box-shadow: 0 0 0 2px rgba(232, 201, 104, 0.25), var(--shadow-panel);
+}
+
+.equation-slot.is-incorrect-flash {
+  animation: incorrect-panel-flash 0.4s ease-in-out;
+}
+
+.equation-slot-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.equation-slot.is-active .equation-slot-label {
+  color: var(--color-correct-gold);
+}
+
+.equation-slot .equation-input-display {
+  min-height: 34px;
+  font-size: 1.15rem;
 }
 
 /* ---------------- 判定メッセージ ---------------- */
@@ -606,8 +682,13 @@ input[type="range"] {
 }
 
 .keypad-symbols {
+  grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
   background: rgba(63, 95, 214, 0.12);
   border: 1px solid rgba(63, 95, 214, 0.4);
+}
+
+.keypad-symbols .key-button {
+  padding: 3px 2px;
 }
 
 .keypad-edit {

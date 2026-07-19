@@ -42,8 +42,16 @@ function isWhitespace(char) {
   return char === " " || char === "\t" || char === "\n" || char === "\r";
 }
 
+// 変数として認識する文字（小文字・大文字とも同じ変数として扱う）
+const VARIABLE_NAMES = {
+  x: "x",
+  X: "x",
+  y: "y",
+  Y: "y"
+};
+
 function isVariable(char) {
-  return char === "x" || char === "X";
+  return Object.prototype.hasOwnProperty.call(VARIABLE_NAMES, char);
 }
 
 /**
@@ -93,7 +101,7 @@ function scan(input) {
     }
 
     if (isVariable(char)) {
-      tokens.push({ type: TokenType.VARIABLE });
+      tokens.push({ type: TokenType.VARIABLE, name: VARIABLE_NAMES[char] });
       i += 1;
       continue;
     }

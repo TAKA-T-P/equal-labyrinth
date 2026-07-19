@@ -13,7 +13,7 @@ function buildResult(status, message, solvedX = null) {
   return { status, message, solvedX };
 }
 
-function splitAtEquals(tokens) {
+export function splitAtEquals(tokens) {
   const equalsIndexes = [];
   tokens.forEach((token, index) => {
     if (token.type === TokenType.EQUALS) {

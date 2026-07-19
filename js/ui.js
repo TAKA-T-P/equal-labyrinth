@@ -1,8 +1,7 @@
 // 画面表示とDOM操作を担当するモジュール
 // ゲームルールや正誤判定はここに書かない。すべて game.js から渡された値を表示するだけ。
 
-import { LINEAR_CATEGORIES } from "./questions/linear/categories.js";
-import { APP_CONFIG } from "./config.js";
+import { APP_CONFIG, UNIT_CONFIG } from "./config.js";
 import { formatScore } from "./rank/score-manager.js";
 
 const elements = {
@@ -18,6 +17,8 @@ const elements = {
   modeTrainingButton: document.getElementById("mode-training"),
   modeRankButton: document.getElementById("mode-rank"),
   modeDescription: document.getElementById("mode-description"),
+  unitLinearButton: document.getElementById("unit-linear"),
+  unitSimultaneousButton: document.getElementById("unit-simultaneous"),
   rankDifficultyGroup: document.getElementById("rank-difficulty-group"),
   difficultyNormalButton: document.getElementById("difficulty-normal"),
   difficultyHardButton: document.getElementById("difficulty-hard"),
@@ -46,9 +47,23 @@ const elements = {
   rankScoreChange: document.getElementById("rank-score-change"),
   rankComboGaugeFill: document.getElementById("rank-combo-gauge-fill"),
   questionPrompt: document.getElementById("question-prompt"),
-  equationInputCard: document.querySelector(".equation-input-card"),
+  equationInputSingle: document.getElementById("equation-input-single"),
   equationInputScroll: document.getElementById("equation-input-scroll"),
   equationInputDisplay: document.getElementById("equation-input-display"),
+  equationInputSystem: document.getElementById("equation-input-system"),
+  equationSwitchButton: document.getElementById("equation-switch-button"),
+  equationSlots: [
+    document.getElementById("equation-slot-0"),
+    document.getElementById("equation-slot-1")
+  ],
+  equationInputScrolls: [
+    document.getElementById("equation-input-scroll-0"),
+    document.getElementById("equation-input-scroll-1")
+  ],
+  equationInputDisplays: [
+    document.getElementById("equation-input-display-0"),
+    document.getElementById("equation-input-display-1")
+  ],
   judgeMessage: document.getElementById("judge-message"),
   hintBackdrop: document.getElementById("hint-backdrop"),
   hintPanel: document.getElementById("hint-panel"),
@@ -56,7 +71,7 @@ const elements = {
   answerRevealBackdrop: document.getElementById("answer-reveal-backdrop"),
   answerRevealPanel: document.getElementById("answer-reveal-panel"),
   answerRevealStatus: document.getElementById("answer-reveal-status"),
-  modelEquationText: document.getElementById("model-equation-text"),
+  modelEquationsContainer: document.getElementById("model-equations-container"),
   solutionText: document.getElementById("solution-text"),
   nextQuestionButton: document.getElementById("next-question-button"),
   hintButton: document.getElementById("hint-button"),
@@ -69,6 +84,7 @@ const elements = {
   hintPartsList: document.getElementById("hint-parts-list"),
 
   // 結果画面（トレーニング）
+  resultHeading: document.getElementById("result-heading"),
   statTotal: document.getElementById("stat-total"),
   statCorrect: document.getElementById("stat-correct"),
   statIncorrect: document.getElementById("stat-incorrect"),
@@ -95,21 +111,20 @@ const elements = {
 };
 
 /**
- * テキスト中の "x" だけを、斜体太字のTimes New Romanのspanへ差し替えながら
+ * テキスト中の "x"・"y" だけを、斜体太字のTimes New Romanのspanへ差し替えながら
  * containerへ子要素として追加する（containerの既存の中身はクリアしない）。
  */
 function appendStyledVariableParts(container, text) {
-  const parts = text.split("x");
+  const parts = text.split(/([xy])/);
 
-  parts.forEach((part, index) => {
-    if (part) {
-      container.appendChild(document.createTextNode(part));
-    }
-    if (index < parts.length - 1) {
+  parts.forEach((part) => {
+    if (part === "x" || part === "y") {
       const span = document.createElement("span");
       span.className = "var-x";
-      span.textContent = "x";
+      span.textContent = part;
       container.appendChild(span);
+    } else if (part) {
+      container.appendChild(document.createTextNode(part));
     }
   });
 }
@@ -119,9 +134,10 @@ function appendStyledVariableParts(container, text) {
  * ヒントパーツ（"(15-x)"など複数文字のトークン）の中に含まれる"x"も、
  * 斜体太字のTimes New Romanで表示する。
  */
-function createEquationCharacterNode(token) {
+function createEquationCharacterNode(token, index) {
   const wrapper = document.createElement("span");
   wrapper.className = "equation-token";
+  wrapper.dataset.tokenIndex = String(index);
   appendStyledVariableParts(wrapper, token);
   return wrapper;
 }
@@ -158,10 +174,10 @@ export function renderQuestionCountLabel(totalQuestions) {
   elements.questionCountSlider.value = String(totalQuestions);
 }
 
-export function renderCategoryCheckboxes(selectedCategoryIds, onToggle) {
+export function renderCategoryCheckboxes(categories, selectedCategoryIds, onToggle) {
   elements.categoryList.innerHTML = "";
 
-  LINEAR_CATEGORIES.forEach((category) => {
+  categories.forEach((category) => {
     const item = document.createElement("label");
     item.className = "category-item";
     item.setAttribute("for", `category-${category.id}`);
@@ -196,8 +212,8 @@ export function setCategoryCheckboxState(categoryId, checked) {
   }
 }
 
-export function setAllCategoryCheckboxes(checked) {
-  LINEAR_CATEGORIES.forEach((category) => {
+export function setAllCategoryCheckboxes(categories, checked) {
+  categories.forEach((category) => {
     setCategoryCheckboxState(category.id, checked);
   });
 }
@@ -263,6 +279,17 @@ export function renderDifficultySelection(difficulty) {
   elements.difficultyHardButton.setAttribute("aria-pressed", String(!isNormal));
 }
 
+/**
+ * 単元選択（1次方程式／連立方程式）の見た目を切り替える。
+ */
+export function renderUnitSelection(unit) {
+  const isLinear = unit === "linear";
+  elements.unitLinearButton.classList.toggle("is-selected", isLinear);
+  elements.unitLinearButton.setAttribute("aria-pressed", String(isLinear));
+  elements.unitSimultaneousButton.classList.toggle("is-selected", !isLinear);
+  elements.unitSimultaneousButton.setAttribute("aria-pressed", String(!isLinear));
+}
+
 // ============================================================
 // カウントダウン画面
 // ============================================================
@@ -289,8 +316,15 @@ export function renderQuestionPrompt(prompt) {
   elements.questionPrompt.parentElement.scrollTop = 0;
 }
 
-export function renderEquationInput(tokens, cursorPosition) {
-  const container = elements.equationInputDisplay;
+/**
+ * 単元名（1次方程式／連立方程式）を、ゲーム画面上部へ表示する。
+ */
+export function renderUnitLabel(unit) {
+  const unitConfig = UNIT_CONFIG[unit];
+  elements.unitLabel.textContent = unitConfig ? unitConfig.displayName : "";
+}
+
+function renderTokensIntoDisplay(container, scrollElement, tokens, cursorPosition) {
   container.innerHTML = "";
 
   if (tokens.length === 0) {
@@ -305,15 +339,54 @@ export function renderEquationInput(tokens, cursorPosition) {
     if (index === cursorPosition) {
       container.appendChild(createCursorNode());
     }
-    container.appendChild(createEquationCharacterNode(char));
+    container.appendChild(createEquationCharacterNode(char, index));
   });
 
   if (cursorPosition === tokens.length) {
     container.appendChild(createCursorNode());
   }
 
-  elements.equationInputScroll.scrollLeft =
-    elements.equationInputScroll.scrollWidth;
+  scrollElement.scrollLeft = scrollElement.scrollWidth;
+}
+
+export function renderEquationInput(tokens, cursorPosition) {
+  renderTokensIntoDisplay(
+    elements.equationInputDisplay,
+    elements.equationInputScroll,
+    tokens,
+    cursorPosition
+  );
+}
+
+/**
+ * 連立方程式の式①・式②を、それぞれの入力欄へ描画する。
+ * アクティブな式には明るい枠（is-active）を付け、「式切替」ボタンの表示も更新する。
+ * @param {[Array, Array]} tokensPair
+ * @param {[number, number]} cursorPositions
+ * @param {0|1} activeIndex
+ */
+export function renderSystemEquationInput(tokensPair, cursorPositions, activeIndex) {
+  [0, 1].forEach((i) => {
+    renderTokensIntoDisplay(
+      elements.equationInputDisplays[i],
+      elements.equationInputScrolls[i],
+      tokensPair[i],
+      cursorPositions[i]
+    );
+    elements.equationSlots[i].classList.toggle("is-active", i === activeIndex);
+  });
+
+  elements.equationSwitchButton.textContent = activeIndex === 0 ? "式②へ" : "式①へ";
+}
+
+/**
+ * 単元に応じて、1本の入力欄（1次方程式）と2本の入力欄（連立方程式）を切り替える。
+ */
+export function showEquationInputMode(unit) {
+  const isSystem = unit === "simultaneous";
+  elements.equationInputSingle.hidden = isSystem;
+  elements.equationInputSystem.hidden = !isSystem;
+  elements.equationSwitchButton.hidden = !isSystem;
 }
 
 function createCursorNode() {
@@ -323,16 +396,40 @@ function createCursorNode() {
   return cursor;
 }
 
+/**
+ * 入力欄をタップ／クリックした位置に最も近いカーソル位置（トークン単位）を求める。
+ * 各トークンの中心より左側をタップすればトークンの手前、右側なら奥へカーソルを置く。
+ * トークンが1つもない場合は0を返す。
+ */
+function resolveTapCursorIndex(container, clientX) {
+  const tokenNodes = Array.from(container.querySelectorAll(".equation-token"));
+  if (tokenNodes.length === 0) return 0;
+
+  for (const node of tokenNodes) {
+    const rect = node.getBoundingClientRect();
+    if (clientX < rect.left + rect.width / 2) {
+      return Number(node.dataset.tokenIndex);
+    }
+  }
+  return tokenNodes.length;
+}
+
 export function setSubmitButtonEnabled(enabled) {
   elements.submitButton.disabled = !enabled;
 }
 
-export function showHintButton(show) {
-  elements.hintButton.hidden = !show;
+/**
+ * ヒントボタンは常に表示し、解禁時間（20秒）前は薄暗く押せない状態にする。
+ */
+export function setHintButtonEnabled(enabled) {
+  elements.hintButton.disabled = !enabled;
 }
 
-export function showPassButton(show) {
-  elements.passButton.hidden = !show;
+/**
+ * パスボタンは常に表示し、解禁時間（40秒）前は薄暗く押せない状態にする。
+ */
+export function setPassButtonEnabled(enabled) {
+  elements.passButton.disabled = !enabled;
 }
 
 export function showHintPanel(hintText) {
@@ -357,9 +454,11 @@ const ANSWER_STATUS_CLASS = {
 
 /**
  * 正解・パス時の判定文と模範式・解を、前面の不透明なカードで表示する。
+ * displayEquationは、1次方程式では文字列1つ、連立方程式では
+ * [式①の表示, 式②の表示] の配列2つを渡す。
  * @param {"correct"|"pass"} statusType
  * @param {string} statusText
- * @param {string} displayEquation
+ * @param {string|[string, string]} displayEquation
  * @param {string} solutionDisplay
  */
 export function showAnswerReveal(statusType, statusText, displayEquation, solutionDisplay) {
@@ -370,7 +469,19 @@ export function showAnswerReveal(statusType, statusText, displayEquation, soluti
     elements.answerRevealStatus.classList.add(statusClass);
   }
 
-  renderTextWithStyledVariable(elements.modelEquationText, displayEquation);
+  const equations = Array.isArray(displayEquation) ? displayEquation : [displayEquation];
+  elements.modelEquationsContainer.innerHTML = "";
+  equations.forEach((equation, index) => {
+    const row = document.createElement("p");
+    row.className = "answer-reveal-row";
+    const label = equations.length > 1 ? `式${index === 0 ? "①" : "②"}　` : "模範式：";
+    renderTextWithStyledVariable(row, label);
+    const valueSpan = document.createElement("span");
+    renderTextWithStyledVariable(valueSpan, equation);
+    row.appendChild(valueSpan);
+    elements.modelEquationsContainer.appendChild(row);
+  });
+
   renderTextWithStyledVariable(elements.solutionText, solutionDisplay);
   elements.answerRevealPanel.hidden = false;
   elements.answerRevealBackdrop.hidden = false;
@@ -408,10 +519,15 @@ export function showJudgeMessage(status, message) {
   }
 
   if (status === "incorrect") {
-    const card = elements.equationInputCard;
-    card.classList.remove("is-incorrect-flash");
-    void card.offsetWidth;
-    card.classList.add("is-incorrect-flash");
+    // 連立方程式では2つの入力欄のうち、現在アクティブなほうだけを光らせる
+    const card = elements.equationInputSingle.hidden
+      ? elements.equationSlots.find((slot) => slot.classList.contains("is-active"))
+      : elements.equationInputSingle;
+    if (card) {
+      card.classList.remove("is-incorrect-flash");
+      void card.offsetWidth;
+      card.classList.add("is-incorrect-flash");
+    }
   }
 }
 
@@ -543,8 +659,8 @@ export function resetGameScreenPanels() {
   clearJudgeMessage();
   clearHintKeypadParts();
   setHintButtonRevealed(false);
-  showHintButton(false);
-  showPassButton(false);
+  setHintButtonEnabled(false);
+  setPassButtonEnabled(false);
   setKeyboardEnabled(true);
 }
 
@@ -650,6 +766,16 @@ export function renderResultSummary(stats) {
   elements.statAverageTime.textContent = stats.averageTimeText;
 }
 
+/**
+ * トレーニング結果画面の見出しに、単元名を添える。
+ */
+export function renderResultHeading(unit) {
+  const unitConfig = UNIT_CONFIG[unit];
+  elements.resultHeading.textContent = unitConfig
+    ? `結果発表／${unitConfig.displayName}`
+    : "結果発表";
+}
+
 function createHistoryRow(label, valueText) {
   const row = document.createElement("p");
   row.className = "history-item-row";
@@ -691,10 +817,23 @@ function createHistoryItem(entry) {
   item.appendChild(head);
 
   item.appendChild(createHistoryRow("問題文", entry.prompt));
-  item.appendChild(
-    createHistoryRow("入力した式", entry.lastInput || "（未入力）")
-  );
-  item.appendChild(createHistoryRow("模範式", entry.modelEquation));
+
+  if (entry.unit === "simultaneous") {
+    item.appendChild(
+      createHistoryRow("式①（入力）", entry.lastInput1 || "（未入力）")
+    );
+    item.appendChild(
+      createHistoryRow("式②（入力）", entry.lastInput2 || "（未入力）")
+    );
+    item.appendChild(createHistoryRow("模範式①", entry.modelEquation1));
+    item.appendChild(createHistoryRow("模範式②", entry.modelEquation2));
+  } else {
+    item.appendChild(
+      createHistoryRow("入力した式", entry.lastInput || "（未入力）")
+    );
+    item.appendChild(createHistoryRow("模範式", entry.modelEquation));
+  }
+
   item.appendChild(createHistoryRow("解", entry.solutionDisplay));
   item.appendChild(createHistoryRow("解答時間", `${entry.elapsedTimeText}秒`));
 
@@ -722,7 +861,9 @@ export function renderRankHistory(historyEntries) {
  * 段位認定モードの結果画面を描画する。
  */
 export function renderRankResult(data) {
-  elements.rankResultHeading.textContent = `段位認定／1次方程式 ${data.difficulty}`;
+  const unitConfig = UNIT_CONFIG[data.unit] || UNIT_CONFIG.linear;
+  elements.rankResultHeading.textContent =
+    `段位認定／${unitConfig.displayName} ${data.difficulty}`;
   elements.rankResultName.textContent = data.displayRankName;
 
   const isFullCombo =
@@ -778,6 +919,14 @@ export function initUI(callbacks) {
     callbacks.onModeSelect("rank");
   });
 
+  elements.unitLinearButton.addEventListener("click", () => {
+    callbacks.onUnitSelect("linear");
+  });
+
+  elements.unitSimultaneousButton.addEventListener("click", () => {
+    callbacks.onUnitSelect("simultaneous");
+  });
+
   elements.difficultyNormalButton.addEventListener("click", () => {
     callbacks.onDifficultySelect("NORMAL");
   });
@@ -808,6 +957,10 @@ export function initUI(callbacks) {
 
   elements.submitButton.addEventListener("click", () => {
     callbacks.onSubmit();
+  });
+
+  elements.equationSwitchButton.addEventListener("click", () => {
+    callbacks.onEquationSwitch();
   });
 
   elements.nextQuestionButton.addEventListener("click", () => {
@@ -859,6 +1012,24 @@ export function initUI(callbacks) {
       default:
         break;
     }
+  });
+
+  elements.equationInputScroll.addEventListener("click", (event) => {
+    const tapIndex = resolveTapCursorIndex(elements.equationInputDisplay, event.clientX);
+    callbacks.onEquationInputTap(tapIndex);
+  });
+
+  elements.equationSlots.forEach((slot, index) => {
+    slot.addEventListener("click", (event) => {
+      const tapIndex = resolveTapCursorIndex(elements.equationInputDisplays[index], event.clientX);
+      callbacks.onEquationSlotSelect(index, tapIndex);
+    });
+    slot.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        callbacks.onEquationSlotSelect(index);
+      }
+    });
   });
 
   document.addEventListener("keydown", (event) => {

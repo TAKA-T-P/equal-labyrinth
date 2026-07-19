@@ -51,8 +51,8 @@
         <button type="button" class="choice-button is-selected" id="unit-linear" data-unit="linear" aria-pressed="true">
           1次方程式
         </button>
-        <button type="button" class="choice-button is-disabled" id="unit-simultaneous" disabled aria-disabled="true">
-          連立方程式<span class="badge-wip">準備中</span>
+        <button type="button" class="choice-button" id="unit-simultaneous" data-unit="simultaneous" aria-pressed="false">
+          連立方程式
         </button>
         <button type="button" class="choice-button is-disabled" id="unit-quadratic" disabled aria-disabled="true">
           2次方程式<span class="badge-wip">準備中</span>
@@ -144,9 +144,41 @@
           <p id="question-prompt" class="question-prompt">問題文がここに表示されます。</p>
         </div>
 
-        <div class="equation-input-card">
+        <div class="equation-input-card" id="equation-input-single">
           <div id="equation-input-scroll" class="equation-input-scroll">
             <div id="equation-input-display" class="equation-input-display" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="equation-system-input" id="equation-input-system" hidden>
+          <div class="equation-brace" aria-hidden="true">{</div>
+          <div class="equation-slots">
+            <div
+              class="equation-slot"
+              id="equation-slot-0"
+              data-equation-index="0"
+              role="button"
+              tabindex="0"
+              aria-label="式①の入力欄"
+            >
+              <span class="equation-slot-label">式①</span>
+              <div id="equation-input-scroll-0" class="equation-input-scroll">
+                <div id="equation-input-display-0" class="equation-input-display" aria-live="polite"></div>
+              </div>
+            </div>
+            <div
+              class="equation-slot"
+              id="equation-slot-1"
+              data-equation-index="1"
+              role="button"
+              tabindex="0"
+              aria-label="式②の入力欄"
+            >
+              <span class="equation-slot-label">式②</span>
+              <div id="equation-input-scroll-1" class="equation-input-scroll">
+                <div id="equation-input-display-1" class="equation-input-display" aria-live="polite"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -162,9 +194,7 @@
       <div id="answer-reveal-backdrop" class="hint-backdrop" hidden></div>
       <div id="answer-reveal-panel" class="answer-reveal-panel" hidden role="status" aria-live="assertive">
         <p id="answer-reveal-status" class="answer-reveal-status"></p>
-        <p class="answer-reveal-row">
-          模範式：<span id="model-equation-text"></span>
-        </p>
+        <div id="model-equations-container"></div>
         <p class="answer-reveal-row">
           方程式の解：<span id="solution-text"></span>
         </p>
@@ -173,8 +203,15 @@
 
       <div class="game-bottom">
         <div class="action-row">
-          <button type="button" id="hint-button" class="secondary-button" hidden>ヒント</button>
-          <button type="button" id="pass-button" class="secondary-button" hidden>パス</button>
+          <button type="button" id="hint-button" class="secondary-button" disabled>ヒント</button>
+          <button type="button" id="pass-button" class="secondary-button" disabled>パス</button>
+          <button
+            type="button"
+            id="equation-switch-button"
+            class="secondary-button"
+            data-action="switch-equation"
+            hidden
+          >式②へ</button>
           <button type="button" id="submit-button" class="primary-button" disabled>解答する</button>
         </div>
 
@@ -202,7 +239,7 @@
   <!-- 結果画面 -->
   <section id="screen-result" class="screen" data-screen="result" hidden>
     <div class="screen-inner result-screen">
-      <h2 class="result-heading">結果発表</h2>
+      <h2 id="result-heading" class="result-heading">結果発表</h2>
 
       <div class="result-summary" id="result-summary">
         <div class="result-stat">

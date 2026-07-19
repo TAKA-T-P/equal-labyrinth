@@ -1,55 +1,15 @@
 // 中1「1次方程式」のカテゴリ情報
 // 設定画面のチェックボックスは、このデータから自動生成する。
 
-/**
- * crypto.randomUUID()が使用できない環境向けの代替ID生成処理を含む、
- * 一意なテンプレートIDを生成する。
- * @param {string} prefix
- */
-export function createUniqueId(prefix) {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return `${prefix}-${crypto.randomUUID()}`;
-  }
-  const randomPart =
-    Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-  return `${prefix}-${randomPart}`;
-}
-
-/**
- * min以上max以下の整数乱数を返す。
- */
-export function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-/**
- * 配列からランダムに1つの要素を返す。
- */
-export function randomChoice(list) {
-  return list[randomInt(0, list.length - 1)];
-}
-
-/**
- * 数値キーボードに表示する数値の並びを作る。
- * 問題文に登場する順の値を受け取り、文字列化したうえで
- * 最初に登場した順序を保ったまま重複を取り除く。
- * @param {Array<number|string>} values
- */
-export function buildKeypadNumbers(values) {
-  const seen = new Set();
-  const result = [];
-  values.forEach((value) => {
-    const text = String(value);
-    if (!seen.has(text)) {
-      seen.add(text);
-      result.push(text);
-    }
-  });
-  return result;
-}
+// テンプレート生成用の共通ヘルパーは、中2「連立方程式」とも共有するため
+// generation-helpers.jsへ移動した。既存の各テンプレートファイルは
+// 引き続き「./categories.js」からimportできるよう、ここで再エクスポートする。
+export {
+  createUniqueId,
+  randomInt,
+  randomChoice,
+  buildKeypadNumbers
+} from "../generation-helpers.js";
 
 // difficulty：段位認定モードでの出題難易度（トレーニングでは難易度を問わず全カテゴリを選択できる）
 // 配列の並び順が、タイトル画面のカテゴリ一覧の表示順になる。

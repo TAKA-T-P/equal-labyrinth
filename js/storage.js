@@ -5,9 +5,12 @@ import { APP_CONFIG } from "./config.js";
 
 const KEYS = {
   soundEnabled: `${APP_CONFIG.storageKeyPrefix}.soundEnabled`,
-  totalQuestions: `${APP_CONFIG.storageKeyPrefix}.totalQuestions`,
-  selectedCategories: `${APP_CONFIG.storageKeyPrefix}.selectedCategories`
+  totalQuestions: `${APP_CONFIG.storageKeyPrefix}.totalQuestions`
 };
+
+function selectedCategoriesKey(unit) {
+  return `${APP_CONFIG.storageKeyPrefix}.training.${unit}.categories`;
+}
 
 function safeGetItem(key) {
   try {
@@ -57,16 +60,22 @@ export function loadTotalQuestions(defaultValue) {
   return parsed;
 }
 
-export function saveSelectedCategories(categoryIds) {
+/**
+ * 出題カテゴリの選択状態を、単元ごとに別々のキーで保存する
+ * （例：equalLabyrinth.training.linear.categories）。
+ * @param {string} unit 例："linear" | "simultaneous"
+ * @param {string[]} categoryIds
+ */
+export function saveSelectedCategories(unit, categoryIds) {
   try {
-    safeSetItem(KEYS.selectedCategories, JSON.stringify(categoryIds));
+    safeSetItem(selectedCategoriesKey(unit), JSON.stringify(categoryIds));
   } catch (error) {
     // JSON化に失敗してもアプリは続行する
   }
 }
 
-export function loadSelectedCategories(defaultValue) {
-  const raw = safeGetItem(KEYS.selectedCategories);
+export function loadSelectedCategories(unit, defaultValue) {
+  const raw = safeGetItem(selectedCategoriesKey(unit));
   if (raw === null) {
     return defaultValue;
   }

@@ -6,15 +6,25 @@
 // モードに依存しない共通処理のため、game.js側の実装をそのまま利用する。
 // このモジュールが担当するのは「解答の判定後に何をするか」（スコア・コンボ・
 // 全体タイマーへの影響）と、段位認定に固有の出題・終了処理だけである。
+//
+// 単元（1次方程式／連立方程式）による分岐は、beginRankQuestion() /
+// handleSubmit() / getDisplayEquationForCurrentQuestion() /
+// recordRankHistory() / finishRankSession() の数か所へ集中させている。
 
-import { APP_CONFIG } from "../config.js";
-import { gameState, resetQuestionState, getCurrentInputString } from "../state.js";
+import { APP_CONFIG, UNIT_CONFIG, UNIT_IDS } from "../config.js";
+import {
+  gameState,
+  resetQuestionState,
+  getCurrentInputString,
+  getCurrentSystemInputStrings
+} from "../state.js";
 import * as ui from "../ui.js";
 import * as timer from "../timer.js";
 import * as audio from "../audio.js";
 import * as storage from "../storage.js";
 import { getNextRankQuestion } from "../questions/question-manager.js";
 import { validateEquation } from "../equation/equation-validator.js";
+import { validateSystemEquations } from "../equation/system-equation-validator.js";
 import {
   calculateCorrectPoints,
   calculateIncorrectPoints,
@@ -34,7 +44,6 @@ import {
 } from "../rank/rank-calculator.js";
 
 const POLL_INTERVAL_MS = 100;
-const UNIT = "linear";
 
 let comboState = null;
 let recentTemplateIds = [];
@@ -59,11 +68,13 @@ function sleep(ms) {
 
 /**
  * 段位認定セッションを開始する（カウントダウンの終了後に呼び出す）。
+ * @param {string} unit "linear" | "simultaneous"
  * @param {"NORMAL"|"HARD"} difficulty
  */
-export function startRankGame(difficulty) {
+export function startRankGame(unit, difficulty) {
+  gameState.unit = unit;
   gameState.rankDifficulty = difficulty;
-  comboState = createComboState();
+  comboState = createComboState(UNIT_CONFIG[unit].baseTimeSeconds);
   recentTemplateIds = [];
   recentCategoryIds = [];
   rankQuestionNumber = 0;
@@ -178,12 +189,12 @@ function handleGlobalTimeExpired() {
   // ヒント解禁前でも、残り時間0秒後はヒントを使用可能にする
   if (!gameState.inputLocked) {
     gameState.hintAvailable = true;
-    ui.showHintButton(true);
+    ui.setHintButtonEnabled(true);
   }
 
   // パスは使えなくする
   gameState.passAvailable = false;
-  ui.showPassButton(false);
+  ui.setPassButtonEnabled(false);
 
   ui.renderRankRemainingTime(0, false);
 }
@@ -203,7 +214,7 @@ async function handleFinalTimeout() {
   ui.showAnswerReveal(
     "pass",
     "時間切れ",
-    gameState.currentQuestion.displayEquation,
+    getDisplayEquationForCurrentQuestion(),
     gameState.currentQuestion.solutionDisplay
   );
 
@@ -221,6 +232,7 @@ function beginRankQuestion() {
   resetQuestionState();
 
   const { question, template } = getNextRankQuestion(
+    gameState.unit,
     gameState.rankDifficulty,
     recentTemplateIds,
     recentCategoryIds
@@ -233,8 +245,10 @@ function beginRankQuestion() {
 
   ui.showScreen("game");
   ui.resetGameScreenPanels();
+  ui.renderUnitLabel(gameState.unit);
+  ui.showEquationInputMode(gameState.unit);
   ui.renderQuestionPrompt(question.prompt);
-  ui.renderEquationInput(gameState.currentInputTokens, gameState.cursorPosition);
+  refreshRankEquationDisplay();
   ui.renderEquationKeypad(question);
   ui.setSubmitButtonEnabled(false);
 
@@ -244,19 +258,44 @@ function beginRankQuestion() {
   timer.startQuestionTimer({
     onHintAvailable: () => {
       gameState.hintAvailable = true;
-      ui.showHintButton(true);
+      ui.setHintButtonEnabled(true);
     },
     onPassAvailable: () => {
       if (gameState.globalTimeExpired) return;
       gameState.passAvailable = true;
-      ui.showPassButton(true);
+      ui.setPassButtonEnabled(true);
     }
   });
 
   if (gameState.globalTimeExpired) {
     gameState.hintAvailable = true;
-    ui.showHintButton(true);
+    ui.setHintButtonEnabled(true);
   }
+}
+
+function refreshRankEquationDisplay() {
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    ui.renderSystemEquationInput(
+      gameState.currentSystemInputTokens,
+      gameState.systemCursorPositions,
+      gameState.activeSystemEquationIndex
+    );
+  } else {
+    ui.renderEquationInput(gameState.currentInputTokens, gameState.cursorPosition);
+  }
+}
+
+/**
+ * 正解・パス・時間切れ演出で表示する模範式を、単元に応じて組み立てる。
+ * 1次方程式は文字列1つ、連立方程式は[式①, 式②]の配列を返す。
+ */
+function getDisplayEquationForCurrentQuestion() {
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    return gameState.currentQuestion.canonicalEquations.map(
+      (equation) => equation.display
+    );
+  }
+  return gameState.currentQuestion.displayEquation;
 }
 
 // ============================================================
@@ -266,8 +305,10 @@ function beginRankQuestion() {
 export function handleSubmit() {
   if (gameState.inputLocked) return;
 
-  const inputString = getCurrentInputString();
-  const result = validateEquation(inputString, gameState.currentQuestion.expectedX);
+  const result =
+    gameState.unit === UNIT_IDS.SIMULTANEOUS
+      ? validateSystemEquations(getCurrentSystemInputStrings(), gameState.currentQuestion)
+      : validateEquation(getCurrentInputString(), gameState.currentQuestion.expectedX);
 
   if (result.status === "correct") {
     handleCorrectAnswer();
@@ -296,8 +337,8 @@ function lockRankInput() {
   gameState.inputLocked = true;
   ui.setKeyboardEnabled(false);
   ui.setSubmitButtonEnabled(false);
-  ui.showHintButton(false);
-  ui.showPassButton(false);
+  ui.setHintButtonEnabled(false);
+  ui.setPassButtonEnabled(false);
   ui.clearJudgeMessage();
 }
 
@@ -319,7 +360,7 @@ async function handleCorrectAnswer() {
   ui.showAnswerReveal(
     "correct",
     `正解です！　${formatScoreDelta(points)}点　${comboAfter}Combo!`,
-    gameState.currentQuestion.displayEquation,
+    getDisplayEquationForCurrentQuestion(),
     gameState.currentQuestion.solutionDisplay
   );
 
@@ -358,7 +399,7 @@ export async function handlePass() {
   ui.showAnswerReveal(
     "pass",
     "パスしました",
-    gameState.currentQuestion.displayEquation,
+    getDisplayEquationForCurrentQuestion(),
     gameState.currentQuestion.solutionDisplay
   );
 
@@ -372,13 +413,11 @@ export async function handlePass() {
 function recordRankHistory(result, elapsedSeconds, extra) {
   const scoreDelta = extra.scoreDelta || 0;
 
-  gameState.history.push({
+  const baseEntry = {
     questionNumber: rankQuestionNumber,
+    unit: gameState.unit,
     categoryName: gameState.currentQuestion.categoryName,
     prompt: gameState.currentQuestion.prompt,
-    variableDefinition: gameState.currentQuestion.variableDefinition,
-    lastInput: getCurrentInputString(),
-    modelEquation: gameState.currentQuestion.displayEquation,
     solutionDisplay: gameState.currentQuestion.solutionDisplay,
     result,
     elapsedSeconds,
@@ -391,6 +430,25 @@ function recordRankHistory(result, elapsedSeconds, extra) {
     scoreDelta,
     scoreDeltaText: formatScoreDelta(scoreDelta),
     comboAtCorrect: extra.comboAtCorrect
+  };
+
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    const [lastInput1, lastInput2] = getCurrentSystemInputStrings();
+    gameState.history.push({
+      ...baseEntry,
+      lastInput1,
+      lastInput2,
+      modelEquation1: gameState.currentQuestion.canonicalEquations[0].display,
+      modelEquation2: gameState.currentQuestion.canonicalEquations[1].display
+    });
+    return;
+  }
+
+  gameState.history.push({
+    ...baseEntry,
+    variableDefinition: gameState.currentQuestion.variableDefinition,
+    lastInput: getCurrentInputString(),
+    modelEquation: gameState.currentQuestion.displayEquation
   });
 }
 
@@ -417,7 +475,7 @@ function finishRankSession() {
 
   const rankResult = calculateRankResult({
     averageCorrectTime,
-    baseTime: APP_CONFIG.rankBaseTimeSeconds,
+    baseTime: UNIT_CONFIG[gameState.unit].baseTimeSeconds,
     correctCount: gameState.correctCount,
     incorrectCount: gameState.incorrectCount,
     passCount: gameState.passCount,
@@ -426,7 +484,7 @@ function finishRankSession() {
   });
   gameState.rankResult = rankResult;
 
-  const existingRecord = storage.loadRankHighScore(UNIT, gameState.rankDifficulty);
+  const existingRecord = storage.loadRankHighScore(gameState.unit, gameState.rankDifficulty);
   const isNewScoreRecord =
     !existingRecord || gameState.score > existingRecord.highScore;
   const isNewRankRecord = isBetterRankCoefficient(
@@ -454,7 +512,7 @@ function finishRankSession() {
     ),
     updatedAt: new Date().toISOString()
   };
-  storage.saveRankHighScore(UNIT, gameState.rankDifficulty, updatedRecord);
+  storage.saveRankHighScore(gameState.unit, gameState.rankDifficulty, updatedRecord);
 
   audio.playRankDecidedSound();
   if (isNewScoreRecord) {
@@ -462,6 +520,7 @@ function finishRankSession() {
   }
 
   ui.renderRankResult({
+    unit: gameState.unit,
     displayRankName: rankResult.displayRankName,
     difficulty: gameState.rankDifficulty,
     correctCount: gameState.correctCount,

@@ -105,7 +105,7 @@ function parsePrimary(cursor) {
   }
 
   if (token.type === TokenType.VARIABLE) {
-    return { type: NodeType.VARIABLE };
+    return { type: NodeType.VARIABLE, name: token.name };
   }
 
   if (token.type === TokenType.LPAREN) {

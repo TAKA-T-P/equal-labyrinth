@@ -3,8 +3,9 @@
 文章題を読んで、正しい方程式を立てよう！
 計算はしなくてOK。数量の関係を式にできれば迷宮の扉が開く！
 
-中学生向けの方程式文章題学習アプリです。第2段階として、中1「1次方程式」の
-全11カテゴリと、120秒でスコア・コンボ・段位を競う「段位認定モード」を追加しています。
+中学生向けの方程式文章題学習アプリです。第3段階として、中2「連立方程式」の
+全12カテゴリを追加しました。中1「1次方程式」全11カテゴリと、120秒でスコア・コンボ・
+段位を競う「段位認定モード」は第2段階から引き続き利用できます。
 
 ©2026 T.TAKEMOTO / KEC Glows
 
@@ -26,47 +27,67 @@ equal-labyrinth/
 │
 ├─ js/
 │   ├─ main.js            起点。初期化とモジュール接続
-│   ├─ config.js          定数
-│   ├─ state.js           ゲーム状態の一元管理
+│   ├─ config.js          定数・単元識別子（UNIT_IDS）・単元ごとの設定（UNIT_CONFIG）
+│   ├─ state.js           ゲーム状態の一元管理（連立方程式の式①・式②入力欄も含む）
 │   ├─ game.js            共通処理・トレーニングモードの進行管理
 │   ├─ ui.js               画面表示・DOM操作
 │   ├─ timer.js            問題ごとの時間計測（ヒント・パス解禁）
 │   ├─ audio.js            Web Audio APIによる効果音
-│   ├─ storage.js          localStorageの読み書き
+│   ├─ storage.js          localStorageの読み書き（カテゴリ選択は単元ごとに別キー）
 │   │
 │   ├─ modes/
-│   │   └─ rank-mode.js            段位認定モードの進行管理（120秒タイマー・出題）
+│   │   └─ rank-mode.js            段位認定モードの進行管理（120秒タイマー・出題・単元切り替え）
 │   │
 │   ├─ rank/
 │   │   ├─ score-manager.js        スコア計算（DOM非依存の純粋関数）
-│   │   ├─ combo-manager.js        コンボ・コンボ継続ゲージの計算
-│   │   └─ rank-calculator.js      段位計算
+│   │   ├─ combo-manager.js        コンボ・コンボ継続ゲージの計算（基準時間は単元ごとに指定）
+│   │   └─ rank-calculator.js      段位計算（基準時間は呼び出し側から指定）
 │   │
 │   ├─ equation/
-│   │   ├─ tokenizer.js            文字列 → トークン列
-│   │   ├─ parser.js               トークン列 → AST（再帰下降パーサー）
-│   │   ├─ linear-expression.js    1次式の演算・AST → 1次式
-│   │   ├─ equation-validator.js   方程式の正誤判定
-│   │   └─ equation-formatter.js   表示用の式へ変換
+│   │   ├─ tokenizer.js                    文字列 → トークン列（x・yの2変数に対応）
+│   │   ├─ parser.js                       トークン列 → AST（再帰下降パーサー、変数名を保持）
+│   │   ├─ linear-expression.js            1次式の演算・AST → 1次式（中1、xのみ）
+│   │   ├─ two-variable-expression.js      2変数1次式の演算・AST → 2変数1次式（中2、x・y）
+│   │   ├─ equation-validator.js           1次方程式の正誤判定（中1）
+│   │   ├─ system-equation-validator.js    連立方程式の正誤判定（中2）
+│   │   └─ equation-formatter.js           表示用の式へ変換
 │   │
 │   └─ questions/
-│       ├─ question-manager.js     出題キューの管理・段位認定用の難易度別出題
-│       ├─ question-validator.js   生成問題の検証
+│       ├─ generation-helpers.js   問題生成の共通ヘルパー（中1・中2で共有）
+│       ├─ question-manager.js     出題キューの管理・単元/難易度別出題（getTemplatesForUnit等）
+│       ├─ question-validator.js   生成問題の検証（単元でvalidateLinearQuestion／
+│       │                          validateSimultaneousQuestionへ振り分け）
 │       │
-│       └─ linear/
-│           ├─ index.js            中1の全テンプレートを統合
-│           ├─ categories.js       カテゴリ定義（難易度含む）・共通ヘルパー
-│           ├─ price-basic.js      個数・代金（NORMAL）
-│           ├─ money-shortage.js   所持金・過不足（HARD）
-│           ├─ distribution.js     分配・過不足（NORMAL）
-│           ├─ benches.js          長いす・過不足（HARD）
-│           ├─ ages.js             年齢（NORMAL）
-│           ├─ integers.js         整数（HARD）
-│           ├─ speed-distance.js   速さ・時間・道のり（HARD）
-│           ├─ catch-up.js         追いつき・出会い（NORMAL）
-│           ├─ percentage.js       割合・増減（HARD）
+│       ├─ linear/                 中1「1次方程式」（全11カテゴリ）
+│       │   ├─ index.js            中1の全テンプレートを統合
+│       │   ├─ categories.js       カテゴリ定義（難易度含む）・共通ヘルパーの再エクスポート
+│       │   ├─ price-basic.js      個数・代金（NORMAL）
+│       │   ├─ money-shortage.js   所持金・過不足（HARD）
+│       │   ├─ distribution.js     分配・過不足（NORMAL）
+│       │   ├─ benches.js          長いす・過不足（HARD）
+│       │   ├─ ages.js             年齢（NORMAL）
+│       │   ├─ integers.js         整数（HARD）
+│       │   ├─ speed-distance.js   速さ・時間・道のり（HARD）
+│       │   ├─ catch-up.js         追いつき・出会い（NORMAL）
+│       │   ├─ percentage.js       割合・増減（HARD）
+│       │   ├─ two-products.js     2種類の品物と代金（NORMAL）
+│       │   └─ admission-fees.js   大人・子どもの人数と料金（NORMAL）
+│       │
+│       └─ simultaneous/           中2「連立方程式」（全12カテゴリ）
+│           ├─ index.js            中2の全テンプレートを統合
+│           ├─ categories.js       カテゴリ定義（難易度含む）・共通ヘルパーの再エクスポート
 │           ├─ two-products.js     2種類の品物と代金（NORMAL）
-│           └─ admission-fees.js   大人・子どもの人数と料金（NORMAL）
+│           ├─ admission-fees.js   人数と料金（NORMAL）
+│           ├─ coins.js            硬貨・紙幣（NORMAL）
+│           ├─ two-digit-number.js 2けたの自然数（HARD）
+│           ├─ ages.js             年齢（NORMAL）
+│           ├─ speed-distance.js   速さ・道のり（NORMAL）
+│           ├─ train-passage.js    電車の通過（HARD）
+│           ├─ circular-track.js   池・トラックの周回（HARD）
+│           ├─ mixture.js          食塩水の混合（NORMAL）
+│           ├─ population-change.js 割合の増減・人数（HARD）
+│           ├─ price-discount.js   割合の増減・代金（HARD）
+│           └─ averages.js         平均（HARD）
 │
 └─ assets/
     └─ README.md          将来、画像・音声を追加する場所の説明
@@ -118,45 +139,51 @@ equal-labyrinth/
 ### 共通
 
 - タイトル・設定画面（モード／単元／問題数／カテゴリ／難易度／効果音）
+- 単元選択：中1「1次方程式」・中2「連立方程式」（中3「2次方程式」は引き続き準備中）
 - カウントダウン（3・2・1・START!）
 - 中1「1次方程式」全11カテゴリ（個数・代金／所持金・過不足／分配・過不足／
   長いす・過不足／年齢／整数／速さ・時間・道のり／追いつき・出会い／
   割合・増減／2種類の品物と代金／大人・子どもの人数と料金）、合計33種類以上の問題テンプレート
-- 問題のランダム出題（同一問題・同一テンプレート・カテゴリ3連続の連続防止つき）
+- 中2「連立方程式」全12カテゴリ（2種類の品物と代金／人数と料金／硬貨・紙幣／
+  2けたの自然数／年齢／速さ・道のり／電車の通過／池・トラックの周回／食塩水の混合／
+  割合の増減・人数／割合の増減・代金／平均）、合計36種類以上の問題テンプレート
+- 問題のランダム出題（バッグ方式によるカテゴリの偏り防止、同一テンプレートの連続防止つき）
 - 問題ごとの経過時間計測（`performance.now()`ベース）
 - 数式専用キーボード（問題ごとの数値ボタン・記号ボタン・カーソル移動・消去。
   固定の0〜9キーは廃止し、詳細は「数式キーボードの仕様」を参照）
 - 1次方程式の正誤判定（構文解析による判定。文字列完全一致ではない）
+- 連立方程式の正誤判定（入力式と模範関係の同値判定。詳細は「連立方程式の正誤判定」を参照）
+- 連立方程式の2本入力欄（式①・式②、タップまたは「式切替」ボタンで切り替え）
 - 正解・不正解演出
 - 20秒後のヒント表示（ヒント文とあわせて「式パーツ」をキーボードへ追加。詳細は「ヒント式パーツ」を参照）
 - 40秒後のパス
 - リトライ・タイトルに戻る
-- 問題履歴（問題ごとの詳細を一覧表示）
+- 問題履歴（問題ごとの詳細を一覧表示。連立方程式では式①・式②や文字の定義も表示）
 - 効果音ON・OFF
-- 設定の保存（localStorage）
+- 設定の保存（localStorage、カテゴリ選択は単元ごとに別キー）
 - スマートフォン縦画面対応（横スクロールなし）
 
 ### トレーニングモード
 
 - 問題数設定（3〜20問、スライダー）
-- カテゴリ選択（全11カテゴリから複数選択・すべて選択／すべて解除）
+- カテゴリ選択（単元ごとの全カテゴリから複数選択・すべて選択／すべて解除）
 - 正解後、「次へ」ボタンを押すまで正解表示を残す
-- 結果画面（正解数・不正解回数・パス回数・正答率・平均正解時間）
+- 結果画面（単元・正解数・不正解回数・パス回数・正答率・平均正解時間）
 
 ### 段位認定モード
 
-- NORMAL・HARDの難易度選択（詳細は「段位認定モードの遊び方」を参照）
+- 単元（1次方程式／連立方程式）とNORMAL・HARDの難易度選択（詳細は「段位認定モードの遊び方」を参照）
 - 120秒の全体制限時間、残り10秒以下の演出
 - 残り時間0秒後、最終問題に対する30秒の猶予期間と時間切れ処理
-- スコア計算・コンボ・コンボ継続ゲージ（詳細は各セクションを参照）
-- 段位計算（NORMAL/HARDと段位係数から「皆伝」〜「10級」を判定）
-- ハイスコア・最高段位の保存（NORMAL/HARDを別々に保存）
-- 段位認定専用の結果画面（段位を大きく表示、ハイスコア更新時はNEW RECORD表示）
+- スコア計算・コンボ・コンボ継続ゲージ（詳細は各セクションを参照。基準時間は単元ごとに異なる）
+- 段位計算（NORMAL/HARDと段位係数から「皆伝」〜「10級」を判定。基準時間は単元ごとに異なる）
+- ハイスコア・最高段位の保存（単元・NORMAL/HARDの組み合わせごとに別々に保存）
+- 段位認定専用の結果画面（単元・段位を大きく表示）
 
 ## 実装していない機能
 
-- 中2「連立方程式」・中3「2次方程式」（画面上は「準備中」として表示し、操作不可）
-- yの入力、x^2の入力
+- 中3「2次方程式」（画面上は「準備中」として表示し、操作不可）
+- x^2の入力
 - 図を使う問題・動点問題
 - 複雑な分数入力
 - オンラインランキング・ユーザーアカウント・サーバーへの記録保存
@@ -167,18 +194,27 @@ equal-labyrinth/
 
 各ファイル冒頭のコメントに役割を記載しています。大枠は次の通りです。
 
-- **equation/** ：数式の解析・1次式演算・正誤判定・表示変換。ゲームや問題データに依存しない独立モジュール群。
+- **equation/** ：数式の解析・1次式／2変数1次式演算・正誤判定・表示変換。
+  ゲームや問題データに依存しない独立モジュール群。`linear-expression.js`（中1・xのみ）と
+  `two-variable-expression.js`（中2・x/y）は別モジュールとして分離し、`tokenizer.js`・`parser.js`は
+  両方で共有する（変数トークンが`name`（"x"または"y"）を保持する形にして対応した）。
 - **questions/** ：問題テンプレートの管理・出題キューの構築・生成問題の検証。
-- **state.js** ：ゲーム状態を一元管理し、専用関数を通してのみ変更する。
+  単元による分岐は`question-manager.js`の`getTemplatesForUnit()` / `getCategoriesForUnit()`と、
+  `question-validator.js`の`validateQuestion()`の数か所へ集中させている。
+- **state.js** ：ゲーム状態を一元管理し、専用関数を通してのみ変更する。連立方程式用に
+  `currentSystemInputTokens`（式①・式②の入力欄）・`activeSystemEquationIndex`・
+  `systemCursorPositions`を追加し、専用の操作関数（`insertCharacterAtSystemCursor()`等）を用意した。
 - **game.js** ：共通処理（画面遷移・数式入力・ヒント・カウントダウンなど）と、
   トレーニングモード専用の進行（固定問題数での出題・正誤処理・結果集計）を管理する。
-  段位認定モード開始時は`rank-mode.js`へ処理を委譲する。
+  段位認定モード開始時は`rank-mode.js`へ処理を委譲する。単元に応じて、1本入力（中1）と
+  2本入力（中2）の処理を切り替える。
 - **modes/rank-mode.js** ：段位認定モード専用の進行（120秒タイマー・難易度別の無制限出題・
   スコア/コンボ反映・最終問題の猶予処理・段位計算・ハイスコア保存）を管理する。
   スコア・コンボの計算処理そのものは持たず、`rank/`配下の純粋関数を呼び出す。
 - **rank/score-manager.js / combo-manager.js / rank-calculator.js** ：
   DOM・タイマーを持たない純粋な計算モジュール。スコア加減点、コンボとコンボゲージの状態遷移、
-  段位係数・段位名の計算だけを担当し、単体でテストできる。
+  段位係数・段位名の計算だけを担当し、単体でテストできる。基準時間（timeB）は呼び出し側
+  （`rank-mode.js`）が単元ごとに`UNIT_CONFIG`から取得して渡す。
 - **ui.js** ：DOM操作専用。ゲームルールや正誤判定は書かない。
 - **timer.js / audio.js / storage.js** ：それぞれ問題ごとの時間計測（ヒント・パス解禁）・
   効果音・保存を専任で担当する。段位認定モードの120秒タイマーは`rank-mode.js`が別途管理する
@@ -186,7 +222,7 @@ equal-labyrinth/
 
 ---
 
-## 正誤判定の仕組み
+## 正誤判定の仕組み（中1「1次方程式」）
 
 1. `tokenizer.js`が入力文字列をトークン列へ分解する（暗黙の乗法を自動補完）。
 2. `parser.js`が優先順位（かっこ→単項マイナス→乗除→加減）に従ってASTを構築する。
@@ -202,6 +238,51 @@ equal-labyrinth/
 模範式との文字列完全一致では判定していないため、
 `150x+80(10-x)=1080`と`80(10-x)+150x=1080`のように、
 同じ数量関係を表す異なる式もすべて正解になる。
+
+---
+
+## 連立方程式の正誤判定（中2「連立方程式」）
+
+連立方程式では、(x, y)の解が一致するだけでは正解にしない。文章題は
+**2つの数量関係を立式する力**を確認するアプリのため、入力された式①・式②のそれぞれが、
+問題データに登録された`canonicalEquations`（2本の模範関係）のいずれかと
+「0でない定数倍」の関係にあるかどうかで判定する（`system-equation-validator.js`）。
+
+### 各入力式の標準化
+
+入力された1本の方程式について、`two-variable-expression.js`の
+`astToTwoVariableExpression()`で左辺・右辺をそれぞれ2変数1次式
+`{ xCoefficient, yCoefficient, constant }`に変換し、左辺－右辺を計算して
+`ax + by + c = 0`の標準形（`system-equation-validator.js`の`parseEquationToStandardForm()`）にする。
+
+- `xCoefficient === 0 && yCoefficient === 0 && constant === 0`（恒等式、例：`x+y=x+y`）→不正解
+- `xCoefficient === 0 && yCoefficient === 0 && constant !== 0`（解なし、例：`x+y=x+y+1`）→不正解
+
+### 模範関係との同値判定
+
+`areProportionalEquations()`が、入力式の係数`[a, b, c]`と模範関係の係数`[A, B, C]`が
+0でない定数倍かどうかを判定する。
+
+1. 模範式の係数のうち、絶対値が最も大きいものを基準にする
+2. 入力式との倍率を求める
+3. 3つの係数がすべて同じ倍率か、`numericTolerance`の範囲内で確認する
+4. 倍率が0の場合は不正解
+
+式①・式②の順番は問わない。入力式①が模範式①・②のどちらと一致してもよいが、
+式①・式②がそれぞれ別の模範関係と1対1で対応する場合のみ正解にする
+（`matchesInOrder` / `matchesSwapped`のいずれかがtrueになる場合）。そのため、
+
+- `x+y=10`と`2x+2y=20`（同じ関係を2回入力）→どちらも模範式①にしか一致しないため不正解
+- `x+y=10`と`30y=120`（2本の模範式から消去法で導いた式）→模範式のどちらにも一致しないため不正解
+
+のように、数学的に解ける・同じ解を持つだけの式は正解にならない。
+
+### 解の確認（念のための追加チェック）
+
+各式が模範関係と一致したうえで、`solveTwoVariableSystem()`が実際にクラメルの公式で
+入力式を解き、`expectedSolution.x` / `.y`と一致することも確認する
+（行列式が0＝2本の式が独立していない場合は不正解）。これは問題データや比較処理の
+不具合を検出するための追加の安全策であり、通常の判定は模範関係との同値判定だけで完結する。
 
 ---
 
@@ -315,29 +396,40 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 
 ## 段位認定モードの遊び方
 
-タイトル画面で「段位認定」を選ぶと、問題数・カテゴリの代わりに難易度（NORMAL／HARD）の
-選択が表示される。スタートすると120秒のカウントダウンが始まり、時間が尽きるまで
-1次方程式の文章題に次々と解答する。正解数・解答時間・ミス・パスの回数から、
+タイトル画面で「段位認定」を選ぶと、問題数・カテゴリの代わりに単元（1次方程式／連立方程式）と
+難易度（NORMAL／HARD）の選択が表示される。スタートすると120秒のカウントダウンが始まり、
+時間が尽きるまで文章題に次々と解答する。正解数・解答時間・ミス・パスの回数から、
 「皆伝」〜「10級」までの段位が認定される。
 
 > 120秒以内に、できるだけ多くの方程式を立てよう！
 > 正解数・解答時間・ミス・パスから段位を認定します。
 
 ヒント・パス・数式キーボードなど、基本的な操作方法はトレーニングモードと共通。
+連立方程式を選んだ場合は、式①・式②の2本を入力する（詳細は「連立方程式の入力画面」を参照）。
 
 ## NORMAL・HARDの違い
 
-`js/questions/linear/categories.js`の`LINEAR_CATEGORIES`で、カテゴリごとに
-`difficulty: "NORMAL"`または`"HARD"`を設定している。
+中1「1次方程式」は`js/questions/linear/categories.js`の`LINEAR_CATEGORIES`、
+中2「連立方程式」は`js/questions/simultaneous/categories.js`の`SIMULTANEOUS_CATEGORIES`で、
+カテゴリごとに`difficulty: "NORMAL"`または`"HARD"`を設定している。
+
+### 中1「1次方程式」
 
 | 難易度 | 出題されるカテゴリ |
 | --- | --- |
 | NORMAL | 個数・代金／分配・過不足／年齢／追いつき・出会い／2種類の品物と代金／大人・子どもの人数と料金 |
 | HARD | 所持金・過不足／長いす・過不足／整数／速さ・時間・道のり／割合・増減 |
 
-段位認定モードでは、選んだ難易度に属するカテゴリだけから出題される
-（`question-manager.js`の`getNextRankQuestion()`）。トレーニングモードでは、
-難易度に関わらず全11カテゴリを選択できる。
+### 中2「連立方程式」
+
+| 難易度 | 出題されるカテゴリ |
+| --- | --- |
+| NORMAL | 2種類の品物と代金／人数と料金／硬貨・紙幣／年齢／速さ・道のり／食塩水の混合 |
+| HARD | 2けたの自然数／電車の通過／池・トラックの周回／割合の増減・人数／割合の増減・代金／平均 |
+
+段位認定モードでは、選んだ単元・難易度に属するカテゴリだけから出題される
+（`question-manager.js`の`getNextRankQuestion(unit, difficulty, ...)`）。トレーニングモードでは、
+難易度に関わらず、選んだ単元の全カテゴリを選択できる。
 
 ## スコア計算（`js/rank/score-manager.js`）
 
@@ -361,9 +453,15 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 
 ## コンボ継続ゲージ計算
 
-1次方程式の基準時間`timeB`を12秒とし、ゲージの基本継続時間を`timeB × 2 = 24秒`とする。
+単元ごとの基準時間`timeB`を`js/config.js`の`UNIT_CONFIG[unit].baseTimeSeconds`から取得し
+（1次方程式＝12秒、連立方程式＝20秒）、ゲージの基本継続時間を`timeB × 2`とする。
 現在のコンボ数を`n`とすると、ゲージの減少速度は`1 + 0.05n`倍になり、
-実際にゲージが空になるまでの時間は`24 ÷ (1 + 0.05n)`秒になる。
+実際にゲージが空になるまでの時間は`(timeB × 2) ÷ (1 + 0.05n)`秒になる。
+この計算式自体は単元によらず共通で、`js/rank/combo-manager.js`の`createComboState(baseTimeSeconds)`が
+`baseTimeSeconds`をコンボ状態に保持し、`gaugeDurationForCombo()`へ渡すことで単元ごとの
+基準時間を反映している。
+
+### 1次方程式（基本継続時間24秒）
 
 | コンボ数 | ゲージ継続時間 |
 | ---: | ---: |
@@ -373,14 +471,24 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 | 5 | 19.20秒 |
 | 10 | 16.00秒 |
 
+### 連立方程式（基本継続時間40秒）
+
+| コンボ数 | ゲージ継続時間 |
+| ---: | ---: |
+| 1 | 約38.10秒 |
+| 2 | 約36.36秒 |
+| 3 | 約34.78秒 |
+| 5 | 32.00秒 |
+| 10 | 約26.67秒 |
+
 正解すると、次の問題が始まった時点でゲージが100％から動き出す（正解した瞬間ではない）。
 正解演出（約2秒）の間は全体タイマーとコンボゲージの両方を一時停止し、次の問題が表示された
 時点で再開することで、演出中に不当にゲージが減ることを防いでいる。
 
 ## 段位計算（`js/rank/rank-calculator.js`）
 
-正解した問題の解答時間の平均を`timeA`、基準時間`timeB`（1次方程式は12秒）として、
-次の式で基本段位係数を計算する（小数点以下切り上げ）。
+正解した問題の解答時間の平均を`timeA`、基準時間`timeB`（`UNIT_CONFIG[unit].baseTimeSeconds`。
+1次方程式は12秒、連立方程式は20秒）として、次の式で基本段位係数を計算する（小数点以下切り上げ）。
 
 ```javascript
 const baseCoefficient = Math.ceil(
@@ -413,6 +521,8 @@ const baseCoefficient = Math.ceil(
 ```text
 equalLabyrinth.rank.linear.NORMAL
 equalLabyrinth.rank.linear.HARD
+equalLabyrinth.rank.simultaneous.NORMAL
+equalLabyrinth.rank.simultaneous.HARD
 ```
 
 ```javascript
@@ -469,67 +579,105 @@ const result = calculateRankResult({
 console.log(result.displayRankName); // "皆伝"
 ```
 
-同様に`js/rank/combo-manager.js`（`createComboState()` → `registerCorrect()` /
+同様に`js/rank/combo-manager.js`（`createComboState(baseTimeSeconds)` → `registerCorrect()` /
 `tick()` / `registerPass()`）、`js/rank/score-manager.js`
 （`calculateCorrectPoints()` / `calculateIncorrectPoints()`）も、ブラウザなしで
-単体テストできる。
+単体テストできる。連立方程式の基準時間（20秒）でコンボゲージを検証する場合は、
+`createComboState(20)`のように明示的に渡す（省略時は1次方程式の12秒がデフォルト）。
+
+`js/equation/system-equation-validator.js`の`validateSystemEquations(inputStrings, question)`も
+DOM非依存の純粋関数のため、Node.js上で`canonicalEquations`と`expectedSolution`を持つ
+問題オブジェクトを直接渡してテストできる。
 
 ---
 
 ## 問題テンプレートの追加方法
 
-1. 対象カテゴリのJSファイルを開く（例：`js/questions/linear/price-basic.js`）
+中1「1次方程式」（`js/questions/linear/`）・中2「連立方程式」（`js/questions/simultaneous/`）
+どちらも同じ手順で追加できる。以下は1次方程式を例にする（連立方程式の場合は
+`expectedX`→`expectedSolution: {x, y}`、`canonicalEquation`（文字列1本）→
+`canonicalEquations`（`{internal, display, relationName}`の配列2本）、
+`displayEquation`は使わない、という対応関係になる）。
+
+1. 対象カテゴリのJSファイルを開く（例：`js/questions/linear/price-basic.js`、
+   連立方程式なら`js/questions/simultaneous/two-products.js`）
 2. テンプレートオブジェクトを配列へ追加する
 3. 一意の`templateId`を設定する（他のテンプレートと重複しない文字列）
-4. `generate()`関数を実装し、`expectedX`・`canonicalEquation`・`displayEquation`・
-   `prompt`・`hint`・`explanation`などの必須項目をすべて返すようにする
+4. `generate()`関数を実装し、必須項目をすべて返すようにする
+   - 1次方程式：`expectedX`・`canonicalEquation`・`displayEquation`・`prompt`・`hint`・`explanation`など
+   - 連立方程式：`expectedSolution`・`canonicalEquations`（2本）・`variableDefinitions`（x・y）・
+     `solutionDisplay`・`prompt`・`hint`・`explanation`など
 5. `rankDifficulty`に、そのカテゴリの難易度（`"NORMAL"`または`"HARD"`）を設定する。
-   `categories.js`の`LINEAR_CATEGORIES`に登録した難易度と一致しないと、
-   `question-validator.js`が不正な問題として除外する
+   `categories.js`の`LINEAR_CATEGORIES`／`SIMULTANEOUS_CATEGORIES`に登録した難易度と
+   一致しないと、`question-validator.js`が不正な問題として除外する
 6. `keypadNumbers`（問題文に登場する順の数値の配列、文字列で管理）と、
-   `keypadSymbols`（その問題に必要な記号だけの配列）を設定する
+   `keypadSymbols`（その問題に必要な記号だけの配列。連立方程式は`x`・`y`・`=`を含める）を設定する
 7. 問題データの必須項目が欠けていないか確認する
-8. `expectedX`と、`canonicalEquation`を解いた結果が一致することを確認する
-   （`question-validator.js`が自動検証するが、手計算でも確認する）
-9. `canonicalEquation`に登場する定数（係数1・負号で作られる負の数などを除く）が、
-   すべて`keypadNumbers`から入力できることを確認する（これも`question-validator.js`が検証する）
-10. `hintKeypadParts`を設定する場合は、次を確認する
+8. 1次方程式では`expectedX`と`canonicalEquation`を解いた結果が、連立方程式では
+   `expectedSolution`と`canonicalEquations`（2本の連立方程式として解いた結果）が
+   一致することを確認する（`question-validator.js`が自動検証するが、手計算でも確認する）
+9. 式に登場する定数（係数1・負号で作られる負の数などを除く）が、すべて`keypadNumbers`から
+   入力できることを確認する（これも`question-validator.js`が検証する）
+10. 連立方程式の場合、2本の`canonicalEquations`が互いに定数倍の関係（比例）にならないこと
+    （＝連立方程式として独立であること）を確認する。生成する数値に依存関係があると、
+    まれに2本が比例してしまい解けない問題になることがあるため、必要に応じて
+    `while`ループなどで値の重複・比例を避けるガードを入れる
+    （`price-discount.js`・`train-passage.js`に実例がある）
+11. `hintKeypadParts`を設定する場合は、次を確認する
     - ヒント文と式パーツの内容が一致しているか
     - 式パーツが完成式に近くなりすぎていないか
     - 1つの数量だけを表すパーツになっているか（1問につき1〜2個まで）
     - 式パーツを使って模範式を入力できるか
     - 式パーツを使わなくても問題を解けるか
     - 式パーツがなくてもよい問題では`hintKeypadParts: []`になっているか
-11. ローカルサーバーでブラウザから起動し、実際に出題されることと、
+    - 連立方程式では、ヒント式パーツは現在アクティブな式（式①または式②）にのみ挿入される
+12. ローカルサーバーでブラウザから起動し、実際に出題されることと、
     意図した数値ボタン・記号ボタン・ヒント式パーツだけが表示されることを確認する
 
 ## 新しいカテゴリの追加方法
+
+### 1次方程式
 
 1. `js/questions/linear/categories.js`の`LINEAR_CATEGORIES`へカテゴリ情報を追加する。
    `difficulty`に`"NORMAL"`または`"HARD"`を指定する（段位認定モードでの出題難易度になる）
 2. `js/questions/linear/`配下に新しい問題ファイルを作成する。各テンプレートの
    `rankDifficulty`は、手順1で設定した`difficulty`と同じ値にする
 3. `js/questions/linear/index.js`へ`import`を追加し、`linearQuestionTemplates`へ展開する
-4. 設定画面のカテゴリ一覧は`categories.js`のデータから自動生成されるため、
-   HTMLやui.jsを直接修正する必要はない
-5. ブラウザで出題・正誤判定が正しく動作すること、段位認定モードで選んだ難易度どおりに
-   出題されることを確認する
+
+### 連立方程式
+
+1. `js/questions/simultaneous/categories.js`の`SIMULTANEOUS_CATEGORIES`へカテゴリ情報を追加する
+2. `js/questions/simultaneous/`配下に新しい問題ファイルを作成する。各テンプレートの
+   `rankDifficulty`は、手順1で設定した`difficulty`と同じ値にする
+3. `js/questions/simultaneous/index.js`へ`import`を追加し、`simultaneousQuestionTemplates`へ展開する
+
+### 共通
+
+- 設定画面のカテゴリ一覧は`categories.js`のデータ（`question-manager.js`の
+  `getCategoriesForUnit(unit)`経由）から自動生成されるため、HTMLやui.jsを直接修正する必要はない
+- ブラウザで出題・正誤判定が正しく動作すること、段位認定モードで選んだ単元・難易度どおりに
+  出題されることを確認する
 
 ## カテゴリ難易度の設定方法
 
-カテゴリの難易度は`categories.js`の1か所（`LINEAR_CATEGORIES`の`difficulty`）でのみ管理し、
-各問題テンプレートの`rankDifficulty`はそれと一致させる。両者が食い違う場合、
-`question-validator.js`の`validateRankDifficulty()`が検証エラーとして出題対象から除外する
-（`question-manager.js`のフォールバック問題にも、同様に一致した`rankDifficulty`を設定している）。
+カテゴリの難易度は、単元ごとの`categories.js`1か所（`LINEAR_CATEGORIES`／
+`SIMULTANEOUS_CATEGORIES`の`difficulty`）でのみ管理し、各問題テンプレートの`rankDifficulty`は
+それと一致させる。両者が食い違う場合、`question-validator.js`の`validateRankDifficulty()`が
+検証エラーとして出題対象から除外する（`question-manager.js`のフォールバック問題にも、
+同様に一致した`rankDifficulty`を設定している）。
 
 ---
 
 ## 動作確認したテスト
 
+### トレーニングモード（中1「1次方程式」・回帰確認）
+
 - ローカルサーバー起動時に、コンソールへ404エラーや`import`エラーが出ないこと
 - 問題数スライダーが3〜20問の範囲で1問刻みに変化すること
 - カテゴリ未選択時にスタートボタンが無効化され、警告文が表示されること
 - 「すべて選択」「すべて解除」ボタンが正しく動作すること
+- タイトル画面で単元（1次方程式／連立方程式）を切り替えると、カテゴリ一覧・保存済み選択が
+  それぞれの単元用に独立して切り替わること
 - カウントダウン後にゲーム画面へ遷移し、キーボード入力が可能になること
 - 固定の`0`〜`9`・`.`キーが表示されないこと
 - 問題ごとに、`keypadNumbers`で指定した数値ボタンだけが（重複なく）表示されること
@@ -561,21 +709,61 @@ console.log(result.displayRankName); // "皆伝"
 - 同じ設定でもう一度プレイでき、タイトルへ戻れること
 - 幅320px〜1024px以上で横スクロールが発生しないこと
 
+### トレーニングモード（中2「連立方程式」・新規追加分）
+
+- タイトル画面で「連立方程式」を選択でき、「準備中」表示が消えていること
+  （「2次方程式」は引き続き「準備中」のまま選択できないこと）
+- 12カテゴリすべてが設定画面に表示され、選択・保存・復元できること
+- ゲーム画面で式①・式②の2つの入力欄が縦に並んで表示され、横並びにならないこと
+  （幅320px〜1024px以上のいずれでも縦並びを維持すること）
+- 問題文の直下に、xの定義・yの定義が表示されること
+- 式①・式②をタップ、または「式②へ」ボタンで切り替えられ、アクティブな式が
+  枠線・配色ではっきり分かること
+- PCではTabキーで式を切り替えられ、式①でEnterを押すと式②へ移動し、
+  式②で入力が完了していればEnterで解答できること
+- 数式キーボードに`y`キーが表示され、入力できること
+- 数値ボタン・記号ボタンは、そのとき選択中の式（式①または式②）へ挿入されること
+- ヒントボタンを押すと、現在アクティブな式にのみヒント式パーツが挿入されること
+- 解答ボタンは、式①・式②の両方が「xを含む・yを含む・＝が1つ・両辺非空・かっこ対応・
+  不正文字なし」を満たすまで無効化されること
+- 次の入力の組が正解になること（例：パン問題 x=6, y=4）：
+  `x+y=10` と `80x+150y=1080`（順序を式①・式②のどちらに入力しても正解）
+- 次のように、(x, y)の解自体は正しくても式が独立でない・無関係な入力は不正解になること：
+  `x+y=10` と `2x+2y=20`（同じ関係式を定数倍しただけ）／
+  `x+y=10` と `30y=120`（消去法で導出した式で、文章題の2つの数量関係を表していない）／
+  `x+y=10` と `x-y=2`（解は一致するが、文章題とは無関係な式）
+- 式①・式②のどちらか一方でも構造的に不正な入力（xを含まない等）は入力エラーとして
+  不正解回数へ加算されないこと
+- 正解表示に、式①・式②両方の模範式が表示されること（入力順と模範式の順序が
+  一致していなくても正解と判定されること）
+- 履歴に、xの定義・yの定義・入力した式①②・模範式①②が表示されること
+- 結果画面・段位認定の見出しに「連立方程式」の単元名が表示されること
+
 ### 段位認定モード（Node.jsでのロジック検証）
 
-- 全11カテゴリ×3テンプレート以上、合計33テンプレートが、それぞれ30回生成しても
-  `question-validator.js`の検証（`rankDifficulty`の一致を含む）を通過すること
-- `getNextRankQuestion("NORMAL", ...)` / `("HARD", ...)`が、それぞれ対応する難易度の
-  カテゴリだけを返し、同じテンプレートを連続で返さないこと
+- 中1・中2それぞれ全カテゴリ×3テンプレート以上（1次方程式33、連立方程式36）が、
+  それぞれ30回生成しても`question-validator.js`の検証（`rankDifficulty`の一致を含む）を
+  通過すること
+- `getNextRankQuestion("linear", "NORMAL", ...)` / `("linear", "HARD", ...)` /
+  `("simultaneous", "NORMAL", ...)` / `("simultaneous", "HARD", ...)`が、それぞれ対応する
+  単元・難易度のカテゴリだけを返し、同じテンプレートを連続で返さないこと
 - `calculateRankResult()`が、仕様書の計算例3パターン（平均12秒・補正なし→皆伝／
   平均15秒・不正解2・パス1・正解6問→二段／HARD・正解2問→八段＋）と一致すること
+- `calculateRankResult({..., baseTime: 20})`が、連立方程式の仕様例（平均20秒・補正なし→皆伝）
+  と一致すること
 - `calculateRankResult()`が、正解0問の場合に必ず係数20（10級）を返すこと、
   平均時間が極端に短い／長い場合でも係数が0〜20にクランプされること
 - `calculateCorrectPoints(n)`が`1000+100n`（1〜10コンボで1100〜2000点）と一致し、
   `calculateIncorrectPoints()`が`-500`を返すこと
-- `combo-manager.js`のコンボゲージ継続時間が、1〜10コンボで仕様表どおり
-  （約21.82秒〜12.00秒）になること。ゲージ切れでコンボが0にリセットされ、
+- `combo-manager.js`のコンボゲージ継続時間が、`createComboState(12)`（1次方程式）で
+  1〜10コンボで仕様表どおり（約22.86秒〜16.00秒）に、`createComboState(20)`（連立方程式）で
+  仕様表どおり（約38.10秒〜26.67秒）になること。ゲージ切れでコンボが0にリセットされ、
   不正解だけでは即座にリセットされないこと
+- `validateSystemEquations()`が、仕様書section 56〜58の正解・不正解・入力エラー例（27例）
+  すべてで期待どおりの`status`を返すこと
+- `saveRankHighScore("simultaneous", "NORMAL", ...)` / `("HARD", ...)`が、
+  `equalLabyrinth.rank.simultaneous.NORMAL` / `.HARD`へ独立して保存され、
+  1次方程式側のハイスコアに影響しないこと
 - トレーニング・段位認定を通じて全JSファイルの構文チェック（`node --check`）が通ること、
   `ui.js`が参照するDOM IDがすべて`index.html`に存在すること
 
@@ -586,25 +774,39 @@ console.log(result.displayRankName); // "皆伝"
 1. `equal-labyrinth`フォルダをローカルサーバーで配信する
    （VS Code Live Server、または`python -m http.server 8000`）
 2. ブラウザで配信されたURLを開く
-3. タイトル画面で問題数・カテゴリ・効果音を設定し、「スタート」を押す
+3. タイトル画面で単元（1次方程式／連立方程式）・問題数・カテゴリ・効果音を設定し、
+   「スタート」を押す
 
 ---
 
 ## 既知の制約
 
 - 効果音はWeb Audio APIによる単純な生成音であり、外部音声ファイルは使用していない
-- 中2「連立方程式」・中3「2次方程式」単元は画面上「準備中」と表示されるのみで、
-  今回の第2段階では選択・操作できない
+- 中3「2次方程式」単元は画面上「準備中」と表示されるのみで、今回の第3段階では
+  選択・操作できない（`UNIT_CONFIG`に`baseTimeSeconds: 14`のエントリだけ先行して用意してあるが、
+  `SELECTABLE_UNIT_IDS`には含めていない）
 - 除算は分母が定数の場合のみ許可しており、分数の入力（`1/2x`のような複雑な表記）には対応していない
 - 数式入力は半角・全角の演算記号（`×÷−`など）と`*` `/` `-`の両方を認識するが、
   全角数字（１２３など）には対応していない
 - 数式キーボードの数値ボタンは、各問題テンプレートの`keypadNumbers`に明示された数値のみを表示する
   （問題文からの自動抽出は、`keypadNumbers`未設定時の保険としてのみ動作する）
 - `keypadNumbers`は将来の分数表記（`"1/2"`のような文字列）を見据えて文字列で管理しているが、
-  今回の第2段階では分数ボタンの表示・入力には対応していない
+  今回の第3段階では分数ボタンの表示・入力には対応していない
 - 段位認定モードのハイスコアはブラウザの`localStorage`に保存され、端末・ブラウザをまたいだ
   同期やオンラインランキングには対応していない
 - 段位認定モードの全体タイマー・コンボゲージは、タブが非アクティブになっている間も
   `performance.now()`との差分で経過時間を計算するが、ブラウザがバックグラウンドタブの
   `setInterval`実行間隔を大きく間引く場合、残り時間の表示更新がまとめて反映されることがある
   （時間切れなどの判定自体は、次にタブがアクティブになった時点で正しい経過時間により行われる）
+- 連立方程式の`xy`・`x(x+1)`・`(x+y)(x-y)`のような、少なくとも一方が定数でない項どうしの
+  乗除は、`two-variable-expression.js`が非線形として入力エラーにする（中2の範囲を超えるため、
+  対応する必要がない）
+- 連立方程式の正誤判定は「入力式が2本の`canonicalEquations`のいずれかの0でない定数倍になっているか」
+  を式①・式②の入れ替えを含めて判定する方式であり、(x, y)の解自体が一致していても、
+  文章題の数量関係を表さない式（消去法で導出した式や無関係な式）は不正解として扱う。
+  この判定は文字列比較ではなく標準形（`ax+by+c=0`）への変換と比例判定によって行っているため、
+  項の順序や係数の書き方の違い（`x+y=10`と`y+x=10`など）は正しく同一視される
+- 解答ボタンの有効化条件（両辺非空・必要な変数を含む・＝が1つ等）はUI側（ボタンの`disabled`属性）
+  でのみ判定しており、`handleSubmit()`自身は構造的妥当性を事前に再チェックしていない。
+  ただし、無効化された`<button disabled>`はクリックしてもイベントが発火しないため、
+  通常のユーザー操作でこの制約が問題になることはない（1次方程式でも同じ設計）

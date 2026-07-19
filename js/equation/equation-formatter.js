@@ -9,8 +9,7 @@ const DISPLAY_SYMBOLS = {
   [TokenType.DIVIDE]: "÷",
   [TokenType.LPAREN]: "(",
   [TokenType.RPAREN]: ")",
-  [TokenType.EQUALS]: "＝",
-  [TokenType.VARIABLE]: "x"
+  [TokenType.EQUALS]: "＝"
 };
 
 /**
@@ -29,6 +28,9 @@ export function formatEquationForDisplay(equationString) {
         }
         if (token.type === TokenType.TIMES) {
           return "";
+        }
+        if (token.type === TokenType.VARIABLE) {
+          return token.name || "x";
         }
         return DISPLAY_SYMBOLS[token.type] || "";
       })
