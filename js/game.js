@@ -130,6 +130,7 @@ export function initGame() {
     onBackspace: handleBackspace,
     onClear: handleClear,
     onSubmit: handleSubmit,
+    onNextQuestion: handleNextQuestion,
     onHintRequest: handleHintRequest,
     onPass: handlePass,
     onRetry: handleRetry,
@@ -420,7 +421,22 @@ async function handleCorrectAnswer() {
   gameState.correctCount += 1;
   recordHistory("correct", elapsedSeconds);
 
+  if (gameState.mode === "training") {
+    // トレーニングモードでは、生徒が「次へ」を押すまで正解表示を残す
+    ui.showNextQuestionButton(true);
+    return;
+  }
+
+  // 段位認定モードなど（将来実装）では、一定時間で自動的に次へ進む
   await sleep(APP_CONFIG.correctDisplayMilliseconds);
+  advanceToNextQuestionOrResult();
+}
+
+/**
+ * トレーニングモードで、正解表示の「次へ」ボタンが押されたときの処理。
+ */
+function handleNextQuestion() {
+  ui.showNextQuestionButton(false);
   advanceToNextQuestionOrResult();
 }
 
@@ -548,6 +564,8 @@ function computeResultSummary() {
 
 function endGame() {
   timer.stopQuestionTimer();
+  ui.hideAnswerReveal();
+  ui.hideHintPanel();
   audio.playResultSound();
   ui.renderResultSummary(computeResultSummary());
   ui.renderHistory(gameState.history);
@@ -560,16 +578,22 @@ function endGame() {
 
 function handleRetry() {
   timer.stopQuestionTimer();
+  ui.hideAnswerReveal();
+  ui.hideHintPanel();
   startNewGame();
 }
 
 function handleReplay() {
   timer.stopQuestionTimer();
+  ui.hideAnswerReveal();
+  ui.hideHintPanel();
   startNewGame();
 }
 
 function handleBackToTitle() {
   timer.stopQuestionTimer();
+  ui.hideAnswerReveal();
+  ui.hideHintPanel();
   resetGameState();
   ui.showScreen("title");
 }

@@ -164,18 +164,14 @@ input[type="range"] {
 
 .category-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   min-height: 44px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
 }
 
 .category-item input[type="checkbox"] {
   width: 22px;
   height: 22px;
-  margin-top: 2px;
   flex-shrink: 0;
   accent-color: var(--color-button-gold);
 }
@@ -446,6 +442,15 @@ input[type="range"] {
   margin-bottom: 0;
 }
 
+.answer-reveal-next {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.answer-reveal-next[hidden] {
+  display: none;
+}
+
 /* ---------------- 数式キーボード ---------------- */
 
 .action-row {
@@ -494,6 +499,9 @@ input[type="range"] {
 
 /* ヒント使用時にだけ現れる、式パーツ専用エリア（巻物・光を連想させる配色） */
 .hint-parts-keypad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   border: 2px solid var(--color-correct-gold);
   border-radius: 10px;
   padding: 6px 8px;
@@ -510,16 +518,18 @@ input[type="range"] {
 }
 
 .hint-parts-label {
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: 0.7rem;
   font-weight: 700;
   color: var(--color-correct-gold);
-  margin-bottom: 4px;
 }
 
 .hint-parts-list {
+  flex: 1 1 auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .key-button {
@@ -563,10 +573,10 @@ input[type="range"] {
   color: var(--color-incorrect);
 }
 
-/* ヒントパーツボタン：通常キーより少し横長で、金色を基調にする */
+/* ヒントパーツボタン：他の解答ボタンと同じ縦幅にそろえ、横方向は少し広めにとる */
 .key-button--hint-part {
-  min-height: 44px;
-  padding: 8px 14px;
+  min-height: 34px;
+  padding: 3px 14px;
   flex: 0 1 auto;
   white-space: nowrap;
   max-width: 100%;
@@ -575,7 +585,7 @@ input[type="range"] {
   background: rgba(232, 201, 104, 0.16);
   border: 1px solid var(--color-correct-gold);
   color: var(--color-correct-gold);
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 
 /* ヒントを開いたことが分かるよう、ヒントボタンの見た目を控えめに変える */

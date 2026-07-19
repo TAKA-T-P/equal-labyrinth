@@ -42,6 +42,7 @@ const elements = {
   answerRevealStatus: document.getElementById("answer-reveal-status"),
   modelEquationText: document.getElementById("model-equation-text"),
   solutionText: document.getElementById("solution-text"),
+  nextQuestionButton: document.getElementById("next-question-button"),
   hintButton: document.getElementById("hint-button"),
   passButton: document.getElementById("pass-button"),
   submitButton: document.getElementById("submit-button"),
@@ -295,6 +296,14 @@ export function showAnswerReveal(statusType, statusText, displayEquation, soluti
 export function hideAnswerReveal() {
   elements.answerRevealPanel.hidden = true;
   elements.answerRevealBackdrop.hidden = true;
+  showNextQuestionButton(false);
+}
+
+/**
+ * トレーニングモードの正解時に表示する「次へ」ボタンの表示を切り替える。
+ */
+export function showNextQuestionButton(show) {
+  elements.nextQuestionButton.hidden = !show;
 }
 
 const JUDGE_CLASS_BY_STATUS = {
@@ -401,6 +410,8 @@ export function renderEquationKeypad(question) {
 
 function createHintPartButton(part) {
   const button = createKeypadButton(part.display, part.value, "key-button--hint-part");
+  // "x"だけを斜体太字のTimes New Romanで表示し直す
+  renderTextWithStyledVariable(button, part.display);
   button.dataset.hintPart = "true";
   if (part.ariaLabel) {
     button.setAttribute("aria-label", part.ariaLabel);
@@ -577,6 +588,10 @@ export function initUI(callbacks) {
 
   elements.submitButton.addEventListener("click", () => {
     callbacks.onSubmit();
+  });
+
+  elements.nextQuestionButton.addEventListener("click", () => {
+    callbacks.onNextQuestion();
   });
 
   elements.replayButton.addEventListener("click", () => {
