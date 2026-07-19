@@ -15,6 +15,16 @@
   <!-- タイトル・設定画面 -->
   <section id="screen-title" class="screen" data-screen="title">
     <div class="screen-inner title-screen">
+      <button
+        type="button"
+        id="sound-toggle-button"
+        class="sound-toggle-button"
+        aria-pressed="true"
+        aria-label="効果音 ON"
+      >
+        <span id="sound-toggle-icon" aria-hidden="true">🔊</span>
+      </button>
+
       <header class="title-header">
         <h1 class="app-title">EQUAL LABYRINTH</h1>
         <p class="app-subtitle">～方程式の迷宮～</p>
@@ -37,7 +47,7 @@
         制限時間なし、問題数や出題内容を選んで自由に練習。
       </p>
 
-      <div class="choice-group" role="group" aria-label="単元選択">
+      <div class="choice-group unit-choice-group" role="group" aria-label="単元選択">
         <button type="button" class="choice-button is-selected" id="unit-linear" data-unit="linear" aria-pressed="true">
           1次方程式
         </button>
@@ -73,10 +83,9 @@
         </label>
 
         <div class="setting-card">
-          <h2 class="setting-heading">出題するカテゴリ</h2>
-          <div class="category-toolbar">
-            <button type="button" class="small-button" id="category-select-all">すべて選択</button>
-            <button type="button" class="small-button" id="category-select-none">すべて解除</button>
+          <div class="setting-heading-row">
+            <h2 class="setting-heading">出題するカテゴリ</h2>
+            <button type="button" class="small-button" id="category-select-toggle">すべて選択</button>
           </div>
           <div id="category-list" class="category-list" role="group" aria-label="カテゴリ選択"></div>
           <p id="category-warning" class="warning-text" hidden>
@@ -84,11 +93,6 @@
           </p>
         </div>
       </div>
-
-      <label class="toggle-row" for="sound-toggle">
-        <input type="checkbox" id="sound-toggle" checked />
-        <span>効果音 ON / OFF</span>
-      </label>
 
       <footer class="title-footer">
         <p class="credit">©2026 T.TAKEMOTO / KEC Glows</p>
@@ -129,7 +133,8 @@
           </div>
         </div>
         <div class="game-topbar-actions">
-          <button type="button" id="retry-button" class="icon-button" aria-label="リトライ">リトライ</button>
+          <button type="button" id="retry-button" class="icon-button" aria-label="リトライ" hidden>リトライ</button>
+          <button type="button" id="retire-button" class="icon-button" aria-label="リタイア" hidden>リタイア</button>
           <button type="button" id="back-to-title-button" class="icon-button" aria-label="タイトルへ戻る">戻る</button>
         </div>
       </div>

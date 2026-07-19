@@ -25,6 +25,23 @@
   color: var(--color-text-muted);
 }
 
+.sound-toggle-button {
+  position: absolute;
+  top: 12px;
+  right: 8px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--color-panel-border);
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 1.15rem;
+  line-height: 1;
+  z-index: 1;
+}
+
 .countdown-caption {
   font-size: 0.95rem;
   color: var(--color-text-muted);
@@ -67,6 +84,18 @@
   font-weight: 700;
   color: var(--color-text-muted);
   margin-bottom: 10px;
+}
+
+.setting-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.setting-heading-row .setting-heading {
+  margin-bottom: 0;
 }
 
 .prompt-card {
@@ -127,6 +156,21 @@
   color: var(--color-text-muted);
 }
 
+/* 単元選択（1次方程式・連立方程式・2次方程式）は3つ常に同じ段に収める */
+.unit-choice-group {
+  flex-wrap: nowrap;
+}
+
+.unit-choice-group .choice-button {
+  min-width: 0;
+  padding: 6px 6px;
+  font-size: 0.78rem;
+}
+
+.unit-choice-group .badge-wip {
+  font-size: 0.58rem;
+}
+
 /* ---------------- スライダー ---------------- */
 
 .slider-row {
@@ -152,12 +196,6 @@ input[type="range"] {
 
 /* ---------------- カテゴリチェックボックス ---------------- */
 
-.category-toolbar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
 .small-button {
   min-height: 30px;
   padding: 4px 12px;
@@ -171,14 +209,14 @@ input[type="range"] {
 .category-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 3px;
 }
 
 .category-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 44px;
+  min-height: 36px;
 }
 
 .category-item input[type="checkbox"] {
@@ -203,19 +241,6 @@ input[type="range"] {
   color: var(--color-incorrect);
   font-size: 0.82rem;
   font-weight: 600;
-}
-
-.toggle-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-}
-
-.toggle-row input[type="checkbox"] {
-  width: 24px;
-  height: 24px;
-  accent-color: var(--color-button-gold);
 }
 
 /* ---------------- ボタン ---------------- */

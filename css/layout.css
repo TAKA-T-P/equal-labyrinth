@@ -43,6 +43,7 @@
 /* ---------------- タイトル画面 ---------------- */
 
 .title-screen {
+  position: relative;
   align-items: stretch;
 }
 
@@ -59,7 +60,9 @@
 #training-only-settings {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
+  margin-top: -8px;
+  margin-bottom: -8px;
 }
 
 #training-only-settings[hidden] {

@@ -97,50 +97,5 @@ export const integersTemplates = [
           "2つの偶数を、どちらもxを使って表してから足し合わせます。"
       };
     }
-  },
-
-  {
-    templateId: "L1-06-four-consecutive",
-    categoryId: CATEGORY_ID,
-
-    generate() {
-      const expectedX = randomInt(5, 40);
-      const sum =
-        expectedX + (expectedX + 1) + (expectedX + 2) + (expectedX + 3);
-
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `連続する4つの整数の和が${sum}です。最も小さい整数をxとして` +
-          `方程式を立てなさい。`,
-
-        variableDefinition: "最も小さい整数",
-
-        expectedX,
-
-        canonicalEquation: `x+(x+1)+(x+2)+(x+3)=${sum}`,
-        displayEquation: `x＋(x＋1)＋(x＋2)＋(x＋3)＝${sum}`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers(["1", "2", "3", sum]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hintKeypadParts: [
-          { display: "（x＋1）", value: "(x+1)", ariaLabel: "xたす1" }
-        ],
-
-        hint:
-          `連続する整数は、1ずつ大きくなります。2番目の整数は「x＋1」と` +
-          `表せます。残りの整数も同じように表しましょう。`,
-
-        explanation:
-          "4つの整数を、すべてxを使って表してから足し合わせます。"
-      };
-    }
   }
 ];

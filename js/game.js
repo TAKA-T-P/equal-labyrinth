@@ -120,8 +120,7 @@ export function initGame() {
   ui.initUI({
     onQuestionCountChange: handleQuestionCountChange,
     onCategoryToggle: handleCategoryToggle,
-    onSelectAllCategories: handleSelectAllCategories,
-    onDeselectAllCategories: handleDeselectAllCategories,
+    onCategorySelectToggle: handleCategorySelectToggle,
     onSoundToggle: handleSoundToggle,
     onModeSelect: handleModeSelect,
     onDifficultySelect: handleDifficultySelect,
@@ -137,6 +136,7 @@ export function initGame() {
     onHintRequest: handleHintRequest,
     onPass: handlePass,
     onRetry: handleRetry,
+    onGiveUp: handleGiveUp,
     onBackToTitle: handleBackToTitle,
     onReplay: handleReplay,
     onResultToTitle: handleBackToTitle,
@@ -159,6 +159,10 @@ export function initGame() {
 // ============================================================
 
 function updateStartButtonAvailability() {
+  ui.renderCategorySelectToggle(
+    gameState.selectedCategories.length === LINEAR_CATEGORIES.length
+  );
+
   if (gameState.mode === "rank") {
     // 段位認定モードは、難易度に既定値があるため常に開始できる
     ui.setStartButtonEnabled(true);
@@ -218,10 +222,21 @@ function handleDeselectAllCategories() {
   updateStartButtonAvailability();
 }
 
+function handleCategorySelectToggle() {
+  const allSelected =
+    gameState.selectedCategories.length === LINEAR_CATEGORIES.length;
+  if (allSelected) {
+    handleDeselectAllCategories();
+  } else {
+    handleSelectAllCategories();
+  }
+}
+
 function handleSoundToggle(enabled) {
   gameState.soundEnabled = enabled;
   audio.setSoundEnabled(enabled);
   storage.saveSoundEnabled(enabled);
+  ui.setSoundToggleState(enabled);
 }
 
 // ============================================================
@@ -279,6 +294,7 @@ function beginQuestion(index) {
   ui.showScreen("game");
   ui.resetGameScreenPanels();
   ui.showRankHud(false);
+  ui.showRetireButton(true);
   ui.renderQuestionProgress(index + 1, gameState.totalQuestions);
   ui.renderQuestionPrompt(gameState.currentQuestion.prompt);
   ui.renderEquationInput(gameState.currentInputTokens, gameState.cursorPosition);
@@ -628,6 +644,16 @@ function handleRetry() {
   ui.hideAnswerReveal();
   ui.hideHintPanel();
   startNewGame();
+}
+
+/**
+ * トレーニングモードの「リタイア」ボタン。ゲームをその場で終了し、結果画面へ進む。
+ */
+function handleGiveUp() {
+  timer.stopQuestionTimer();
+  ui.hideAnswerReveal();
+  ui.hideHintPanel();
+  endGame();
 }
 
 function handleReplay() {

@@ -72,6 +72,7 @@ export function startRankGame(difficulty) {
   paused = false;
 
   ui.showRankHud(true);
+  ui.showRetireButton(false);
   ui.renderRankComboGauge(1);
   ui.animateScoreTo(0);
   ui.renderRankRemainingTime(Math.ceil(gameState.remainingTimeMs / 1000), false);

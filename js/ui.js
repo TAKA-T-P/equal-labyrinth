@@ -26,9 +26,9 @@ const elements = {
   questionCountLabel: document.getElementById("question-count-label"),
   categoryList: document.getElementById("category-list"),
   categoryWarning: document.getElementById("category-warning"),
-  categorySelectAllButton: document.getElementById("category-select-all"),
-  categorySelectNoneButton: document.getElementById("category-select-none"),
-  soundToggle: document.getElementById("sound-toggle"),
+  categorySelectToggleButton: document.getElementById("category-select-toggle"),
+  soundToggleButton: document.getElementById("sound-toggle-button"),
+  soundToggleIcon: document.getElementById("sound-toggle-icon"),
   startButton: document.getElementById("start-button"),
 
   // カウントダウン画面
@@ -38,6 +38,7 @@ const elements = {
   unitLabel: document.getElementById("unit-label"),
   questionProgress: document.getElementById("question-progress"),
   retryButton: document.getElementById("retry-button"),
+  retireButton: document.getElementById("retire-button"),
   backToTitleButton: document.getElementById("back-to-title-button"),
   rankTopbarInfo: document.getElementById("rank-topbar-info"),
   rankRemainingTime: document.getElementById("rank-remaining-time"),
@@ -205,12 +206,27 @@ export function showCategoryWarning(show) {
   elements.categoryWarning.hidden = !show;
 }
 
+/**
+ * カテゴリの一括選択ボタンの表示を切り替える。
+ * すべて選択済みのときは「すべて解除」、そうでないときは「すべて選択」にする。
+ */
+export function renderCategorySelectToggle(allSelected) {
+  elements.categorySelectToggleButton.textContent = allSelected
+    ? "すべて解除"
+    : "すべて選択";
+}
+
 export function setStartButtonEnabled(enabled) {
   elements.startButton.disabled = !enabled;
 }
 
 export function setSoundToggleState(enabled) {
-  elements.soundToggle.checked = enabled;
+  elements.soundToggleButton.setAttribute("aria-pressed", String(enabled));
+  elements.soundToggleButton.setAttribute(
+    "aria-label",
+    enabled ? "効果音 ON" : "効果音 OFF"
+  );
+  elements.soundToggleIcon.textContent = enabled ? "🔊" : "🔇";
 }
 
 const MODE_DESCRIPTIONS = {
@@ -548,6 +564,14 @@ export function showRankHud(show) {
   elements.questionProgress.hidden = show;
 }
 
+/**
+ * トレーニングモードでは「リタイア」ボタンを、段位認定モードでは「リトライ」ボタンを表示する。
+ */
+export function showRetireButton(show) {
+  elements.retireButton.hidden = !show;
+  elements.retryButton.hidden = show;
+}
+
 export function renderRankRemainingTime(remainingSeconds, isUrgent) {
   elements.rankRemainingTime.textContent =
     remainingSeconds <= 0 ? "最終問題" : `残り ${remainingSeconds}秒`;
@@ -726,16 +750,14 @@ export function initUI(callbacks) {
     callbacks.onQuestionCountChange(value);
   });
 
-  elements.categorySelectAllButton.addEventListener("click", () => {
-    callbacks.onSelectAllCategories();
+  elements.categorySelectToggleButton.addEventListener("click", () => {
+    callbacks.onCategorySelectToggle();
   });
 
-  elements.categorySelectNoneButton.addEventListener("click", () => {
-    callbacks.onDeselectAllCategories();
-  });
-
-  elements.soundToggle.addEventListener("change", (event) => {
-    callbacks.onSoundToggle(event.target.checked);
+  elements.soundToggleButton.addEventListener("click", () => {
+    const currentlyEnabled =
+      elements.soundToggleButton.getAttribute("aria-pressed") === "true";
+    callbacks.onSoundToggle(!currentlyEnabled);
   });
 
   elements.startButton.addEventListener("click", () => {
@@ -760,6 +782,10 @@ export function initUI(callbacks) {
 
   elements.retryButton.addEventListener("click", () => {
     callbacks.onRetry();
+  });
+
+  elements.retireButton.addEventListener("click", () => {
+    callbacks.onGiveUp();
   });
 
   elements.backToTitleButton.addEventListener("click", () => {

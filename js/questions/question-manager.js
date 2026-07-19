@@ -346,22 +346,52 @@ export function generateQuestionFromTemplate(template) {
   return createFallbackQuestion(template.categoryId);
 }
 
-function pickNextTemplate(candidateTemplates, recentTemplateIds, recentCategoryIds) {
-  const lastTemplateId = recentTemplateIds[recentTemplateIds.length - 1];
-  const lastCategoryId = recentCategoryIds[recentCategoryIds.length - 1];
+/**
+ * 出題対象のカテゴリ数をNとすると、直近N問の中で各カテゴリが必ず1回ずつ
+ * 出題されるよう、「袋の中からカテゴリを引いて、空になったら詰め直す」方式
+ * （バッグ方式）でカテゴリの偏りを防ぐ。
+ * recentCategoryIdsを先頭から読み直すことで、現在の袋の残りを毎回導出する
+ * （呼び出し側に袋の状態を持たせる必要をなくすための、あえての設計）。
+ */
+function pickNextCategoryFromBag(allCategoryIds, recentCategoryIds) {
+  let remaining = new Set(allCategoryIds);
 
-  const notSameTemplate = candidateTemplates.filter(
+  recentCategoryIds.forEach((categoryId) => {
+    if (!remaining.has(categoryId)) return;
+    remaining.delete(categoryId);
+    if (remaining.size === 0) {
+      remaining = new Set(allCategoryIds);
+    }
+  });
+
+  let pool = [...remaining];
+  const lastCategoryId = recentCategoryIds[recentCategoryIds.length - 1];
+  if (pool.length > 1) {
+    const notSameCategory = pool.filter((id) => id !== lastCategoryId);
+    if (notSameCategory.length > 0) {
+      pool = notSameCategory;
+    }
+  }
+
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function pickNextTemplate(candidateTemplates, recentTemplateIds, recentCategoryIds) {
+  const allCategoryIds = [...new Set(candidateTemplates.map((t) => t.categoryId))];
+  const categoryId = pickNextCategoryFromBag(allCategoryIds, recentCategoryIds);
+
+  const templatesInCategory = candidateTemplates.filter(
+    (template) => template.categoryId === categoryId
+  );
+
+  const lastTemplateId = recentTemplateIds[recentTemplateIds.length - 1];
+  const notSameTemplate = templatesInCategory.filter(
     (template) => template.templateId !== lastTemplateId
   );
-  const pool = notSameTemplate.length > 0 ? notSameTemplate : candidateTemplates;
+  const pool = notSameTemplate.length > 0 ? notSameTemplate : templatesInCategory;
 
-  const notSameCategory = pool.filter(
-    (template) => template.categoryId !== lastCategoryId
-  );
-  const finalPool = notSameCategory.length > 0 ? notSameCategory : pool;
-
-  const index = Math.floor(Math.random() * finalPool.length);
-  return finalPool[index];
+  const index = Math.floor(Math.random() * pool.length);
+  return pool[index];
 }
 
 /**
