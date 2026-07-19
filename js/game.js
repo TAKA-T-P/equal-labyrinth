@@ -124,6 +124,7 @@ export function initGame() {
     onSoundToggle: handleSoundToggle,
     onStart: handleStart,
     onKeyPress: handleKeyPress,
+    onHintPartPress: handleHintPartPress,
     onCursorLeft: handleCursorLeft,
     onCursorRight: handleCursorRight,
     onBackspace: handleBackspace,
@@ -278,12 +279,30 @@ function updateSubmitButtonState() {
   ui.setSubmitButtonEnabled(valid);
 }
 
-function handleKeyPress(char) {
-  if (gameState.inputLocked) return;
-  insertCharacterAtCursor(char);
+function insertValueAtCursor(value) {
+  if (gameState.inputLocked) return false;
+  insertCharacterAtCursor(value);
   audio.playKeySound();
   refreshEquationDisplay();
   updateSubmitButtonState();
+  return true;
+}
+
+function handleKeyPress(char) {
+  insertValueAtCursor(char);
+}
+
+/**
+ * ヒントで公開された式パーツ（(15-x)など）を、1つの塊としてカーソル位置へ挿入する。
+ */
+function handleHintPartPress(value) {
+  const inserted = insertValueAtCursor(value);
+  if (!inserted) return;
+
+  gameState.currentQuestionHintPartUsed = true;
+  if (!gameState.usedHintPartValues.includes(value)) {
+    gameState.usedHintPartValues.push(value);
+  }
 }
 
 function handleCursorLeft() {
@@ -448,7 +467,10 @@ function recordHistory(result, elapsedSeconds) {
     elapsedSeconds,
     elapsedTimeText: elapsedSeconds.toFixed(2),
     incorrectCount: gameState.currentQuestionIncorrectCount,
-    hintUsed: gameState.currentQuestionHintUsed
+    hintUsed: gameState.currentQuestionHintUsed,
+    hintPartsRevealed: gameState.currentQuestionHintPartsRevealed,
+    hintPartUsed: gameState.currentQuestionHintPartUsed,
+    usedHintPartValues: [...gameState.usedHintPartValues]
   });
 }
 
@@ -467,9 +489,24 @@ function advanceToNextQuestionOrResult() {
 
 function handleHintRequest() {
   if (!gameState.hintAvailable || gameState.inputLocked) return;
+
   gameState.hintVisible = true;
-  gameState.currentQuestionHintUsed = true;
   ui.showHintPanel(gameState.currentQuestion.hint);
+
+  // 二重実行防止：式パーツの公開は最初の1回だけ行う
+  if (gameState.currentQuestionHintUsed) return;
+  gameState.currentQuestionHintUsed = true;
+
+  const hintParts = Array.isArray(gameState.currentQuestion.hintKeypadParts)
+    ? gameState.currentQuestion.hintKeypadParts
+    : [];
+
+  if (hintParts.length > 0) {
+    gameState.currentQuestionHintPartsRevealed = true;
+    ui.renderHintKeypadParts(hintParts);
+  }
+
+  ui.setHintButtonRevealed(true);
 }
 
 // ============================================================

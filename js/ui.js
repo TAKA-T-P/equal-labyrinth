@@ -48,6 +48,8 @@ const elements = {
   mathKeyboard: document.getElementById("math-keyboard"),
   keypadNumbers: document.getElementById("keypad-numbers"),
   keypadSymbols: document.getElementById("keypad-symbols"),
+  hintPartsKeypad: document.getElementById("hint-parts-keypad"),
+  hintPartsList: document.getElementById("hint-parts-list"),
 
   // 結果画面
   statTotal: document.getElementById("stat-total"),
@@ -184,9 +186,10 @@ export function setSoundToggleState(enabled) {
 export function renderCountdownValue(value) {
   elements.countdownDisplay.textContent = value;
   // アニメーションを再生させるために、クラスを付け直す
-  elements.countdownDisplay.classList.remove("countdown-number");
+  elements.countdownDisplay.className = "";
   void elements.countdownDisplay.offsetWidth;
-  elements.countdownDisplay.classList.add("countdown-number");
+  elements.countdownDisplay.className =
+    value === "START!" ? "countdown-number is-start" : "countdown-number";
 }
 
 // ============================================================
@@ -396,6 +399,42 @@ export function renderEquationKeypad(question) {
   renderSymbolKeys(getOrderedKeypadSymbols(question));
 }
 
+function createHintPartButton(part) {
+  const button = createKeypadButton(part.display, part.value, "key-button--hint-part");
+  button.dataset.hintPart = "true";
+  if (part.ariaLabel) {
+    button.setAttribute("aria-label", part.ariaLabel);
+  }
+  return button;
+}
+
+/**
+ * ヒント使用時に、そのヒントに対応する式パーツをキーボードへ追加する。
+ * partsが空の場合は何もしない（領域は非表示のまま）。
+ */
+export function renderHintKeypadParts(parts) {
+  if (!Array.isArray(parts) || parts.length === 0) {
+    return;
+  }
+  elements.hintPartsList.innerHTML = "";
+  parts.forEach((part) => {
+    elements.hintPartsList.appendChild(createHintPartButton(part));
+  });
+  elements.hintPartsKeypad.hidden = false;
+}
+
+/**
+ * 式パーツ領域をクリアする。問題切り替え時に必ず呼び出す。
+ */
+export function clearHintKeypadParts() {
+  elements.hintPartsList.innerHTML = "";
+  elements.hintPartsKeypad.hidden = true;
+}
+
+export function setHintButtonRevealed(revealed) {
+  elements.hintButton.classList.toggle("is-revealed", revealed);
+}
+
 export function setKeyboardEnabled(enabled) {
   elements.mathKeyboard
     .querySelectorAll("button")
@@ -408,6 +447,8 @@ export function resetGameScreenPanels() {
   hideHintPanel();
   hideAnswerReveal();
   clearJudgeMessage();
+  clearHintKeypadParts();
+  setHintButtonRevealed(false);
   showHintButton(false);
   showPassButton(false);
   setKeyboardEnabled(true);
@@ -474,8 +515,16 @@ export function renderHistory(historyEntries) {
       createHistoryRow("不正解回数", `${entry.incorrectCount}回`)
     );
     item.appendChild(
-      createHistoryRow("ヒント使用", entry.hintUsed ? "あり" : "なし")
+      createHistoryRow("ヒント", entry.hintUsed ? "使用" : "未使用")
     );
+
+    let hintPartStatusText = "未表示";
+    if (entry.hintPartUsed) {
+      hintPartStatusText = "使用";
+    } else if (entry.hintPartsRevealed) {
+      hintPartStatusText = "未使用";
+    }
+    item.appendChild(createHistoryRow("式パーツ", hintPartStatusText));
 
     elements.historyList.appendChild(item);
   });
@@ -543,7 +592,11 @@ export function initUI(callbacks) {
     if (!button) return;
 
     if (button.dataset.inputValue !== undefined) {
-      callbacks.onKeyPress(button.dataset.inputValue);
+      if (button.dataset.hintPart === "true") {
+        callbacks.onHintPartPress(button.dataset.inputValue);
+      } else {
+        callbacks.onKeyPress(button.dataset.inputValue);
+      }
       return;
     }
 

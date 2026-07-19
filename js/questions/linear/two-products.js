@@ -64,6 +64,15 @@ export const twoProductsTemplates = [
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
+        // 「全体からxを引く」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `（${totalCount}−x）`,
+            value: `(${totalCount}-x)`,
+            ariaLabel: `${totalCount}ひくx`
+          }
+        ],
+
         hint:
           `りんごがx個なら、みかんは${totalCount}－x個と表せます。`,
 
@@ -108,6 +117,15 @@ export const twoProductsTemplates = [
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
+        // 「全体からxを引く」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `（${totalCount}−x）`,
+            value: `(${totalCount}-x)`,
+            ariaLabel: `${totalCount}ひくx`
+          }
+        ],
+
         hint:
           `あんぱんがx個なら、クリームパンは${totalCount}－x個と表せます。`,
 
@@ -151,6 +169,15 @@ export const twoProductsTemplates = [
           totalPrice
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
+
+        // 「全体からxを引く」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `（${totalCount}−x）`,
+            value: `(${totalCount}-x)`,
+            ariaLabel: `${totalCount}ひくx`
+          }
+        ],
 
         hint:
           `ノートがx冊なら、消しゴムは${totalCount}－x個と表せます。`,

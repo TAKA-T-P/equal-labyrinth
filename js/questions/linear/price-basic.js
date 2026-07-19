@@ -48,6 +48,9 @@ export const priceBasicTemplates = [
         keypadNumbers: buildKeypadNumbers([unitPrice, boxFee, total]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
+        // xだけで表せる基本問題のため、式パーツは不要
+        hintKeypadParts: [],
+
         hint:
           `りんごの代金は「1個${unitPrice}円×個数」で表せます。` +
           `そこに箱代${boxFee}円を足すと合計になります。`,
@@ -90,6 +93,9 @@ export const priceBasicTemplates = [
         keypadNumbers: buildKeypadNumbers([unitPrice, shippingFee, total]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
+        // xだけで表せる基本問題のため、式パーツは不要
+        hintKeypadParts: [],
+
         hint:
           `ノートの代金は「1冊${unitPrice}円×冊数」で表せます。` +
           `送料${shippingFee}円を足すと支払い金額の合計になります。`,
@@ -131,6 +137,9 @@ export const priceBasicTemplates = [
 
         keypadNumbers: buildKeypadNumbers([unitPrice, pamphletFee, total]),
         keypadSymbols: KEYPAD_SYMBOLS,
+
+        // xだけで表せる基本問題のため、式パーツは不要
+        hintKeypadParts: [],
 
         hint:
           `入場券の代金は「1枚${unitPrice}円×枚数」で表せます。` +

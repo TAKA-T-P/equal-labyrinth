@@ -21,6 +21,7 @@ const FALLBACK_QUESTIONS = {
     solutionDisplay: "x＝5",
     keypadNumbers: ["100", "600"],
     keypadSymbols: ["x", "+", "="],
+    hintKeypadParts: [],
     hint: "りんごの代金は「1個100円×個数」で表せます。そこに箱代100円を足すと合計になります。",
     explanation: "りんごの代金と箱代を合わせた金額が、代金の合計と等しくなります。"
   },
@@ -38,6 +39,9 @@ const FALLBACK_QUESTIONS = {
     solutionDisplay: "x＝6",
     keypadNumbers: ["5", "3", "7", "9"],
     keypadSymbols: ["x", "+", "-", "="],
+    hintKeypadParts: [
+      { display: "5x＋3", value: "5x+3", ariaLabel: "5xたす3" }
+    ],
     hint: "あめの個数は「1人5個×人数＋3個」でも、「1人7個×人数－9個」でも表せます。",
     explanation: "配り方が変わっても、あめの総数は変わらないことから方程式が立てられます。"
   },
@@ -55,6 +59,9 @@ const FALLBACK_QUESTIONS = {
     solutionDisplay: "x＝5",
     keypadNumbers: ["60", "3", "96"],
     keypadSymbols: ["x", "+", "(", ")", "="],
+    hintKeypadParts: [
+      { display: "（x＋3）", value: "(x+3)", ariaLabel: "xたす3" }
+    ],
     hint: "弟が進んだ時間は、兄が出発してからの時間に3分を足した時間になります。",
     explanation: "追いついたとき、2人が進んだ道のりは等しくなります。"
   },
@@ -72,6 +79,9 @@ const FALLBACK_QUESTIONS = {
     solutionDisplay: "x＝4",
     keypadNumbers: ["150", "80", "10", "1080"],
     keypadSymbols: ["x", "+", "-", "(", ")", "="],
+    hintKeypadParts: [
+      { display: "（10−x）", value: "(10-x)", ariaLabel: "10ひくx" }
+    ],
     hint: "りんごがx個なら、みかんは10－x個と表せます。",
     explanation: "りんごの代金とみかんの代金の合計が、全体の代金になります。"
   },
@@ -89,6 +99,9 @@ const FALLBACK_QUESTIONS = {
     solutionDisplay: "x＝4",
     keypadNumbers: ["1500", "700", "10", "10200"],
     keypadSymbols: ["x", "+", "-", "(", ")", "="],
+    hintKeypadParts: [
+      { display: "（10−x）", value: "(10-x)", ariaLabel: "10ひくx" }
+    ],
     hint: "大人がx人なら、子どもは10－x人と表せます。",
     explanation: "大人の入館料と子どもの入館料の合計が、入館料の合計になります。"
   }
@@ -162,6 +175,26 @@ function ensureKeypadNumbers(question) {
 }
 
 /**
+ * hintKeypadPartsが未設定の問題データを、空配列（式パーツなし）として扱う。
+ * 式パーツは学習内容に関わるため、自動生成は行わない。
+ */
+function ensureHintKeypadParts(question) {
+  if (Array.isArray(question.hintKeypadParts)) {
+    return question;
+  }
+
+  console.warn(
+    `問題 ${question.id} にhintKeypadPartsが設定されていません。` +
+      `式パーツなしのヒントとして処理します。`
+  );
+
+  return {
+    ...question,
+    hintKeypadParts: []
+  };
+}
+
+/**
  * テンプレートから、検証を通過した問題データを1つ生成する。
  * 最大試行回数を超えた場合は、固定問題へフォールバックする。
  */
@@ -175,6 +208,7 @@ export function generateQuestionFromTemplate(template) {
     }
 
     question = ensureKeypadNumbers(question);
+    question = ensureHintKeypadParts(question);
 
     const result = validateQuestion(question);
     if (result.valid) {

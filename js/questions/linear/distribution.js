@@ -62,6 +62,15 @@ export const distributionTemplates = [
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
+        // 「1人分×人数＋余り」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `${perPersonA}x＋${surplus}`,
+            value: `${perPersonA}x+${surplus}`,
+            ariaLabel: `${perPersonA}xたす${surplus}`
+          }
+        ],
+
         hint:
           `あめの個数は「1人${perPersonA}個×人数＋${surplus}個」でも、` +
           `「1人${perPersonB}個×人数－${shortage}個」でも表せます。`,
@@ -107,6 +116,15 @@ export const distributionTemplates = [
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
+        // 「1人分×人数＋余り」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `${perPersonA}x＋${surplus}`,
+            value: `${perPersonA}x+${surplus}`,
+            ariaLabel: `${perPersonA}xたす${surplus}`
+          }
+        ],
+
         hint:
           `鉛筆の本数は「1人${perPersonA}本×人数＋${surplus}本」でも、` +
           `「1人${perPersonB}本×人数－${shortage}本」でも表せます。`,
@@ -151,6 +169,15 @@ export const distributionTemplates = [
           shortage
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
+
+        // 「1人分×人数＋余り」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `${perPersonA}x＋${surplus}`,
+            value: `${perPersonA}x+${surplus}`,
+            ariaLabel: `${perPersonA}xたす${surplus}`
+          }
+        ],
 
         hint:
           `カードの枚数は「1班${perPersonA}枚×班の数＋${surplus}枚」でも、` +

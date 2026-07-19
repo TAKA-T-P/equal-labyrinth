@@ -18,54 +18,45 @@
       <header class="title-header">
         <h1 class="app-title">EQUAL LABYRINTH</h1>
         <p class="app-subtitle">～方程式の迷宮～</p>
-        <p class="app-description">
-          文章題を読んで、正しい方程式を立てよう！
-        </p>
       </header>
 
       <button type="button" id="start-button" class="primary-button" disabled>
         スタート
       </button>
 
-      <div class="setting-card">
-        <div class="choice-group" role="group" aria-label="モード選択">
-          <button type="button" class="choice-button is-selected" id="mode-training" data-mode="training" aria-pressed="true">
-            トレーニング
-          </button>
-          <button type="button" class="choice-button is-disabled" id="mode-rank" disabled aria-disabled="true">
-            段位認定<span class="badge-wip">準備中</span>
-          </button>
-        </div>
+      <div class="choice-group" role="group" aria-label="モード選択">
+        <button type="button" class="choice-button is-selected" id="mode-training" data-mode="training" aria-pressed="true">
+          トレーニング
+        </button>
+        <button type="button" class="choice-button is-disabled" id="mode-rank" disabled aria-disabled="true">
+          段位認定<span class="badge-wip">準備中</span>
+        </button>
       </div>
 
-      <div class="setting-card">
-        <div class="choice-group" role="group" aria-label="単元選択">
-          <button type="button" class="choice-button is-selected" id="unit-linear" data-unit="linear" aria-pressed="true">
-            1次方程式
-          </button>
-          <button type="button" class="choice-button is-disabled" id="unit-simultaneous" disabled aria-disabled="true">
-            連立方程式<span class="badge-wip">準備中</span>
-          </button>
-          <button type="button" class="choice-button is-disabled" id="unit-quadratic" disabled aria-disabled="true">
-            2次方程式<span class="badge-wip">準備中</span>
-          </button>
-        </div>
+      <div class="choice-group" role="group" aria-label="単元選択">
+        <button type="button" class="choice-button is-selected" id="unit-linear" data-unit="linear" aria-pressed="true">
+          1次方程式
+        </button>
+        <button type="button" class="choice-button is-disabled" id="unit-simultaneous" disabled aria-disabled="true">
+          連立方程式<span class="badge-wip">準備中</span>
+        </button>
+        <button type="button" class="choice-button is-disabled" id="unit-quadratic" disabled aria-disabled="true">
+          2次方程式<span class="badge-wip">準備中</span>
+        </button>
       </div>
 
-      <div class="setting-card">
-        <label class="slider-row" for="question-count-slider">
-          <span id="question-count-label" class="slider-value">問題数：5問</span>
-          <input
-            type="range"
-            id="question-count-slider"
-            min="3"
-            max="10"
-            step="1"
-            value="5"
-            aria-labelledby="question-count-label"
-          />
-        </label>
-      </div>
+      <label class="slider-row" for="question-count-slider">
+        <span id="question-count-label" class="slider-value">問題数：5問</span>
+        <input
+          type="range"
+          id="question-count-slider"
+          min="3"
+          max="10"
+          step="1"
+          value="5"
+          aria-labelledby="question-count-label"
+        />
+      </label>
 
       <div class="setting-card">
         <h2 class="setting-heading">出題するカテゴリ</h2>
@@ -79,12 +70,10 @@
         </p>
       </div>
 
-      <div class="setting-card">
-        <label class="toggle-row" for="sound-toggle">
-          <input type="checkbox" id="sound-toggle" checked />
-          <span>効果音 ON / OFF</span>
-        </label>
-      </div>
+      <label class="toggle-row" for="sound-toggle">
+        <input type="checkbox" id="sound-toggle" checked />
+        <span>効果音 ON / OFF</span>
+      </label>
 
       <footer class="title-footer">
         <p class="credit">©2026 T.TAKEMOTO / KEC Glows</p>
@@ -96,6 +85,7 @@
   <section id="screen-countdown" class="screen" data-screen="countdown" hidden>
     <div class="screen-inner countdown-screen">
       <p id="countdown-display" class="countdown-number" aria-live="assertive">3</p>
+      <p class="countdown-caption">文章題を読んで、正しい方程式を立てよう！</p>
     </div>
   </section>
 
@@ -156,6 +146,11 @@
           <div id="keypad-numbers" class="keypad-numbers" role="group" aria-label="数値キー"></div>
 
           <div id="keypad-symbols" class="keypad-symbols" role="group" aria-label="記号キー"></div>
+
+          <div id="hint-parts-keypad" class="hint-parts-keypad" role="group" aria-label="ヒントパーツ" hidden>
+            <p class="hint-parts-label">ヒントパーツ</p>
+            <div id="hint-parts-list" class="hint-parts-list"></div>
+          </div>
 
           <div id="keypad-edit" class="keypad-edit" role="group" aria-label="編集キー">
             <button type="button" class="key-button key-control" data-action="cursor-left" aria-label="カーソルを左へ移動">←</button>

@@ -64,6 +64,15 @@ export const admissionFeeTemplates = [
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
+        // 「全体からxを引く」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `（${totalPeople}−x）`,
+            value: `(${totalPeople}-x)`,
+            ariaLabel: `${totalPeople}ひくx`
+          }
+        ],
+
         hint:
           `大人がx人なら、子どもは${totalPeople}－x人と表せます。`,
 
@@ -108,6 +117,15 @@ export const admissionFeeTemplates = [
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
+        // 「全体からxを引く」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `（${totalPeople}−x）`,
+            value: `(${totalPeople}-x)`,
+            ariaLabel: `${totalPeople}ひくx`
+          }
+        ],
+
         hint:
           `大人がx人なら、子どもは${totalPeople}－x人と表せます。`,
 
@@ -151,6 +169,15 @@ export const admissionFeeTemplates = [
           totalFee
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
+
+        // 「全体からxを引く」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `（${totalPeople}−x）`,
+            value: `(${totalPeople}-x)`,
+            ariaLabel: `${totalPeople}ひくx`
+          }
+        ],
 
         hint:
           `大人がx人なら、子どもは${totalPeople}－x人と表せます。`,

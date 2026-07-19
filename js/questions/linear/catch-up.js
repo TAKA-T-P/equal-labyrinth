@@ -60,6 +60,15 @@ export const catchUpTemplates = [
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
+        // 「遅い人が進んだ時間はx＋head分」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `（x＋${headStartMinutes}）`,
+            value: `(x+${headStartMinutes})`,
+            ariaLabel: `xたす${headStartMinutes}`
+          }
+        ],
+
         hint:
           `弟が進んだ時間は、兄が出発してからの時間に` +
           `${headStartMinutes}分を足した時間になります。`,
@@ -103,6 +112,15 @@ export const catchUpTemplates = [
           speedFast
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
+
+        // 「遅い人が進んだ時間はx＋head分」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `（x＋${headStartMinutes}）`,
+            value: `(x+${headStartMinutes})`,
+            ariaLabel: `xたす${headStartMinutes}`
+          }
+        ],
 
         hint:
           `歩行者が進んだ時間は、自転車が出発してからの時間に` +
@@ -148,6 +166,15 @@ export const catchUpTemplates = [
           speedFast
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
+
+        // 「遅い人が進んだ時間はx＋head分」という1つの数量表現だけを補助する
+        hintKeypadParts: [
+          {
+            display: `（x＋${headStartMinutes}）`,
+            value: `(x+${headStartMinutes})`,
+            ariaLabel: `xたす${headStartMinutes}`
+          }
+        ],
 
         hint:
           `姉が進んだ時間は、母が出発してからの時間に` +

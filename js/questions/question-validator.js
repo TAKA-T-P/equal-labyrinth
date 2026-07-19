@@ -99,6 +99,52 @@ function validateKeypadCoversEquation(canonicalEquation, keypadNumbers) {
 }
 
 /**
+ * ヒント使用時に追加する式パーツ1件を検証する。
+ * 完成した方程式全体（＝を含むもの）は登録できない。
+ */
+function validateHintKeypadPart(part) {
+  if (!part || typeof part !== "object") {
+    return "hintKeypadPartsの要素がオブジェクトではありません。";
+  }
+  if (typeof part.display !== "string" || part.display.trim() === "") {
+    return "hintKeypadPartsのdisplayが空です。";
+  }
+  if (typeof part.value !== "string" || part.value.trim() === "") {
+    return "hintKeypadPartsのvalueが空です。";
+  }
+
+  let tokens;
+  try {
+    tokens = tokenize(part.value);
+  } catch (error) {
+    return `hintKeypadPartsのvalueを解析できません：${error.message}`;
+  }
+
+  const hasEquals = tokens.some((token) => token.type === TokenType.EQUALS);
+  if (hasEquals) {
+    return "hintKeypadPartsのvalueに完成した方程式全体が登録されています。";
+  }
+
+  return null;
+}
+
+/**
+ * hintKeypadParts配列全体を検証する。空配列は許可する。
+ */
+function validateHintKeypadParts(hintKeypadParts) {
+  if (!Array.isArray(hintKeypadParts)) {
+    return "hintKeypadPartsが配列ではありません。";
+  }
+
+  for (const part of hintKeypadParts) {
+    const reason = validateHintKeypadPart(part);
+    if (reason) return reason;
+  }
+
+  return null;
+}
+
+/**
  * 生成された問題データを検証する。
  * @param {object} question
  * @returns {{valid: boolean, reason?: string}}
@@ -145,6 +191,11 @@ export function validateQuestion(question) {
   );
   if (keypadCoverageReason) {
     return { valid: false, reason: keypadCoverageReason };
+  }
+
+  const hintKeypadPartsReason = validateHintKeypadParts(question.hintKeypadParts);
+  if (hintKeypadPartsReason) {
+    return { valid: false, reason: hintKeypadPartsReason };
   }
 
   let result;

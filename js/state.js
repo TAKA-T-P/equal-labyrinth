@@ -26,6 +26,9 @@ export const gameState = {
 
   currentQuestionIncorrectCount: 0,
   currentQuestionHintUsed: false,
+  currentQuestionHintPartsRevealed: false,
+  currentQuestionHintPartUsed: false,
+  usedHintPartValues: [],
 
   hintAvailable: false,
   hintVisible: false,
@@ -66,6 +69,9 @@ export function resetQuestionState() {
 
   gameState.currentQuestionIncorrectCount = 0;
   gameState.currentQuestionHintUsed = false;
+  gameState.currentQuestionHintPartsRevealed = false;
+  gameState.currentQuestionHintPartUsed = false;
+  gameState.usedHintPartValues = [];
 
   gameState.hintAvailable = false;
   gameState.hintVisible = false;
