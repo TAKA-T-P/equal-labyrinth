@@ -214,7 +214,7 @@ export function setSoundToggleState(enabled) {
 }
 
 const MODE_DESCRIPTIONS = {
-  training: "問題数とカテゴリを選んで、時間を気にせず練習します。",
+  training: "制限時間なし、問題数や出題内容を選んで自由に練習。",
   rank:
     "120秒以内に、できるだけ多くの方程式を立てよう！\n" +
     "正解数・解答時間・ミス・パスから段位を認定します。"
@@ -590,16 +590,16 @@ export function animateScoreTo(targetScore) {
 }
 
 /**
- * 正解・不正解時のスコア増減を、短時間のポップアップで表示する。
+ * 不正解時のスコア減少を、短時間のポップアップで表示する。
  */
-export function showRankScoreChange(deltaText, isPositive) {
+export function showRankScoreChange(deltaText) {
   const el = elements.rankScoreChange;
   window.clearTimeout(el._hideTimeoutId);
 
   el.textContent = deltaText;
   el.className = "rank-score-change";
   void el.offsetWidth;
-  el.classList.add(isPositive ? "is-positive" : "is-negative");
+  el.classList.add("is-negative");
   el.hidden = false;
 
   el._hideTimeoutId = window.setTimeout(() => {
@@ -701,7 +701,9 @@ export function renderRankResult(data) {
   elements.rankResultHeading.textContent = `段位認定／1次方程式 ${data.difficulty}`;
   elements.rankResultName.textContent = data.displayRankName;
   elements.rankFullComboBadge.hidden = !(
-    data.correctCount > 0 && data.correctCount === data.maxCombo
+    data.correctCount > 0 &&
+    data.correctCount === data.maxCombo &&
+    !data.finalTimedOut
   );
   elements.rankStatCorrect.textContent = `${data.correctCount}問`;
   elements.rankStatIncorrect.textContent = `${data.incorrectCount}回`;

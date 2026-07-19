@@ -24,7 +24,7 @@ export function createComboState() {
 }
 
 function gaugeDurationForCombo(combo) {
-  const speedMultiplier = 1 + 0.1 * combo;
+  const speedMultiplier = 1 + 0.05 * combo;
   return BASE_GAUGE_DURATION_MS / speedMultiplier;
 }
 

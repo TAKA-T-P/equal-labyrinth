@@ -285,7 +285,7 @@ function handleIncorrectAnswer() {
   gameState.score += delta;
   gameState.lastScoreChange = delta;
   ui.animateScoreTo(gameState.score);
-  ui.showRankScoreChange(formatScoreDelta(delta), false);
+  ui.showRankScoreChange(formatScoreDelta(delta));
 
   audio.playIncorrectSound();
   ui.showJudgeMessage("incorrect", "もう一度考えよう");
@@ -313,12 +313,11 @@ async function handleCorrectAnswer() {
   gameState.score += points;
   gameState.lastScoreChange = points;
   ui.animateScoreTo(gameState.score);
-  ui.showRankScoreChange(`${formatScoreDelta(points)}点\n${comboAfter}Combo!`, true);
 
   audio.playCorrectSound();
   ui.showAnswerReveal(
     "correct",
-    "正解です！",
+    `正解です！　${formatScoreDelta(points)}点　${comboAfter}Combo!`,
     gameState.currentQuestion.displayEquation,
     gameState.currentQuestion.solutionDisplay
   );

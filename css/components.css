@@ -331,18 +331,11 @@ input[type="range"] {
 .rank-score-change {
   font-size: 0.8rem;
   font-weight: 800;
-  line-height: 1.15;
-  text-align: left;
-  white-space: pre-line;
+  white-space: nowrap;
 }
 
 .rank-score-change[hidden] {
   display: none;
-}
-
-.rank-score-change.is-positive {
-  color: var(--color-correct);
-  animation: rank-score-change-float 0.9s ease-out;
 }
 
 .rank-score-change.is-negative {

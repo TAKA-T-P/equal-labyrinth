@@ -59,7 +59,8 @@ export const benchesTemplates = [
           perBenchA,
           standingCount,
           perBenchB,
-          lastBenchCount
+          lastBenchCount,
+          1
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
@@ -110,7 +111,8 @@ export const benchesTemplates = [
           perBenchA,
           standingCount,
           perBenchB,
-          lastBenchCount
+          lastBenchCount,
+          1
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
@@ -161,7 +163,8 @@ export const benchesTemplates = [
           perBenchA,
           standingCount,
           perBenchB,
-          lastBenchCount
+          lastBenchCount,
+          1
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
