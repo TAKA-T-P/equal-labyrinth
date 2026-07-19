@@ -724,11 +724,17 @@ export function renderRankHistory(historyEntries) {
 export function renderRankResult(data) {
   elements.rankResultHeading.textContent = `段位認定／1次方程式 ${data.difficulty}`;
   elements.rankResultName.textContent = data.displayRankName;
-  elements.rankFullComboBadge.hidden = !(
-    data.correctCount > 0 &&
+
+  const isFullCombo =
+    data.correctCount >= 5 &&
     data.correctCount === data.maxCombo &&
-    !data.finalTimedOut
+    !data.finalTimedOut;
+  elements.rankFullComboBadge.hidden = !isFullCombo;
+  elements.rankFullComboBadge.classList.toggle(
+    "is-glowing",
+    isFullCombo && data.correctCount >= 10
   );
+
   elements.rankStatCorrect.textContent = `${data.correctCount}問`;
   elements.rankStatIncorrect.textContent = `${data.incorrectCount}回`;
   elements.rankStatPass.textContent = `${data.passCount}回`;

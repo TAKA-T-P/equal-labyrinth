@@ -39,6 +39,16 @@
   animation: rank-result-name-appear 0.5s ease-out;
 }
 
+@keyframes rank-full-combo-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(232, 201, 104, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 16px 4px rgba(232, 201, 104, 0.85);
+  }
+}
+
 @keyframes rank-result-name-appear {
   0% {
     opacity: 0;

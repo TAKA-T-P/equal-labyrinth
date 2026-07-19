@@ -13,6 +13,8 @@ const KEYPAD_SYMBOLS = ["x", "+", "-", "(", ")", "="];
 /**
  * 「最後の1脚だけ人数が違う」設定が矛盾しないよう、
  * 座れない人数(standingCount)を脚数から逆算して求める。
+ * expandedConstantは、右辺を展開した「Bx－expandedConstant」の形（例：6(x-1)+2 → 6x-4）
+ * で解答する場合に必要な数値で、キーパッドにも含めておく。
  */
 function buildBenchNumbers() {
   const expectedX = randomInt(8, 18);
@@ -21,8 +23,16 @@ function buildBenchNumbers() {
   const lastBenchCount = randomInt(1, perBenchB - 1);
 
   const standingCount = expectedX - perBenchB + lastBenchCount;
+  const expandedConstant = perBenchB - lastBenchCount;
 
-  return { expectedX, perBenchA, perBenchB, lastBenchCount, standingCount };
+  return {
+    expectedX,
+    perBenchA,
+    perBenchB,
+    lastBenchCount,
+    standingCount,
+    expandedConstant
+  };
 }
 
 export const benchesTemplates = [
@@ -31,8 +41,14 @@ export const benchesTemplates = [
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { expectedX, perBenchA, perBenchB, lastBenchCount, standingCount } =
-        buildBenchNumbers();
+      const {
+        expectedX,
+        perBenchA,
+        perBenchB,
+        lastBenchCount,
+        standingCount,
+        expandedConstant
+      } = buildBenchNumbers();
 
       return {
         id: createUniqueId(this.templateId),
@@ -60,7 +76,8 @@ export const benchesTemplates = [
           standingCount,
           perBenchB,
           lastBenchCount,
-          1
+          1,
+          expandedConstant
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
@@ -83,8 +100,14 @@ export const benchesTemplates = [
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { expectedX, perBenchA, perBenchB, lastBenchCount, standingCount } =
-        buildBenchNumbers();
+      const {
+        expectedX,
+        perBenchA,
+        perBenchB,
+        lastBenchCount,
+        standingCount,
+        expandedConstant
+      } = buildBenchNumbers();
 
       return {
         id: createUniqueId(this.templateId),
@@ -112,7 +135,8 @@ export const benchesTemplates = [
           standingCount,
           perBenchB,
           lastBenchCount,
-          1
+          1,
+          expandedConstant
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
@@ -135,8 +159,14 @@ export const benchesTemplates = [
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { expectedX, perBenchA, perBenchB, lastBenchCount, standingCount } =
-        buildBenchNumbers();
+      const {
+        expectedX,
+        perBenchA,
+        perBenchB,
+        lastBenchCount,
+        standingCount,
+        expandedConstant
+      } = buildBenchNumbers();
 
       return {
         id: createUniqueId(this.templateId),
@@ -164,7 +194,8 @@ export const benchesTemplates = [
           standingCount,
           perBenchB,
           lastBenchCount,
-          1
+          1,
+          expandedConstant
         ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 

@@ -14,6 +14,16 @@ const DISCOUNT_PERCENT_CHOICES = [10, 20, 30, 40];
 const MARKUP_PERCENT_CHOICES = [10, 20, 30];
 const RATIO_PERCENT_CHOICES = [20, 25, 30, 35, 40, 45];
 
+/**
+ * ダミーカードが必ず3番目（右端）に並んでしまい見分けやすくならないよう、
+ * 1番目か2番目のどちらかにランダムで挿入する。
+ */
+function buildKeypadNumbersWithDummy(realNumbers, dummy) {
+  const values = [...realNumbers];
+  values.splice(randomInt(0, 1), 0, dummy);
+  return buildKeypadNumbers(values);
+}
+
 export const percentageTemplates = [
   {
     templateId: "L1-09-discount-price",
@@ -22,6 +32,9 @@ export const percentageTemplates = [
     generate() {
       const discountPercent = randomChoice(DISCOUNT_PERCENT_CHOICES);
       const decimal = (100 - discountPercent) / 100;
+      // 「割引率そのもの（％を100で割った値）」をダミーの選択肢として混ぜ、
+      // 数字カードが2枚だけにならないようにする。
+      const dummyDecimal = discountPercent / 100;
       const expectedX = randomInt(50, 300) * 10;
       const finalPrice = Math.round(decimal * expectedX);
 
@@ -44,7 +57,7 @@ export const percentageTemplates = [
         displayEquation: `${decimal}x＝${finalPrice}`,
         solutionDisplay: `x＝${expectedX}`,
 
-        keypadNumbers: buildKeypadNumbers([decimal, finalPrice]),
+        keypadNumbers: buildKeypadNumbersWithDummy([decimal, finalPrice], dummyDecimal),
         keypadSymbols: KEYPAD_SYMBOLS,
 
         hintKeypadParts: [],
@@ -66,6 +79,9 @@ export const percentageTemplates = [
     generate() {
       const increasePercent = randomChoice(MARKUP_PERCENT_CHOICES);
       const decimal = (100 + increasePercent) / 100;
+      // 「上乗せ率そのもの（％を100で割った値）」をダミーの選択肢として混ぜ、
+      // 数字カードが2枚だけにならないようにする。
+      const dummyDecimal = increasePercent / 100;
       const expectedX = randomInt(50, 300) * 10;
       const finalPrice = Math.round(decimal * expectedX);
 
@@ -89,7 +105,7 @@ export const percentageTemplates = [
         displayEquation: `${decimal}x＝${finalPrice}`,
         solutionDisplay: `x＝${expectedX}`,
 
-        keypadNumbers: buildKeypadNumbers([decimal, finalPrice]),
+        keypadNumbers: buildKeypadNumbersWithDummy([decimal, finalPrice], dummyDecimal),
         keypadSymbols: KEYPAD_SYMBOLS,
 
         hintKeypadParts: [],
@@ -111,6 +127,9 @@ export const percentageTemplates = [
     generate() {
       const percent = randomChoice(RATIO_PERCENT_CHOICES);
       const decimal = percent / 100;
+      // 「残り（自転車通学ではない）の割合」をダミーの選択肢として混ぜ、
+      // 数字カードが2枚だけにならないようにする。
+      const dummyDecimal = (100 - percent) / 100;
       const expectedX = randomInt(3, 15) * 20;
       const partCount = Math.round(decimal * expectedX);
 
@@ -134,7 +153,7 @@ export const percentageTemplates = [
         displayEquation: `${decimal}x＝${partCount}`,
         solutionDisplay: `x＝${expectedX}`,
 
-        keypadNumbers: buildKeypadNumbers([decimal, partCount]),
+        keypadNumbers: buildKeypadNumbersWithDummy([decimal, partCount], dummyDecimal),
         keypadSymbols: KEYPAD_SYMBOLS,
 
         hintKeypadParts: [],

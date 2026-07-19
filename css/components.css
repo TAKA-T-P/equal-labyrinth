@@ -768,6 +768,10 @@ input[type="range"] {
   display: none;
 }
 
+.rank-full-combo-badge.is-glowing {
+  animation: rank-full-combo-glow 1.4s ease-in-out infinite;
+}
+
 .result-summary {
   padding: 10px 12px;
 }
@@ -788,6 +792,11 @@ input[type="range"] {
 .result-stat-value {
   font-size: 1rem;
   font-weight: 800;
+}
+
+#rank-stat-correct,
+#rank-stat-score {
+  color: var(--color-correct-gold);
 }
 
 .history-heading {
