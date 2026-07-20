@@ -12,6 +12,9 @@ import {
   moveCursorRight,
   setCursorPosition,
   deleteCharacterBeforeCursor,
+  popTokenBeforeCursor,
+  replaceTokenAt,
+  completeFractionAt,
   clearInput,
   getCurrentInputString,
   insertCharacterAtSystemCursor,
@@ -19,6 +22,9 @@ import {
   moveSystemCursorRight,
   setSystemCursorPosition,
   deleteSystemCharacterBeforeCursor,
+  popSystemTokenBeforeCursor,
+  replaceSystemTokenAt,
+  completeSystemFractionAt,
   clearActiveSystemInput,
   setActiveSystemEquationIndex,
   getCurrentSystemInputStrings
@@ -123,6 +129,11 @@ function getRequiredVariableNamesForUnit() {
  * 連立方程式では、式①・式②の両方が構造的に妥当な場合のみtrueになる。
  */
 function isCurrentInputSubmittable() {
+  // 分母入力待ちの分数がある間は、必ず解答できないようにする
+  if (gameState.fractionInputState.isWaitingForDenominator) {
+    return false;
+  }
+
   const requiredVariableNames = getRequiredVariableNamesForUnit();
 
   if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
@@ -170,6 +181,8 @@ export function initGame() {
     onStart: handleStart,
     onKeyPress: handleKeyPress,
     onHintPartPress: handleHintPartPress,
+    onCreateFraction: handleCreateFraction,
+    onHintFractionPartPress: handleHintFractionPartPress,
     onCursorLeft: handleCursorLeft,
     onCursorRight: handleCursorRight,
     onBackspace: handleBackspace,
@@ -424,7 +437,15 @@ function insertValueAtCursor(value) {
   return true;
 }
 
-function handleKeyPress(char) {
+/**
+ * @param {string} char キー・記号の値。分母入力待ち中は数値キーかどうかで扱いを変える。
+ * @param {boolean} isNumberKey 数値ボタン（keypad-numbers）から押されたかどうか
+ */
+function handleKeyPress(char, isNumberKey) {
+  if (gameState.fractionInputState.isWaitingForDenominator) {
+    handleDenominatorInput(char, isNumberKey);
+    return;
+  }
   insertValueAtCursor(char);
 }
 
@@ -433,6 +454,8 @@ function handleKeyPress(char) {
  * 入力欄のカーソル位置へ挿入する（連立方程式でも、式①・式②を自動判断しない）。
  */
 function handleHintPartPress(value) {
+  if (gameState.fractionInputState.isWaitingForDenominator) return;
+
   const inserted = insertValueAtCursor(value);
   if (!inserted) return;
 
@@ -440,6 +463,182 @@ function handleHintPartPress(value) {
   if (!gameState.usedHintPartValues.includes(value)) {
     gameState.usedHintPartValues.push(value);
   }
+}
+
+/**
+ * ヒントの分数パーツ（x/8など）を、完成済みの分数トークンとして
+ * 現在アクティブな入力欄のカーソル位置へ挿入する。
+ * @param {{numerator: string, denominator: string, value: string}} part
+ */
+function handleHintFractionPartPress(part) {
+  if (gameState.fractionInputState.isWaitingForDenominator) return;
+
+  const fractionToken = {
+    type: "fraction",
+    numeratorTokens: [part.numerator],
+    denominatorTokens: [part.denominator],
+    isComplete: true,
+    source: "hint-part"
+  };
+  const inserted = insertValueAtCursor(fractionToken);
+  if (!inserted) return;
+
+  gameState.currentQuestionHintPartUsed = true;
+  if (!gameState.usedHintPartValues.includes(part.value)) {
+    gameState.usedHintPartValues.push(part.value);
+  }
+}
+
+// ============================================================
+// 分数入力（上下型分数）
+// ============================================================
+
+/**
+ * 分子として使えないトークンかどうかを判定する
+ * （空・演算子・＝・かっこ・分数トークン自身は分子にできない）。
+ */
+function isValidFractionNumerator(token) {
+  if (token === undefined || token === null) return false;
+  if (typeof token === "object") return false; // 分数トークンを分子にはできない（今回は非対応）
+  return !["+", "−", "-", "×", "=", "(", ")"].includes(token);
+}
+
+function getActiveTokensArray() {
+  return gameState.unit === UNIT_IDS.SIMULTANEOUS
+    ? gameState.currentSystemInputTokens[gameState.activeSystemEquationIndex]
+    : gameState.currentInputTokens;
+}
+
+function getActiveCursorPosition() {
+  return gameState.unit === UNIT_IDS.SIMULTANEOUS
+    ? gameState.systemCursorPositions[gameState.activeSystemEquationIndex]
+    : gameState.cursorPosition;
+}
+
+function getActiveEquationIndexForFraction() {
+  return gameState.unit === UNIT_IDS.SIMULTANEOUS ? gameState.activeSystemEquationIndex : 0;
+}
+
+/**
+ * 分数ボタンが押されたときの処理。カーソル直前の1トークンを分子にして、
+ * 分母入力待ちの未完成な分数トークンを挿入する。
+ */
+function handleCreateFraction() {
+  if (gameState.inputLocked) return;
+
+  if (gameState.fractionInputState.isWaitingForDenominator) {
+    ui.showInputGuidance("先に分母を入力してください。");
+    return;
+  }
+
+  const tokens = getActiveTokensArray();
+  const cursorPosition = getActiveCursorPosition();
+  const previousToken = tokens[cursorPosition - 1];
+
+  if (!isValidFractionNumerator(previousToken)) {
+    ui.showInputGuidance("先に分子を入力してください。");
+    return;
+  }
+
+  const numeratorToken =
+    gameState.unit === UNIT_IDS.SIMULTANEOUS ? popSystemTokenBeforeCursor() : popTokenBeforeCursor();
+
+  const fractionToken = {
+    type: "fraction",
+    numeratorTokens: [numeratorToken],
+    denominatorTokens: [],
+    isComplete: false
+  };
+
+  const equationIndex = getActiveEquationIndexForFraction();
+  const fractionTokenIndex =
+    gameState.unit === UNIT_IDS.SIMULTANEOUS
+      ? gameState.systemCursorPositions[equationIndex]
+      : gameState.cursorPosition;
+
+  insertValueAtCursor(fractionToken);
+
+  gameState.fractionInputState = {
+    isWaitingForDenominator: true,
+    equationIndex,
+    fractionTokenIndex
+  };
+
+  ui.showInputGuidance("分母を選んでください。");
+}
+
+function isZeroDenominatorValue(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric === 0;
+}
+
+/**
+ * 分母入力待ち中に押されたキーを処理する。数値ボタン（isNumberKey）のみ受け付け、
+ * 0は拒否する。それ以外の記号・変数キーは無視して案内を表示する。
+ */
+function handleDenominatorInput(value, isNumberKey) {
+  if (gameState.inputLocked) return;
+
+  if (!isNumberKey) {
+    ui.showInputGuidance("分母には数値を入力してください。");
+    return;
+  }
+
+  if (isZeroDenominatorValue(value)) {
+    ui.showInputGuidance("分母に0は使えません。");
+    return;
+  }
+
+  const { equationIndex, fractionTokenIndex } = gameState.fractionInputState;
+
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    completeSystemFractionAt(equationIndex, fractionTokenIndex, value);
+  } else {
+    completeFractionAt(fractionTokenIndex, value);
+  }
+
+  gameState.fractionInputState = {
+    isWaitingForDenominator: false,
+    equationIndex: 0,
+    fractionTokenIndex: -1
+  };
+
+  ui.clearInputGuidance();
+  audio.playKeySound();
+  refreshEquationDisplay();
+  updateSubmitButtonState();
+}
+
+/**
+ * 分母入力待ち中に「1つ消す」が押されたときの処理。分数の作成を取り消し、
+ * 分子だったトークンを元へ戻す（分子自体は消さない）。
+ */
+function revertPendingFraction() {
+  const { equationIndex, fractionTokenIndex } = gameState.fractionInputState;
+  const tokens =
+    gameState.unit === UNIT_IDS.SIMULTANEOUS
+      ? gameState.currentSystemInputTokens[equationIndex]
+      : gameState.currentInputTokens;
+  const fractionToken = tokens[fractionTokenIndex];
+  const numeratorToken = fractionToken.numeratorTokens[0];
+
+  if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
+    replaceSystemTokenAt(equationIndex, fractionTokenIndex, numeratorToken);
+    setSystemCursorPosition(equationIndex, fractionTokenIndex + 1);
+  } else {
+    replaceTokenAt(fractionTokenIndex, numeratorToken);
+    setCursorPosition(fractionTokenIndex + 1);
+  }
+
+  gameState.fractionInputState = {
+    isWaitingForDenominator: false,
+    equationIndex: 0,
+    fractionTokenIndex: -1
+  };
+
+  ui.clearInputGuidance();
+  refreshEquationDisplay();
+  updateSubmitButtonState();
 }
 
 function handleCursorLeft() {
@@ -464,6 +663,12 @@ function handleCursorRight() {
 
 function handleBackspace() {
   if (gameState.inputLocked) return;
+
+  if (gameState.fractionInputState.isWaitingForDenominator) {
+    revertPendingFraction();
+    return;
+  }
+
   if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
     deleteSystemCharacterBeforeCursor();
   } else {
@@ -475,6 +680,7 @@ function handleBackspace() {
 
 /**
  * 全消去は、連立方程式ではアクティブな式だけを消す（もう一方は残す）。
+ * 分母入力待ち状態も、あわせて解除する。
  */
 function handleClear() {
   if (gameState.inputLocked) return;
@@ -483,6 +689,12 @@ function handleClear() {
   } else {
     clearInput();
   }
+  gameState.fractionInputState = {
+    isWaitingForDenominator: false,
+    equationIndex: 0,
+    fractionTokenIndex: -1
+  };
+  ui.clearInputGuidance();
   refreshEquationDisplay();
   updateSubmitButtonState();
 }
@@ -490,10 +702,15 @@ function handleClear() {
 /**
  * 連立方程式で、アクティブな入力欄（式①／式②）を切り替える
  * （「式切替」ボタン・PCキーボードのTabキーから呼ばれる）。
+ * 分母入力待ち中は、どちらの式に属する分数か分からなくなるのを防ぐため切り替えを禁止する。
  */
 function handleEquationSwitch() {
   if (gameState.inputLocked) return;
   if (gameState.unit !== UNIT_IDS.SIMULTANEOUS) return;
+  if (gameState.fractionInputState.isWaitingForDenominator) {
+    ui.showInputGuidance("先に分母を入力してください。");
+    return;
+  }
   const nextIndex = gameState.activeSystemEquationIndex === 0 ? 1 : 0;
   setActiveSystemEquationIndex(nextIndex);
   refreshEquationDisplay();
@@ -503,10 +720,18 @@ function handleEquationSwitch() {
  * 連立方程式で、式①・式②の入力欄を直接タップしてアクティブ欄を切り替える。
  * tapIndexが指定されている場合は、タップした位置へカーソルも移動する
  * （キーボード操作（Enter／Space）からの呼び出しではtapIndexを渡さず、切替のみ行う）。
+ * 分母入力待ち中は切り替えを禁止する。
  */
 function handleEquationSlotSelect(index, tapIndex) {
   if (gameState.inputLocked) return;
   if (gameState.unit !== UNIT_IDS.SIMULTANEOUS) return;
+  if (
+    gameState.fractionInputState.isWaitingForDenominator &&
+    index !== gameState.activeSystemEquationIndex
+  ) {
+    ui.showInputGuidance("先に分母を入力してください。");
+    return;
+  }
   setActiveSystemEquationIndex(index);
   if (tapIndex !== undefined) {
     setSystemCursorPosition(index, tapIndex);
@@ -526,12 +751,26 @@ function handleEquationInputTap(tapIndex) {
 
 const PHYSICAL_KEY_MAP = {
   "-": "−",
-  "*": "×",
-  "/": "÷"
+  "*": "×"
 };
 
 function handlePhysicalKeyDown(event) {
   if (gameState.inputLocked) return;
+
+  if (event.key === "Backspace") {
+    event.preventDefault();
+    handleBackspace();
+    return;
+  }
+
+  // 分母入力待ち中は、数値キー以外は無視する（画面上の数値ボタンでの操作を優先する簡易対応）。
+  if (gameState.fractionInputState.isWaitingForDenominator) {
+    if (/^[0-9.]$/.test(event.key)) {
+      event.preventDefault();
+      handleDenominatorInput(event.key, true);
+    }
+    return;
+  }
 
   if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
     if (event.key === "Tab") {
@@ -566,9 +805,10 @@ function handlePhysicalKeyDown(event) {
     handleCursorRight();
     return;
   }
-  if (event.key === "Backspace") {
+
+  if (event.key === "/") {
     event.preventDefault();
-    handleBackspace();
+    handleCreateFraction();
     return;
   }
 
@@ -620,14 +860,16 @@ function handleTrainingSubmit() {
 /**
  * 正解・パス演出で表示する模範式を、単元に応じて組み立てる。
  * 1次方程式は文字列1つ、連立方程式は[式①, 式②]の配列を返す。
+ * 分数（/）を上下型で描画できるよう、あらかじめ整形されたdisplayではなく、
+ * 内部表現（internal／canonicalEquation）をそのまま返す（ui.js側で解析して描画する）。
  */
 function getDisplayEquationForCurrentQuestion() {
   if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
     return gameState.currentQuestion.canonicalEquations.map(
-      (equation) => equation.display
+      (equation) => equation.internal
     );
   }
-  return gameState.currentQuestion.displayEquation;
+  return gameState.currentQuestion.canonicalEquation;
 }
 
 function handleInputError(result) {
@@ -751,8 +993,8 @@ function recordHistory(result, elapsedSeconds) {
       ...baseEntry,
       lastInput1,
       lastInput2,
-      modelEquation1: gameState.currentQuestion.canonicalEquations[0].display,
-      modelEquation2: gameState.currentQuestion.canonicalEquations[1].display
+      modelEquation1: gameState.currentQuestion.canonicalEquations[0].internal,
+      modelEquation2: gameState.currentQuestion.canonicalEquations[1].internal
     });
     return;
   }
@@ -761,7 +1003,7 @@ function recordHistory(result, elapsedSeconds) {
     ...baseEntry,
     variableDefinition: gameState.currentQuestion.variableDefinition,
     lastInput: getCurrentInputString(),
-    modelEquation: gameState.currentQuestion.displayEquation
+    modelEquation: gameState.currentQuestion.canonicalEquation
   });
 }
 

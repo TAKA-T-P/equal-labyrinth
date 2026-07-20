@@ -7,7 +7,7 @@ const CATEGORY_ID = "L2-06";
 const CATEGORY_NAME = "速さ・道のり";
 const UNIT = "simultaneous";
 
-const KEYPAD_SYMBOLS = ["x", "y", "+", "÷", "="];
+const KEYPAD_SYMBOLS = ["x", "y", "+", "fraction", "="];
 
 /**
  * x÷speedA＋y÷speedB＝時間 が必ずきれいな数になるよう、
@@ -72,8 +72,19 @@ export const speedDistanceTemplates = [
         keypadNumbers: buildKeypadNumbers([totalDistance, speedA, speedB, totalTime]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
-        hint: `時速${speedA}kmでxkm進むのにかかる時間は「x÷${speedA}」と表せます。`,
-        hintKeypadParts: [],
+        hint:
+          "かかった時間は「道のり÷速さ」で表します。走った時間は、走った道のりを" +
+          `速さ${speedA}で割って表します。`,
+        hintKeypadParts: [
+          {
+            type: "fraction",
+            display: `x/${speedA}`,
+            value: `x/${speedA}`,
+            numerator: "x",
+            denominator: String(speedA),
+            ariaLabel: `${speedA}分のx`
+          }
+        ],
 
         explanation: "道のりの合計と、かかった時間の合計から2本の式を作ります。"
       };
@@ -123,8 +134,19 @@ export const speedDistanceTemplates = [
         keypadNumbers: buildKeypadNumbers([totalDistance, speedA, speedB, totalTime]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
-        hint: `時速${speedA}kmでxkm進むのにかかる時間は「x÷${speedA}」と表せます。`,
-        hintKeypadParts: [],
+        hint:
+          "かかった時間は「道のり÷速さ」で表します。電車で移動した時間は、電車で移動した" +
+          `道のりを速さ${speedA}で割って表します。`,
+        hintKeypadParts: [
+          {
+            type: "fraction",
+            display: `x/${speedA}`,
+            value: `x/${speedA}`,
+            numerator: "x",
+            denominator: String(speedA),
+            ariaLabel: `${speedA}分のx`
+          }
+        ],
 
         explanation: "道のりの合計と、かかった時間の合計から2本の式を作ります。"
       };
@@ -174,8 +196,19 @@ export const speedDistanceTemplates = [
         keypadNumbers: buildKeypadNumbers([totalDistance, speedA, speedB, totalTime]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
-        hint: `時速${speedA}kmでxkm進むのにかかる時間は「x÷${speedA}」と表せます。`,
-        hintKeypadParts: [],
+        hint:
+          "かかった時間は「道のり÷速さ」で表します。平らな道を歩いた時間は、平らな道の" +
+          `道のりを速さ${speedA}で割って表します。`,
+        hintKeypadParts: [
+          {
+            type: "fraction",
+            display: `x/${speedA}`,
+            value: `x/${speedA}`,
+            numerator: "x",
+            denominator: String(speedA),
+            ariaLabel: `${speedA}分のx`
+          }
+        ],
 
         explanation: "道のりの合計と、かかった時間の合計から2本の式を作ります。"
       };

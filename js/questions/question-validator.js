@@ -50,7 +50,8 @@ function validateRankDifficulty(question) {
   return null;
 }
 
-// キーボードに表示してよい記号（将来のy・x²も見据えて許可しておく）
+// キーボードに表示してよい記号（将来のy・x²も見据えて許可しておく）。
+// "÷"は後方互換のために残す（表示時にui.jsが"fraction"へ自動変換する）。
 const ALLOWED_KEYPAD_SYMBOLS = new Set([
   "x",
   "y",
@@ -59,6 +60,7 @@ const ALLOWED_KEYPAD_SYMBOLS = new Set([
   "-",
   "×",
   "÷",
+  "fraction",
   "(",
   ")",
   "="
@@ -132,8 +134,22 @@ function validateKeypadCoversEquation(canonicalEquation, keypadNumbers) {
 }
 
 /**
+ * 数式文字列（内部表現）に割り算（/）が含まれるかどうかを判定する。
+ * 解析できない場合は、別のチェックで検出されるためfalseを返す。
+ */
+function equationContainsDivision(equationString) {
+  try {
+    const tokens = tokenize(equationString);
+    return tokens.some((token) => token.type === TokenType.DIVIDE);
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
  * ヒント使用時に追加する式パーツ1件を検証する。
  * 完成した方程式全体（＝を含むもの）は登録できない。
+ * 分数型（type: "fraction"）の場合は、numerator・denominatorも検証する。
  */
 function validateHintKeypadPart(part) {
   if (!part || typeof part !== "object") {
@@ -144,6 +160,18 @@ function validateHintKeypadPart(part) {
   }
   if (typeof part.value !== "string" || part.value.trim() === "") {
     return "hintKeypadPartsのvalueが空です。";
+  }
+
+  if (part.type === "fraction") {
+    if (typeof part.numerator !== "string" || part.numerator.trim() === "") {
+      return "hintKeypadPartsの分数パーツにnumeratorが必要です。";
+    }
+    if (typeof part.denominator !== "string" || part.denominator.trim() === "") {
+      return "hintKeypadPartsの分数パーツにdenominatorが必要です。";
+    }
+    if (!NUMBER_TEXT_PATTERN.test(part.denominator) || Number(part.denominator) === 0) {
+      return "hintKeypadPartsの分数パーツのdenominatorは0でない数値である必要があります。";
+    }
   }
 
   let tokens;
@@ -418,6 +446,24 @@ function validateSimultaneousQuestion(question) {
     );
     if (keypadCoverageReason) {
       return { valid: false, reason: keypadCoverageReason };
+    }
+  }
+
+  // canonicalEquationsに割り算（分数）が含まれる場合、分数ボタンをkeypadSymbolsに
+  // 用意しておく必要がある（"fraction"のほか、後方互換の"÷"「/」も許可する）
+  const needsFractionSymbol = question.canonicalEquations.some((equation) =>
+    equationContainsDivision(equation.internal)
+  );
+  if (needsFractionSymbol) {
+    const hasFractionSymbol =
+      question.keypadSymbols.includes("fraction") ||
+      question.keypadSymbols.includes("÷") ||
+      question.keypadSymbols.includes("/");
+    if (!hasFractionSymbol) {
+      return {
+        valid: false,
+        reason: "canonicalEquationsに割り算が含まれていますが、keypadSymbolsに分数ボタン（fraction）がありません。"
+      };
     }
   }
 

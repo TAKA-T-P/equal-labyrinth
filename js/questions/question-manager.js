@@ -369,7 +369,7 @@ const SIMULTANEOUS_FALLBACK_QUESTIONS = {
     ],
     solutionDisplay: "x＝5、y＝6",
     keypadNumbers: ["11", "10", "4", "2"],
-    keypadSymbols: ["x", "y", "+", "÷", "="],
+    keypadSymbols: ["x", "y", "+", "fraction", "="],
     hint: "時速10kmでxkm進むのにかかる時間は「x÷10」と表せます。",
     hintKeypadParts: [],
     explanation: "道のりの合計と、かかった時間の合計から2本の式を作ります。"

@@ -3,6 +3,7 @@
 
 import { APP_CONFIG, UNIT_CONFIG } from "./config.js";
 import { formatScore } from "./rank/score-manager.js";
+import { renderFormattedEquation } from "./equation/equation-formatter.js";
 
 const elements = {
   screens: {
@@ -64,6 +65,7 @@ const elements = {
     document.getElementById("equation-input-display-0"),
     document.getElementById("equation-input-display-1")
   ],
+  inputGuidance: document.getElementById("input-guidance"),
   judgeMessage: document.getElementById("judge-message"),
   hintBackdrop: document.getElementById("hint-backdrop"),
   hintPanel: document.getElementById("hint-panel"),
@@ -137,12 +139,63 @@ function appendStyledVariableParts(container, text) {
  * 数式入力欄の1トークン分のノードを作る。数値ボタン・記号ボタンだけでなく、
  * ヒントパーツ（"(15-x)"など複数文字のトークン）の中に含まれる"x"も、
  * 斜体太字のTimes New Romanで表示する。
+ * トークンが分数オブジェクトの場合は、上下型の分数ノードを作る。
  */
 function createEquationCharacterNode(token, index) {
+  if (token && typeof token === "object" && token.type === "fraction") {
+    return createFractionTokenNode(token, index);
+  }
+
   const wrapper = document.createElement("span");
   wrapper.className = "equation-token";
   wrapper.dataset.tokenIndex = String(index);
   appendStyledVariableParts(wrapper, token);
+  return wrapper;
+}
+
+/**
+ * 分数トークン（{type:"fraction", numeratorTokens, denominatorTokens, isComplete}）を、
+ * 上下型のDOM（分子・分数線・分母）として描画する。完成した分数は1つのトークンとして
+ * 扱うため（カーソルは内部へ入らない）、equation-tokenクラスとdata-token-indexを持たせる。
+ * 分母が未入力の間は、破線の空欄プレースホルダーを表示する。
+ */
+function createFractionTokenNode(token, index) {
+  const wrapper = document.createElement("span");
+  wrapper.className = token.isComplete
+    ? "equation-token math-fraction"
+    : "equation-token math-fraction math-fraction--pending";
+  wrapper.dataset.tokenIndex = String(index);
+
+  const numeratorText = token.numeratorTokens.join("");
+
+  const numerator = document.createElement("span");
+  numerator.className = "math-fraction__numerator";
+  appendStyledVariableParts(numerator, numeratorText);
+
+  const bar = document.createElement("span");
+  bar.className = "math-fraction__bar";
+
+  const denominator = document.createElement("span");
+  denominator.className = "math-fraction__denominator";
+  if (token.isComplete) {
+    appendStyledVariableParts(denominator, token.denominatorTokens.join(""));
+  } else {
+    const placeholder = document.createElement("span");
+    placeholder.className = "math-fraction__placeholder";
+    denominator.appendChild(placeholder);
+  }
+
+  wrapper.appendChild(numerator);
+  wrapper.appendChild(bar);
+  wrapper.appendChild(denominator);
+
+  wrapper.setAttribute(
+    "aria-label",
+    token.isComplete
+      ? `${token.denominatorTokens.join("")}分の${numeratorText}`
+      : "分母が未入力の分数"
+  );
+
   return wrapper;
 }
 
@@ -418,6 +471,18 @@ function resolveTapCursorIndex(container, clientX) {
   return tokenNodes.length;
 }
 
+/**
+ * 分数入力の案内（「分母を選んでください」など）を表示する。
+ * スクリーンリーダーにも伝わるよう、aria-live="polite"の領域を使う。
+ */
+export function showInputGuidance(text) {
+  elements.inputGuidance.textContent = text;
+}
+
+export function clearInputGuidance() {
+  elements.inputGuidance.textContent = "";
+}
+
 export function setSubmitButtonEnabled(enabled) {
   elements.submitButton.disabled = !enabled;
 }
@@ -491,7 +556,7 @@ export function showAnswerReveal(statusType, statusText, displayEquation, soluti
     const label = equations.length > 1 ? `式${index === 0 ? "①" : "②"}　` : "模範式：";
     renderTextWithStyledVariable(row, label);
     const valueSpan = document.createElement("span");
-    renderTextWithStyledVariable(valueSpan, equation);
+    renderFormattedEquation(valueSpan, equation);
     row.appendChild(valueSpan);
     elements.modelEquationsContainer.appendChild(row);
   });
@@ -569,8 +634,8 @@ export function clearJudgeMessage() {
 // 数式キーボード（問題ごとの数値・記号キー）
 // ============================================================
 
-// 記号キーの統一表示順（将来のy・x²も見据えた順序）
-const SYMBOL_ORDER = ["x", "y", "x²", "+", "-", "×", "÷", "(", ")", "="];
+// 記号キーの統一表示順（将来のy・x²も見据えた順序。今回はx²は表示しない）
+const SYMBOL_ORDER = ["x", "y", "x²", "+", "-", "×", "fraction", "(", ")", "="];
 
 // キーボード上の表示文字（内部の入力値は問題データの表記をそのまま使う）
 const SYMBOL_DISPLAY = {
@@ -586,12 +651,32 @@ const SYMBOL_DISPLAY = {
   "=": "="
 };
 
+/**
+ * 旧仕様の「÷」「/」記号を、上下型分数を作る「fraction」識別子へ変換する
+ * （既存問題データとの後方互換のため。正式なテンプレートは順次fractionへ更新する）。
+ */
+function normalizeKeypadSymbol(symbol) {
+  if (symbol === "÷" || symbol === "/") {
+    return "fraction";
+  }
+  return symbol;
+}
+
 function getUniqueKeypadNumbers(question) {
   return [...new Set(question.keypadNumbers)];
 }
 
 function getOrderedKeypadSymbols(question) {
-  const requested = new Set(question.keypadSymbols);
+  const normalized = question.keypadSymbols.map((symbol) => {
+    const converted = normalizeKeypadSymbol(symbol);
+    if (converted !== symbol) {
+      console.warn(
+        `問題 ${question.id} のkeypadSymbolsに「${symbol}」が残っています。「fraction」へ自動変換しました。`
+      );
+    }
+    return converted;
+  });
+  const requested = new Set(normalized);
   return SYMBOL_ORDER.filter((symbol) => requested.has(symbol));
 }
 
@@ -607,15 +692,50 @@ function createKeypadButton(label, inputValue, extraClass) {
 function renderNumberKeys(numbers) {
   elements.keypadNumbers.innerHTML = "";
   numbers.forEach((numberText) => {
-    elements.keypadNumbers.appendChild(
-      createKeypadButton(numberText, numberText, "key-button--number")
-    );
+    const button = createKeypadButton(numberText, numberText, "key-button--number");
+    button.dataset.keyType = "number";
+    elements.keypadNumbers.appendChild(button);
   });
+}
+
+/**
+ * 分数ボタン（÷の代わりに配置する、上下型分数を作るボタン）を作る。
+ * data-inputValueは持たせず、data-action="create-fraction"で識別する
+ * （cursor-left・backspaceなどの編集キーと同じ仕組み）。
+ */
+function createFractionKeyButton() {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "key-button key-button--symbol key-button--fraction";
+  button.dataset.action = "create-fraction";
+  button.setAttribute("aria-label", "分数を作る");
+
+  const icon = document.createElement("span");
+  icon.className = "fraction-key-icon";
+  icon.setAttribute("aria-hidden", "true");
+
+  const top = document.createElement("span");
+  top.textContent = "□";
+  const bar = document.createElement("span");
+  bar.className = "fraction-key-icon__bar";
+  const bottom = document.createElement("span");
+  bottom.textContent = "□";
+
+  icon.appendChild(top);
+  icon.appendChild(bar);
+  icon.appendChild(bottom);
+  button.appendChild(icon);
+
+  return button;
 }
 
 function renderSymbolKeys(symbols) {
   elements.keypadSymbols.innerHTML = "";
   symbols.forEach((symbol) => {
+    if (symbol === "fraction") {
+      elements.keypadSymbols.appendChild(createFractionKeyButton());
+      return;
+    }
     const displayValue = SYMBOL_DISPLAY[symbol] || symbol;
     const variantClass =
       symbol === "x" || symbol === "y" || symbol === "x²"
@@ -636,7 +756,49 @@ export function renderEquationKeypad(question) {
   renderSymbolKeys(getOrderedKeypadSymbols(question));
 }
 
+/**
+ * 分数型のヒント式パーツ（x/8など）のボタンを、上下型分数の見た目で作る。
+ */
+function createFractionHintPartButton(part) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "key-button key-button--hint-part key-button--hint-fraction";
+  button.dataset.inputValue = part.value;
+  button.dataset.hintPart = "true";
+  button.dataset.hintPartType = "fraction";
+  button.dataset.hintPartNumerator = part.numerator;
+  button.dataset.hintPartDenominator = part.denominator;
+  if (part.ariaLabel) {
+    button.setAttribute("aria-label", part.ariaLabel);
+  }
+
+  const fraction = document.createElement("span");
+  fraction.className = "math-fraction math-fraction--hint-key";
+
+  const numerator = document.createElement("span");
+  numerator.className = "math-fraction__numerator";
+  appendStyledVariableParts(numerator, part.numerator);
+
+  const bar = document.createElement("span");
+  bar.className = "math-fraction__bar";
+
+  const denominator = document.createElement("span");
+  denominator.className = "math-fraction__denominator";
+  appendStyledVariableParts(denominator, part.denominator);
+
+  fraction.appendChild(numerator);
+  fraction.appendChild(bar);
+  fraction.appendChild(denominator);
+  button.appendChild(fraction);
+
+  return button;
+}
+
 function createHintPartButton(part) {
+  if (part.type === "fraction") {
+    return createFractionHintPartButton(part);
+  }
+
   const button = createKeypadButton(part.display, part.value, "key-button--hint-part");
   // "x"だけを斜体太字のTimes New Romanで表示し直す
   renderTextWithStyledVariable(button, part.display);
@@ -687,6 +849,7 @@ export function resetGameScreenPanels() {
   hidePassConfirm();
   hideAnswerReveal();
   clearJudgeMessage();
+  clearInputGuidance();
   clearHintKeypadParts();
   setHintButtonRevealed(false);
   setHintButtonEnabled(false);
@@ -817,6 +980,21 @@ function createHistoryRow(label, valueText) {
   return row;
 }
 
+/**
+ * 数式（入力した式・模範式）を表示する履歴の1行を作る。文字列中の"/"は、
+ * renderFormattedEquation()で解析して上下型分数として描画する。
+ */
+function createHistoryEquationRow(label, equationText) {
+  const row = document.createElement("p");
+  row.className = "history-item-row";
+  renderTextWithStyledVariable(row, `${label}：`);
+  const value = document.createElement("span");
+  value.className = "value";
+  renderFormattedEquation(value, equationText);
+  row.appendChild(value);
+  return row;
+}
+
 const HISTORY_STATUS_INFO = {
   correct: { className: "is-correct", text: "正解" },
   pass: { className: "is-pass", text: "パス" },
@@ -850,18 +1028,18 @@ function createHistoryItem(entry) {
 
   if (entry.unit === "simultaneous") {
     item.appendChild(
-      createHistoryRow("式①（入力）", entry.lastInput1 || "（未入力）")
+      createHistoryEquationRow("式①（入力）", entry.lastInput1 || "（未入力）")
     );
     item.appendChild(
-      createHistoryRow("式②（入力）", entry.lastInput2 || "（未入力）")
+      createHistoryEquationRow("式②（入力）", entry.lastInput2 || "（未入力）")
     );
-    item.appendChild(createHistoryRow("模範式①", entry.modelEquation1));
-    item.appendChild(createHistoryRow("模範式②", entry.modelEquation2));
+    item.appendChild(createHistoryEquationRow("模範式①", entry.modelEquation1));
+    item.appendChild(createHistoryEquationRow("模範式②", entry.modelEquation2));
   } else {
     item.appendChild(
-      createHistoryRow("入力した式", entry.lastInput || "（未入力）")
+      createHistoryEquationRow("入力した式", entry.lastInput || "（未入力）")
     );
-    item.appendChild(createHistoryRow("模範式", entry.modelEquation));
+    item.appendChild(createHistoryEquationRow("模範式", entry.modelEquation));
   }
 
   item.appendChild(createHistoryRow("解", entry.solutionDisplay));
@@ -1019,9 +1197,17 @@ export function initUI(callbacks) {
 
     if (button.dataset.inputValue !== undefined) {
       if (button.dataset.hintPart === "true") {
-        callbacks.onHintPartPress(button.dataset.inputValue);
+        if (button.dataset.hintPartType === "fraction") {
+          callbacks.onHintFractionPartPress({
+            numerator: button.dataset.hintPartNumerator,
+            denominator: button.dataset.hintPartDenominator,
+            value: button.dataset.inputValue
+          });
+        } else {
+          callbacks.onHintPartPress(button.dataset.inputValue);
+        }
       } else {
-        callbacks.onKeyPress(button.dataset.inputValue);
+        callbacks.onKeyPress(button.dataset.inputValue, button.dataset.keyType === "number");
       }
       return;
     }
@@ -1038,6 +1224,9 @@ export function initUI(callbacks) {
         break;
       case "clear":
         callbacks.onClear();
+        break;
+      case "create-fraction":
+        callbacks.onCreateFraction();
         break;
       default:
         break;

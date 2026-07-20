@@ -289,14 +289,16 @@ function refreshRankEquationDisplay() {
 /**
  * 正解・パス・時間切れ演出で表示する模範式を、単元に応じて組み立てる。
  * 1次方程式は文字列1つ、連立方程式は[式①, 式②]の配列を返す。
+ * 分数（/）を上下型で描画できるよう、あらかじめ整形されたdisplayではなく、
+ * 内部表現（internal／canonicalEquation）をそのまま返す（ui.js側で解析して描画する）。
  */
 function getDisplayEquationForCurrentQuestion() {
   if (gameState.unit === UNIT_IDS.SIMULTANEOUS) {
     return gameState.currentQuestion.canonicalEquations.map(
-      (equation) => equation.display
+      (equation) => equation.internal
     );
   }
-  return gameState.currentQuestion.displayEquation;
+  return gameState.currentQuestion.canonicalEquation;
 }
 
 // ============================================================
@@ -445,8 +447,8 @@ function recordRankHistory(result, elapsedSeconds, extra) {
       ...baseEntry,
       lastInput1,
       lastInput2,
-      modelEquation1: gameState.currentQuestion.canonicalEquations[0].display,
-      modelEquation2: gameState.currentQuestion.canonicalEquations[1].display
+      modelEquation1: gameState.currentQuestion.canonicalEquations[0].internal,
+      modelEquation2: gameState.currentQuestion.canonicalEquations[1].internal
     });
     return;
   }
@@ -455,7 +457,7 @@ function recordRankHistory(result, elapsedSeconds, extra) {
     ...baseEntry,
     variableDefinition: gameState.currentQuestion.variableDefinition,
     lastInput: getCurrentInputString(),
-    modelEquation: gameState.currentQuestion.displayEquation
+    modelEquation: gameState.currentQuestion.canonicalEquation
   });
 }
 

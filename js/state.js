@@ -29,6 +29,16 @@ export const gameState = {
   activeSystemEquationIndex: 0,
   systemCursorPositions: [0, 0],
 
+  // ============================================================
+  // 分数入力（上下型分数）：分母入力待ち状態
+  // equationIndexは、1次方程式では常に0として扱う。
+  // ============================================================
+  fractionInputState: {
+    isWaitingForDenominator: false,
+    equationIndex: 0,
+    fractionTokenIndex: -1
+  },
+
   questionStartTime: 0,
   questionElapsedTime: 0,
 
@@ -120,6 +130,12 @@ export function resetQuestionState() {
   gameState.activeSystemEquationIndex = 0;
   gameState.systemCursorPositions = [0, 0];
 
+  gameState.fractionInputState = {
+    isWaitingForDenominator: false,
+    equationIndex: 0,
+    fractionTokenIndex: -1
+  };
+
   gameState.questionStartTime = 0;
   gameState.questionElapsedTime = 0;
 
@@ -180,13 +196,66 @@ export function deleteCharacterBeforeCursor() {
   }
 }
 
+/**
+ * カーソル直前のトークンを取り除いて返す（分数作成時に分子として使う）。
+ * カーソルが先頭にある場合はnullを返す。
+ */
+export function popTokenBeforeCursor() {
+  if (gameState.cursorPosition === 0) return null;
+  const [removed] = gameState.currentInputTokens.splice(gameState.cursorPosition - 1, 1);
+  gameState.cursorPosition -= 1;
+  return removed;
+}
+
+/**
+ * 指定位置のトークンを、別のトークンで置き換える（分数入力の取り消しに使う）。
+ */
+export function replaceTokenAt(index, token) {
+  gameState.currentInputTokens[index] = token;
+}
+
+/**
+ * 指定位置にある分数トークン（分母入力待ち）の分母を確定させ、
+ * カーソルをその直後へ移動する。
+ */
+export function completeFractionAt(index, denominatorToken) {
+  const token = gameState.currentInputTokens[index];
+  token.denominatorTokens = [denominatorToken];
+  token.isComplete = true;
+  gameState.cursorPosition = index + 1;
+}
+
 export function clearInput() {
   gameState.currentInputTokens = [];
   gameState.cursorPosition = 0;
 }
 
+/**
+ * 分数トークンを "((分子)/(分母))" へ変換する。
+ * 正誤判定用の数式パーサーには、この結果をそのまま渡す。
+ */
+export function serializeFractionToken(token) {
+  const numerator = serializeInputTokens(token.numeratorTokens);
+  const denominator = serializeInputTokens(token.denominatorTokens);
+  return `((${numerator})/(${denominator}))`;
+}
+
+/**
+ * 入力トークン列（文字列トークンと分数トークンが混在する配列）を、
+ * 正誤判定用の1つの文字列へ変換する。
+ */
+export function serializeInputTokens(tokens) {
+  return tokens
+    .map((token) =>
+      typeof token === "object" && token !== null && token.type === "fraction"
+        ? serializeFractionToken(token)
+        : token
+    )
+    .join("");
+}
+
 export function getCurrentInputString() {
-  return gameState.currentInputTokens.join("");
+  return serializeInputTokens(gameState.currentInputTokens);
 }
 
 // ============================================================
@@ -246,6 +315,40 @@ export function deleteSystemCharacterBeforeCursor() {
 }
 
 /**
+ * アクティブな式で、カーソル直前のトークンを取り除いて返す
+ * （分数作成時に分子として使う）。カーソルが先頭にある場合はnullを返す。
+ */
+export function popSystemTokenBeforeCursor() {
+  const index = gameState.activeSystemEquationIndex;
+  if (gameState.systemCursorPositions[index] === 0) return null;
+  const [removed] = gameState.currentSystemInputTokens[index].splice(
+    gameState.systemCursorPositions[index] - 1,
+    1
+  );
+  gameState.systemCursorPositions[index] -= 1;
+  return removed;
+}
+
+/**
+ * 指定した式の指定位置のトークンを、別のトークンで置き換える
+ * （分数入力の取り消しに使う）。
+ */
+export function replaceSystemTokenAt(equationIndex, index, token) {
+  gameState.currentSystemInputTokens[equationIndex][index] = token;
+}
+
+/**
+ * 指定した式・位置にある分数トークン（分母入力待ち）の分母を確定させ、
+ * その式のカーソルを直後へ移動する。
+ */
+export function completeSystemFractionAt(equationIndex, index, denominatorToken) {
+  const token = gameState.currentSystemInputTokens[equationIndex][index];
+  token.denominatorTokens = [denominatorToken];
+  token.isComplete = true;
+  gameState.systemCursorPositions[equationIndex] = index + 1;
+}
+
+/**
  * アクティブな式だけを消去する（もう一方の式は残す）。
  */
 export function clearActiveSystemInput() {
@@ -255,5 +358,5 @@ export function clearActiveSystemInput() {
 }
 
 export function getCurrentSystemInputStrings() {
-  return gameState.currentSystemInputTokens.map((tokens) => tokens.join(""));
+  return gameState.currentSystemInputTokens.map((tokens) => serializeInputTokens(tokens));
 }

@@ -412,7 +412,7 @@ input[type="range"] {
   display: inline-flex;
   align-items: center;
   min-width: 100%;
-  min-height: 44px;
+  min-height: 64px;
   font-size: 1.35rem;
   letter-spacing: 0.02em;
   color: var(--color-text-main);
@@ -434,6 +434,51 @@ input[type="range"] {
 .equation-input-placeholder {
   color: var(--color-text-muted);
   font-size: 0.95rem;
+}
+
+/* ---------------- 上下型分数（入力欄・正解表示・履歴で共通） ---------------- */
+
+.math-fraction {
+  display: inline-grid;
+  grid-template-rows: auto 2px auto;
+  align-items: center;
+  justify-items: center;
+  min-width: 1.6em;
+  margin: 0 0.15em;
+  vertical-align: middle;
+  line-height: 1.15;
+}
+
+.math-fraction__numerator,
+.math-fraction__denominator {
+  display: block;
+  padding: 0.05em 0.2em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.math-fraction__bar {
+  display: block;
+  width: 100%;
+  min-width: 1.4em;
+  height: 2px;
+  background: currentColor;
+}
+
+.math-fraction__placeholder {
+  display: inline-block;
+  width: 1.3em;
+  height: 0.9em;
+  border: 2px dashed currentColor;
+  border-radius: 3px;
+  opacity: 0.8;
+}
+
+/* 分母入力待ちの分数を、枠線で強調する */
+.math-fraction--pending {
+  outline: 2px solid var(--color-correct-gold);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 /* ---------------- 連立方程式：式①・式②の2入力欄 ---------------- */
@@ -509,13 +554,29 @@ input[type="range"] {
 }
 
 .equation-slot .equation-input-display {
-  min-height: 34px;
+  min-height: 48px;
   font-size: 1.15rem;
 }
 
 /* 入力対象でない式（式①・式②のうち非アクティブな方）のカーソルは点滅表示しない */
 .equation-slot:not(.is-active) .equation-cursor {
   visibility: hidden;
+}
+
+/* ---------------- 分数入力の案内 ---------------- */
+/* 「分母を選んでください」など、分数入力の状態をテキストで案内する
+   （aria-live="polite"でスクリーンリーダーにも伝える）。 */
+
+.input-guidance {
+  min-height: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-correct-gold);
+  text-align: center;
+}
+
+.input-guidance:empty {
+  display: none;
 }
 
 /* ---------------- 判定メッセージ ---------------- */
@@ -839,6 +900,47 @@ input[type="range"] {
   border: 1px solid var(--color-correct-gold);
   color: var(--color-correct-gold);
   font-size: 1rem;
+}
+
+/* 分数ボタン（数式キーボード上、÷の代わりに配置する）：□/─/□のアイコンで表す */
+.key-button--fraction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-correct-gold);
+}
+
+.fraction-key-icon {
+  display: inline-grid;
+  grid-template-rows: auto 2px auto;
+  align-items: center;
+  justify-items: center;
+  gap: 1px;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.fraction-key-icon__bar {
+  width: 100%;
+  min-width: 0.9em;
+  height: 2px;
+  background: currentColor;
+}
+
+/* ヒントパーツが分数のときは、上下2段ぶんの高さを確保する */
+.key-button--hint-fraction {
+  min-height: 44px;
+  padding: 3px 12px;
+}
+
+.key-button--hint-fraction .math-fraction {
+  margin: 0;
+  color: var(--color-correct-gold);
+}
+
+.key-button--hint-fraction .math-fraction__numerator,
+.key-button--hint-fraction .math-fraction__denominator {
+  padding: 0 0.15em;
 }
 
 /* ヒントを開いたことが分かるよう、ヒントボタンの見た目を控えめに変える */
