@@ -6,9 +6,14 @@ import {
   parseEquationToStandardForm,
   solveTwoVariableSystem
 } from "../equation/system-equation-validator.js";
+import {
+  parseEquationToQuadraticStandardForm,
+  solveQuadraticStandardForm
+} from "../equation/quadratic-equation-validator.js";
 import { tokenize, TokenType } from "../equation/tokenizer.js";
 import { LINEAR_CATEGORIES } from "./linear/categories.js";
 import { SIMULTANEOUS_CATEGORIES } from "./simultaneous/categories.js";
+import { QUADRATIC_CATEGORIES } from "./quadratic/categories.js";
 import { APP_CONFIG } from "../config.js";
 
 const REQUIRED_STRING_FIELDS = [
@@ -51,11 +56,13 @@ function validateRankDifficulty(question) {
 }
 
 // キーボードに表示してよい記号（将来のy・x²も見据えて許可しておく）。
+// "square"は、2次方程式専用の「□²」ボタン（かっこの中身をまとめて2乗する記号）。
 // "÷"は後方互換のために残す（表示時にui.jsが"fraction"へ自動変換する）。
 const ALLOWED_KEYPAD_SYMBOLS = new Set([
   "x",
   "y",
   "x²",
+  "square",
   "+",
   "-",
   "×",
@@ -276,13 +283,16 @@ function validateHintKeypadParts(hintKeypadParts) {
 
 /**
  * 生成された問題データを検証する。単元に応じて検証内容を振り分ける
- * （中2「連立方程式」はunit === "simultaneous"で判別する）。
+ * （中2「連立方程式」・中3「2次方程式」はunitフィールドで判別する）。
  * @param {object} question
  * @returns {{valid: boolean, reason?: string}}
  */
 export function validateQuestion(question) {
   if (question && question.unit === "simultaneous") {
     return validateSimultaneousQuestion(question);
+  }
+  if (question && question.unit === "quadratic") {
+    return validateQuadraticQuestion(question);
   }
   return validateLinearQuestion(question);
 }
@@ -575,6 +585,291 @@ function validateSimultaneousQuestion(question) {
   const alternateEquationsReason = validateAlternateEquations(question);
   if (alternateEquationsReason) {
     return { valid: false, reason: alternateEquationsReason };
+  }
+
+  return { valid: true };
+}
+
+// ============================================================
+// 中3「2次方程式」の問題データ検証
+// ============================================================
+
+const QUADRATIC_REQUIRED_STRING_FIELDS = [
+  "id",
+  "templateId",
+  "unit",
+  "categoryId",
+  "categoryName",
+  "prompt",
+  "variableDefinition",
+  "solutionDisplay",
+  "rankDifficulty",
+  "hint",
+  "explanation"
+];
+
+const QUADRATIC_CATEGORY_DIFFICULTY_BY_ID = new Map(
+  QUADRATIC_CATEGORIES.map((category) => [category.id, category.difficulty])
+);
+
+const QUADRATIC_DIAGRAM_TYPES = new Set([
+  "cross-road",
+  "open-box-net",
+  "moving-points-rectangle"
+]);
+
+/**
+ * rankDifficultyが妥当な値であり、2次方程式のカテゴリ定義の難易度と一致することを確認する。
+ */
+function validateQuadraticRankDifficulty(question) {
+  if (!VALID_RANK_DIFFICULTIES.has(question.rankDifficulty)) {
+    return `rankDifficultyがNORMALまたはHARDではありません：${question.rankDifficulty}`;
+  }
+
+  const expectedDifficulty = QUADRATIC_CATEGORY_DIFFICULTY_BY_ID.get(question.categoryId);
+  if (expectedDifficulty && expectedDifficulty !== question.rankDifficulty) {
+    return (
+      `rankDifficulty（${question.rankDifficulty}）が` +
+      `カテゴリ定義の難易度（${expectedDifficulty}）と一致しません。`
+    );
+  }
+
+  return null;
+}
+
+/**
+ * 2次方程式用のkeypadSymbolsを検証する。x・x²・＝がすべて必要になる点が、
+ * 中1（xのみ必須）との違い。
+ */
+function validateKeypadSymbolsForQuadratic(keypadSymbols) {
+  if (!Array.isArray(keypadSymbols) || keypadSymbols.length === 0) {
+    return "keypadSymbolsが1つ以上の配列ではありません。";
+  }
+  if (!keypadSymbols.includes("x")) {
+    return "keypadSymbolsにxが含まれていません。";
+  }
+  if (!keypadSymbols.includes("x²")) {
+    return "keypadSymbolsにx²が含まれていません。";
+  }
+  if (!keypadSymbols.includes("=")) {
+    return "keypadSymbolsに＝が含まれていません。";
+  }
+  for (const symbol of keypadSymbols) {
+    if (!ALLOWED_KEYPAD_SYMBOLS.has(symbol)) {
+      return `keypadSymbolsに許可されていない記号があります：${symbol}`;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 図形問題のdiagramデータを検証する。null（図なし）は許可する。
+ * 図の描画（SVG組み立て）自体はquadratic-diagram-renderer.jsの責務であり、
+ * ここでは「必要なデータが揃っているか」だけを確認する。
+ */
+function validateDiagram(diagram) {
+  if (diagram === null || diagram === undefined) {
+    return null;
+  }
+  if (typeof diagram !== "object") {
+    return "diagramはnullまたはオブジェクトである必要があります。";
+  }
+  if (!QUADRATIC_DIAGRAM_TYPES.has(diagram.type)) {
+    return `diagram.typeが未対応です：${diagram.type}`;
+  }
+  if (typeof diagram.ariaLabel !== "string" || diagram.ariaLabel.trim() === "") {
+    return "diagram.ariaLabelが空です。";
+  }
+
+  if (diagram.type === "cross-road") {
+    if (typeof diagram.widthValue !== "number" || !Number.isFinite(diagram.widthValue)) {
+      return "diagram.widthValueが数値ではありません。";
+    }
+    if (typeof diagram.heightValue !== "number" || !Number.isFinite(diagram.heightValue)) {
+      return "diagram.heightValueが数値ではありません。";
+    }
+    if (typeof diagram.pathWidthSymbol !== "string" || diagram.pathWidthSymbol.trim() === "") {
+      return "diagram.pathWidthSymbolが空です。";
+    }
+  } else if (diagram.type === "open-box-net") {
+    if (typeof diagram.paperSideSymbol !== "string" || diagram.paperSideSymbol.trim() === "") {
+      return "diagram.paperSideSymbolが空です。";
+    }
+    if (typeof diagram.cutSideValue !== "number" || !Number.isFinite(diagram.cutSideValue)) {
+      return "diagram.cutSideValueが数値ではありません。";
+    }
+  } else if (diagram.type === "moving-points-rectangle") {
+    if (typeof diagram.widthValue !== "number" || !Number.isFinite(diagram.widthValue)) {
+      return "diagram.widthValueが数値ではありません。";
+    }
+    if (typeof diagram.heightValue !== "number" || !Number.isFinite(diagram.heightValue)) {
+      return "diagram.heightValueが数値ではありません。";
+    }
+    if (typeof diagram.pointPLabel !== "string" || diagram.pointPLabel.trim() === "") {
+      return "diagram.pointPLabelが空です。";
+    }
+    if (typeof diagram.pointQLabel !== "string" || diagram.pointQLabel.trim() === "") {
+      return "diagram.pointQLabelが空です。";
+    }
+  }
+
+  return null;
+}
+
+/**
+ * expectedRoots・validXValuesが、実際にcanonicalEquationを解いた結果と一致することを確認する。
+ * 重解の場合はexpectedRootsに1回だけ登録されていることも確認する。
+ */
+function validateExpectedRootsAndValidXValues(question, standardForm) {
+  if (!Array.isArray(question.expectedRoots) || question.expectedRoots.length === 0) {
+    return "expectedRootsが1つ以上の配列ではありません。";
+  }
+  if (question.expectedRoots.length > 2) {
+    return "expectedRootsは1つまたは2つの要素である必要があります。";
+  }
+  for (const root of question.expectedRoots) {
+    if (typeof root !== "number" || !Number.isFinite(root)) {
+      return "expectedRootsに数値以外の要素があります。";
+    }
+  }
+
+  if (!Array.isArray(question.validXValues) || question.validXValues.length === 0) {
+    return "validXValuesが1つ以上の配列ではありません。";
+  }
+
+  const tolerance = APP_CONFIG.numericTolerance;
+
+  for (const validValue of question.validXValues) {
+    const matches = question.expectedRoots.some(
+      (root) => Math.abs(root - validValue) < tolerance
+    );
+    if (!matches) {
+      return "validXValuesに、expectedRootsに含まれない値があります。";
+    }
+  }
+
+  const computedRoots = solveQuadraticStandardForm(standardForm, tolerance);
+  if (!computedRoots) {
+    return "canonicalEquationが実数解を持ちません。";
+  }
+  if (computedRoots.length !== question.expectedRoots.length) {
+    return (
+      "expectedRootsの個数がcanonicalEquationの実際の解の個数と一致しません" +
+      "（重解を2回登録していないか確認してください）。"
+    );
+  }
+
+  const sortedExpected = [...question.expectedRoots].sort((a, b) => a - b);
+  for (let i = 0; i < computedRoots.length; i += 1) {
+    if (Math.abs(computedRoots[i] - sortedExpected[i]) > tolerance) {
+      return "expectedRootsがcanonicalEquationの実際の解と一致しません。";
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 中3「2次方程式」の問題データを検証する。
+ * @param {object} question
+ * @returns {{valid: boolean, reason?: string}}
+ */
+function validateQuadraticQuestion(question) {
+  if (!question || typeof question !== "object") {
+    return { valid: false, reason: "問題データがオブジェクトではありません。" };
+  }
+
+  for (const field of QUADRATIC_REQUIRED_STRING_FIELDS) {
+    const value = question[field];
+    if (typeof value !== "string" || value.trim() === "") {
+      return { valid: false, reason: `必須項目「${field}」が空です。` };
+    }
+  }
+
+  if (question.unit !== "quadratic") {
+    return { valid: false, reason: `unitが"quadratic"ではありません：${question.unit}` };
+  }
+
+  if (
+    !question.canonicalEquation ||
+    typeof question.canonicalEquation.internal !== "string" ||
+    question.canonicalEquation.internal.trim() === ""
+  ) {
+    return { valid: false, reason: "canonicalEquation.internalが空です。" };
+  }
+  if (
+    typeof question.canonicalEquation.display !== "string" ||
+    question.canonicalEquation.display.trim() === ""
+  ) {
+    return { valid: false, reason: "canonicalEquation.displayが空です。" };
+  }
+
+  const rankDifficultyReason = validateQuadraticRankDifficulty(question);
+  if (rankDifficultyReason) {
+    return { valid: false, reason: rankDifficultyReason };
+  }
+
+  const keypadNumbersReason = validateKeypadNumbers(question.keypadNumbers);
+  if (keypadNumbersReason) {
+    return { valid: false, reason: keypadNumbersReason };
+  }
+
+  const keypadSymbolsReason = validateKeypadSymbolsForQuadratic(question.keypadSymbols);
+  if (keypadSymbolsReason) {
+    return { valid: false, reason: keypadSymbolsReason };
+  }
+
+  const keypadCoverageReason = validateKeypadCoversEquation(
+    question.canonicalEquation.internal,
+    question.keypadNumbers
+  );
+  if (keypadCoverageReason) {
+    return { valid: false, reason: keypadCoverageReason };
+  }
+
+  // canonicalEquationに割り算（分数）が含まれる場合、分数ボタンをkeypadSymbolsに
+  // 用意しておく必要がある
+  if (equationContainsDivision(question.canonicalEquation.internal)) {
+    const hasFractionSymbol =
+      question.keypadSymbols.includes("fraction") ||
+      question.keypadSymbols.includes("÷") ||
+      question.keypadSymbols.includes("/");
+    if (!hasFractionSymbol) {
+      return {
+        valid: false,
+        reason: "canonicalEquationに割り算が含まれていますが、keypadSymbolsに分数ボタン（fraction）がありません。"
+      };
+    }
+  }
+
+  const hintKeypadPartsReason = validateHintKeypadParts(question.hintKeypadParts);
+  if (hintKeypadPartsReason) {
+    return { valid: false, reason: hintKeypadPartsReason };
+  }
+
+  const diagramReason = validateDiagram(question.diagram);
+  if (diagramReason) {
+    return { valid: false, reason: diagramReason };
+  }
+
+  let standardForm;
+  try {
+    standardForm = parseEquationToQuadraticStandardForm(question.canonicalEquation.internal);
+  } catch (error) {
+    return {
+      valid: false,
+      reason: `canonicalEquationを解析できません：${error.message}`
+    };
+  }
+
+  if (Math.abs(standardForm.xSquaredCoefficient) < APP_CONFIG.numericTolerance) {
+    return { valid: false, reason: "canonicalEquationのx²の係数が0です（2次方程式になっていません）。" };
+  }
+
+  const rootsReason = validateExpectedRootsAndValidXValues(question, standardForm);
+  if (rootsReason) {
+    return { valid: false, reason: rootsReason };
   }
 
   return { valid: true };

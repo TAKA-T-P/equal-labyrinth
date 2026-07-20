@@ -12,6 +12,8 @@ export class EquationError extends Error {
 export const TokenType = {
   NUMBER: "NUMBER",
   VARIABLE: "VARIABLE",
+  POWER: "POWER",
+  SQUARE: "SQUARE",
   PLUS: "PLUS",
   MINUS: "MINUS",
   TIMES: "TIMES",
@@ -52,6 +54,31 @@ const VARIABLE_NAMES = {
 
 function isVariable(char) {
   return Object.prototype.hasOwnProperty.call(VARIABLE_NAMES, char);
+}
+
+/**
+ * input[i]から始まる指数表記（²、または^に続く数字列）を読み取る。
+ * 2乗（²・^2）ならその直後の位置を返し、それ以外の指数（³・^3など）は
+ * 入力エラーとして投げる。指数表記がその位置に存在しない場合はnullを返す。
+ * @returns {number|null} 読み取り後の位置（2乗でなければnull）
+ */
+function readSquareExponent(input, i) {
+  if (input[i] === "²") {
+    return i + 1;
+  }
+  if (input[i] === "^") {
+    let j = i + 1;
+    let exponentString = "";
+    while (j < input.length && isDigit(input[j])) {
+      exponentString += input[j];
+      j += 1;
+    }
+    if (exponentString === "2") {
+      return j;
+    }
+    throw new EquationError("2乗（^2）以外のべき乗には対応していません。");
+  }
+  return null;
 }
 
 /**
@@ -101,14 +128,39 @@ function scan(input) {
     }
 
     if (isVariable(char)) {
-      tokens.push({ type: TokenType.VARIABLE, name: VARIABLE_NAMES[char] });
+      const name = VARIABLE_NAMES[char];
       i += 1;
+
+      // x²（上付き2の文字）またはx^2（キャレット表記）は、xの直後にある場合だけ
+      // 2乗（POWERトークン）として認識する。x³・x^3などの2乗以外は入力エラーにする。
+      if (name === "x") {
+        const next = readSquareExponent(input, i);
+        if (next !== null) {
+          tokens.push({ type: TokenType.POWER, base: "x", exponent: 2 });
+          i = next;
+          continue;
+        }
+      }
+
+      tokens.push({ type: TokenType.VARIABLE, name });
       continue;
     }
 
     if (Object.prototype.hasOwnProperty.call(SINGLE_CHAR_TOKENS, char)) {
-      tokens.push({ type: SINGLE_CHAR_TOKENS[char] });
+      const tokenType = SINGLE_CHAR_TOKENS[char];
+      tokens.push({ type: tokenType });
       i += 1;
+
+      // 閉じかっこの直後の²・^2は、かっこの中身をまとめて2乗する後置演算子
+      // （SQUARE）として扱う（例："(x-8)²" → RPAREN, SQUARE）。
+      if (tokenType === TokenType.RPAREN) {
+        const next = readSquareExponent(input, i);
+        if (next !== null) {
+          tokens.push({ type: TokenType.SQUARE });
+          i = next;
+        }
+      }
+
       continue;
     }
 
@@ -121,11 +173,14 @@ function scan(input) {
 const IMPLICIT_MULTIPLY_LEFT = new Set([
   TokenType.NUMBER,
   TokenType.VARIABLE,
-  TokenType.RPAREN
+  TokenType.POWER,
+  TokenType.RPAREN,
+  TokenType.SQUARE
 ]);
 
 const IMPLICIT_MULTIPLY_RIGHT = new Set([
   TokenType.VARIABLE,
+  TokenType.POWER,
   TokenType.LPAREN
 ]);
 

@@ -8,6 +8,8 @@ import { LINEAR_CATEGORIES } from "./linear/categories.js";
 import { linearQuestionTemplates } from "./linear/index.js";
 import { SIMULTANEOUS_CATEGORIES } from "./simultaneous/categories.js";
 import { simultaneousQuestionTemplates } from "./simultaneous/index.js";
+import { QUADRATIC_CATEGORIES } from "./quadratic/categories.js";
+import { quadraticQuestionTemplates } from "./quadratic/index.js";
 import { validateQuestion } from "./question-validator.js";
 
 // テンプレート生成に失敗し続けた場合の固定問題（フォールバック）
@@ -516,6 +518,262 @@ const SIMULTANEOUS_FALLBACK_QUESTIONS = {
   }
 };
 
+// 中3「2次方程式」のテンプレート生成に失敗し続けた場合の固定問題（フォールバック）
+const QUADRATIC_FALLBACK_QUESTIONS = {
+  "L3-01": {
+    templateId: "L3-01-fallback",
+    unit: UNIT_IDS.QUADRATIC,
+    categoryId: "L3-01",
+    categoryName: "連続する整数の積",
+    rankDifficulty: "NORMAL",
+    prompt: "連続する2つの正の整数の積が156です。小さい方の整数をxとして、2次方程式を立てなさい。",
+    variableDefinition: "小さい方の正の整数",
+    canonicalEquation: {
+      internal: "x*(x+1)=156",
+      display: "x(x＋1)＝156",
+      relationName: "連続する2整数の積"
+    },
+    expectedRoots: [-13, 12],
+    validXValues: [12],
+    solutionDisplay: "x＝12（2つの整数は12と13）",
+    keypadNumbers: ["1", "156"],
+    keypadSymbols: ["x", "x²", "square", "+", "×", "(", ")", "="],
+    hint: "小さい方がxなら、大きい方はx＋1です。2つの整数の積を表しましょう。",
+    hintKeypadParts: [{ display: "（x＋1）", value: "(x+1)", ariaLabel: "xたす1" }],
+    explanation: "連続する2つの整数はx、x＋1と表せるので、積が156になる関係を式にします。",
+    diagram: null
+  },
+  "L3-02": {
+    templateId: "L3-02-fallback",
+    unit: UNIT_IDS.QUADRATIC,
+    categoryId: "L3-02",
+    categoryName: "数とその平方",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "ある正の整数を2乗すると、その数の5倍に24を加えた数に等しくなりました。" +
+      "この正の整数をxとして、2次方程式を立てなさい。",
+    variableDefinition: "ある正の整数",
+    canonicalEquation: {
+      internal: "x^2=5*x+24",
+      display: "x²＝5x＋24",
+      relationName: "2乗と1次式の関係"
+    },
+    expectedRoots: [-3, 8],
+    validXValues: [8],
+    solutionDisplay: "x＝8",
+    keypadNumbers: ["5", "24"],
+    keypadSymbols: ["x", "x²", "square", "+", "-", "×", "(", ")", "="],
+    hint: "「2乗した数」はx²、「その数の5倍に24を加えた数」は右辺で表せます。",
+    hintKeypadParts: [],
+    explanation: "ある数の2乗と、その数を使った1次式が等しくなる関係を式にします。",
+    diagram: null
+  },
+  "L3-03": {
+    templateId: "L3-03-fallback",
+    unit: UNIT_IDS.QUADRATIC,
+    categoryId: "L3-03",
+    categoryName: "長方形の面積",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "横の長さが縦の長さより5cm長い長方形があります。この長方形の面積が84cm²のとき、" +
+      "縦の長さをxcmとして、2次方程式を立てなさい。",
+    variableDefinition: "長方形の縦の長さ（cm）",
+    canonicalEquation: {
+      internal: "x*(x+5)=84",
+      display: "x(x＋5)＝84",
+      relationName: "縦×横＝面積"
+    },
+    expectedRoots: [-12, 7],
+    validXValues: [7],
+    solutionDisplay: "x＝7（縦7cm、横12cm）",
+    keypadNumbers: ["5", "84"],
+    keypadSymbols: ["x", "x²", "square", "+", "-", "×", "(", ")", "="],
+    hint: "横の長さは、縦の長さより5cm長いので「x＋5」と表せます。",
+    hintKeypadParts: [{ display: "（x＋5）", value: "(x+5)", ariaLabel: "xたす5" }],
+    explanation: "縦の長さと横の長さの積が、長方形の面積になります。",
+    diagram: null
+  },
+  "L3-04": {
+    templateId: "L3-04-fallback",
+    unit: UNIT_IDS.QUADRATIC,
+    categoryId: "L3-04",
+    categoryName: "面積の増減",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "縦10cm、横16cmの長方形の縦・横をそれぞれxcmずつ短くしたところ、" +
+      "面積が112cm²になりました。xの値を求める2次方程式を立てなさい。",
+    variableDefinition: "縦・横をそれぞれ短くする長さ（cm）",
+    canonicalEquation: {
+      internal: "(10-x)*(16-x)=112",
+      display: "(10−x)(16−x)＝112",
+      relationName: "短くした後の面積"
+    },
+    expectedRoots: [2, 24],
+    validXValues: [2],
+    solutionDisplay: "x＝2",
+    keypadNumbers: ["10", "16", "112"],
+    keypadSymbols: ["x", "x²", "square", "+", "-", "×", "(", ")", "="],
+    hint: "短くした後の縦は「10−x」、横は「16−x」と表せます。",
+    hintKeypadParts: [{ display: "（10−x）", value: "(10-x)", ariaLabel: "10ひくx" }],
+    explanation: "短くした後の縦と横の積が、変化後の面積になります。",
+    diagram: null
+  },
+  "L3-05": {
+    templateId: "L3-05-fallback",
+    unit: UNIT_IDS.QUADRATIC,
+    categoryId: "L3-05",
+    categoryName: "面積・十字路",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "縦10m、横12mの畑に、幅xmの十字型の道を、縦・横それぞれ1本ずつ作ったところ、" +
+      "道を除いた部分の面積が63m²になりました。xの値を求める2次方程式を立てなさい。",
+    variableDefinition: "十字型の道の幅（m）",
+    canonicalEquation: {
+      internal: "(10-x)*(12-x)=63",
+      display: "(10−x)(12−x)＝63",
+      relationName: "十字路を除いた面積"
+    },
+    expectedRoots: [3, 19],
+    validXValues: [3],
+    solutionDisplay: "x＝3",
+    keypadNumbers: ["10", "12", "63"],
+    keypadSymbols: ["x", "x²", "square", "+", "-", "×", "(", ")", "="],
+    hint: "2本の道の面積を、道が重なる部分だけ調整して引くと、残りの面積は「（横−x）×（縦−x）」で表せます。",
+    hintKeypadParts: [{ display: "（10−x）", value: "(10-x)", ariaLabel: "10ひくx" }],
+    explanation: "十字型の道を除いた部分は、道の幅の分だけ縦・横を短くした長方形の面積と等しくなります。",
+    diagram: {
+      type: "cross-road",
+      widthValue: 12,
+      heightValue: 10,
+      pathWidthSymbol: "x",
+      ariaLabel: "縦10メートル、横12メートルの畑に、幅xメートルの十字型の道がある図"
+    }
+  },
+  "L3-06": {
+    templateId: "L3-06-fallback",
+    unit: UNIT_IDS.QUADRATIC,
+    categoryId: "L3-06",
+    categoryName: "容積・ふたのない箱",
+    rankDifficulty: "NORMAL",
+    prompt:
+      "1辺の長さがxcmの正方形の工作用紙の四すみから、1辺2cmの正方形を切り取り、" +
+      "点線のところで折り曲げて、ふたのない箱を作ります。この箱の容積が72cm³になるとき、" +
+      "2次方程式を立てなさい。",
+    variableDefinition: "もとの正方形の工作用紙の1辺の長さ（cm）",
+    canonicalEquation: {
+      internal: "2*(x-4)^2=72",
+      display: "2(x−4)²＝72",
+      relationName: "箱の容積＝高さ×底面積"
+    },
+    expectedRoots: [-2, 10],
+    validXValues: [10],
+    solutionDisplay: "x＝10",
+    keypadNumbers: ["2", "4", "72"],
+    keypadSymbols: ["x", "x²", "square", "-", "×", "(", ")", "="],
+    hint:
+      "箱の底面の1辺は、もとの1辺から2cmを2か所分引いた「x−4」cmになります。" +
+      "容積は「高さ×底面の1辺×底面の1辺」で求められます。",
+    hintKeypadParts: [{ display: "（x−4）", value: "(x-4)", ariaLabel: "xひく4" }],
+    explanation: "箱の高さは切り取った正方形の1辺の長さと等しく、底面は正方形になります。",
+    diagram: {
+      type: "open-box-net",
+      paperSideSymbol: "x",
+      cutSideValue: 2,
+      ariaLabel: "1辺xセンチメートルの正方形の工作用紙の四すみから、1辺2センチメートルの正方形を切り取り、ふたのない箱を作る図"
+    }
+  },
+  "L3-07": {
+    templateId: "L3-07-fallback",
+    unit: UNIT_IDS.QUADRATIC,
+    categoryId: "L3-07",
+    categoryName: "動点",
+    rankDifficulty: "HARD",
+    prompt:
+      "1辺8cmの正方形ABCDがあります。点Pは頂点Cから出発して、Dに向かって毎秒1cmで辺の上を" +
+      "動きます。点Qは頂点Dを出発して、隣の頂点に向かって毎秒2cmで辺の上を動きます。" +
+      "2点が同時に出発してからx秒後の三角形DPQの面積が16cm²になるとき、xの値を求める2次方程式を立てなさい。",
+    variableDefinition: "2点が出発してからの時間（秒）",
+    canonicalEquation: {
+      internal: "x*(8-x)=16",
+      display: "x(8−x)＝16",
+      relationName: "三角形の面積（底辺×高さ÷2）"
+    },
+    expectedRoots: [4],
+    validXValues: [4],
+    solutionDisplay: "x＝4",
+    keypadNumbers: ["8", "16"],
+    keypadSymbols: ["x", "x²", "square", "-", "×", "(", ")", "="],
+    hint: "DPの長さは「8−x」、DQの長さは「2x」と表せます。三角形の面積は「底辺×高さ÷2」で求められます。",
+    hintKeypadParts: [{ display: "（8−x）", value: "(8-x)", ariaLabel: "8ひくx" }],
+    explanation: "点P・点Qそれぞれの動いた距離を使って、三角形DPQの面積を式に表します。",
+    diagram: {
+      type: "moving-points-rectangle",
+      widthValue: 8,
+      heightValue: 8,
+      pointPLabel: "P",
+      pointQLabel: "Q",
+      pointPStart: "C",
+      pointPMovesTo: "D",
+      pointQStart: "D",
+      pointQMovesTo: "A",
+      ariaLabel: "1辺8センチメートルの正方形ABCDで、点PはCからDへ、点QはDからAへ、それぞれ辺の上を移動する図"
+    }
+  },
+  "L3-08": {
+    templateId: "L3-08-fallback",
+    unit: UNIT_IDS.QUADRATIC,
+    categoryId: "L3-08",
+    categoryName: "価格と売上",
+    rankDifficulty: "HARD",
+    prompt:
+      "ある商品は、1個500円のとき1日に100個売れます。この商品を10円値上げするごとに、" +
+      "1日の販売個数が2個ずつ減ることがわかっています。10円の値上げをx回行ったときの" +
+      "1日の売上金額が48000円になるとき、2次方程式を立てなさい。",
+    variableDefinition: "10円の値上げを行った回数",
+    canonicalEquation: {
+      internal: "(500+10*x)*(100-2*x)=48000",
+      display: "(500＋10x)(100−2x)＝48000",
+      relationName: "売上金額＝価格×販売個数"
+    },
+    expectedRoots: [-10, 10],
+    validXValues: [10],
+    solutionDisplay: "x＝10",
+    keypadNumbers: ["500", "10", "100", "2", "48000"],
+    keypadSymbols: ["x", "x²", "square", "+", "-", "×", "(", ")", "="],
+    hint: "x回値上げした後の価格は「500＋10x」円、販売個数は「100−2x」個と表せます。",
+    hintKeypadParts: [{ display: "（100−2x）", value: "(100-2*x)", ariaLabel: "100ひく2x" }],
+    explanation: "値上げ後の価格と販売個数の積が、売上金額になります。",
+    diagram: null
+  },
+  "L3-09": {
+    templateId: "L3-09-fallback",
+    unit: UNIT_IDS.QUADRATIC,
+    categoryId: "L3-09",
+    categoryName: "割合の応用・利益と割引",
+    rankDifficulty: "HARD",
+    prompt:
+      "定価2400円の洋服があります。この定価をx割値上げしたあと、そこからさらにx割値引きして" +
+      "売ったところ、売り値は2184円になりました。xの値を求める2次方程式を立てなさい。",
+    variableDefinition: "値上げ・値引きした割合（割）",
+    canonicalEquation: {
+      internal: "2400*(1+x/10)*(1-x/10)=2184",
+      display: "2400(1＋x/10)(1−x/10)＝2184",
+      relationName: "値上げ後に値引きした売り値"
+    },
+    expectedRoots: [-3, 3],
+    validXValues: [3],
+    solutionDisplay: "x＝3",
+    keypadNumbers: ["2400", "1", "10", "2184"],
+    keypadSymbols: ["x", "x²", "square", "+", "-", "×", "fraction", "(", ")", "="],
+    hint:
+      "x割は10分のxと表せます。値上げ後の価格は「定価×(1＋x/10)」、" +
+      "そこからさらに値引きした価格は、その「×(1−x/10)」で求められます。",
+    hintKeypadParts: [],
+    explanation: "値上げ後の価格に、値引きの割合をかけると、最終的な売り値になります。",
+    diagram: null
+  }
+};
+
 /**
  * 配列をシャッフルした新しい配列を返す（Fisher-Yates）。
  */
@@ -529,17 +787,33 @@ export function shuffleArray(array) {
 }
 
 // ============================================================
-// 単元（linear／simultaneous）による分岐
+// 単元（linear／simultaneous／quadratic）による分岐
 // ============================================================
+
+const TEMPLATES_BY_UNIT = {
+  [UNIT_IDS.LINEAR]: linearQuestionTemplates,
+  [UNIT_IDS.SIMULTANEOUS]: simultaneousQuestionTemplates,
+  [UNIT_IDS.QUADRATIC]: quadraticQuestionTemplates
+};
+
+const CATEGORIES_BY_UNIT = {
+  [UNIT_IDS.LINEAR]: LINEAR_CATEGORIES,
+  [UNIT_IDS.SIMULTANEOUS]: SIMULTANEOUS_CATEGORIES,
+  [UNIT_IDS.QUADRATIC]: QUADRATIC_CATEGORIES
+};
+
+const FALLBACK_QUESTIONS_BY_UNIT = {
+  [UNIT_IDS.LINEAR]: FALLBACK_QUESTIONS,
+  [UNIT_IDS.SIMULTANEOUS]: SIMULTANEOUS_FALLBACK_QUESTIONS,
+  [UNIT_IDS.QUADRATIC]: QUADRATIC_FALLBACK_QUESTIONS
+};
 
 /**
  * 単元に対応する問題テンプレート一覧を返す。
  * @param {string} unit
  */
 export function getTemplatesForUnit(unit) {
-  return unit === UNIT_IDS.SIMULTANEOUS
-    ? simultaneousQuestionTemplates
-    : linearQuestionTemplates;
+  return TEMPLATES_BY_UNIT[unit] || linearQuestionTemplates;
 }
 
 /**
@@ -547,11 +821,11 @@ export function getTemplatesForUnit(unit) {
  * @param {string} unit
  */
 export function getCategoriesForUnit(unit) {
-  return unit === UNIT_IDS.SIMULTANEOUS ? SIMULTANEOUS_CATEGORIES : LINEAR_CATEGORIES;
+  return CATEGORIES_BY_UNIT[unit] || LINEAR_CATEGORIES;
 }
 
 function getFallbackQuestionsForUnit(unit) {
-  return unit === UNIT_IDS.SIMULTANEOUS ? SIMULTANEOUS_FALLBACK_QUESTIONS : FALLBACK_QUESTIONS;
+  return FALLBACK_QUESTIONS_BY_UNIT[unit] || FALLBACK_QUESTIONS;
 }
 
 /**
@@ -587,9 +861,14 @@ function createFallbackQuestion(categoryId, unit) {
  * 含まれる数値を、重複なく抽出する。keypadNumbers未設定時のフォールバックとしてのみ使用する。
  */
 function extractNumbersFromEquation(question) {
-  const equationStrings = Array.isArray(question.canonicalEquations)
-    ? question.canonicalEquations.map((equation) => equation.internal)
-    : [question.canonicalEquation];
+  let equationStrings;
+  if (Array.isArray(question.canonicalEquations)) {
+    equationStrings = question.canonicalEquations.map((equation) => equation.internal);
+  } else if (question.canonicalEquation && typeof question.canonicalEquation === "object") {
+    equationStrings = [question.canonicalEquation.internal];
+  } else {
+    equationStrings = [question.canonicalEquation];
+  }
 
   const matches = equationStrings
     .join(" ")

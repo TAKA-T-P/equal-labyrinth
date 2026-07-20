@@ -1,9 +1,10 @@
 // 画面表示とDOM操作を担当するモジュール
 // ゲームルールや正誤判定はここに書かない。すべて game.js から渡された値を表示するだけ。
 
-import { APP_CONFIG, UNIT_CONFIG } from "./config.js";
+import { APP_CONFIG, UNIT_CONFIG, UNIT_IDS } from "./config.js";
 import { formatScore } from "./rank/score-manager.js";
 import { renderFormattedEquation } from "./equation/equation-formatter.js";
+import { renderQuadraticDiagram } from "./diagrams/quadratic-diagram-renderer.js";
 
 const elements = {
   screens: {
@@ -20,6 +21,7 @@ const elements = {
   modeDescription: document.getElementById("mode-description"),
   unitLinearButton: document.getElementById("unit-linear"),
   unitSimultaneousButton: document.getElementById("unit-simultaneous"),
+  unitQuadraticButton: document.getElementById("unit-quadratic"),
   rankDifficultyGroup: document.getElementById("rank-difficulty-group"),
   difficultyNormalButton: document.getElementById("difficulty-normal"),
   difficultyHardButton: document.getElementById("difficulty-hard"),
@@ -48,6 +50,11 @@ const elements = {
   rankScoreChange: document.getElementById("rank-score-change"),
   rankComboGaugeFill: document.getElementById("rank-combo-gauge-fill"),
   questionPrompt: document.getElementById("question-prompt"),
+  showDiagramButton: document.getElementById("show-diagram-button"),
+  diagramBackdrop: document.getElementById("quadratic-diagram-backdrop"),
+  diagramPanel: document.getElementById("quadratic-diagram-panel"),
+  diagramCloseButton: document.getElementById("quadratic-diagram-close-button"),
+  diagramContainer: document.getElementById("quadratic-diagram-container"),
   equationInputSingle: document.getElementById("equation-input-single"),
   equationInputScroll: document.getElementById("equation-input-scroll"),
   equationInputDisplay: document.getElementById("equation-input-display"),
@@ -143,6 +150,12 @@ function createEquationCharacterNode(token, index) {
   if (token && typeof token === "object" && token.type === "fraction") {
     return createFractionTokenNode(token, index);
   }
+  if (token && typeof token === "object" && token.type === "power") {
+    return createPowerTokenNode(token, index);
+  }
+  if (token && typeof token === "object" && token.type === "square") {
+    return createSquareTokenNode(index);
+  }
 
   const wrapper = document.createElement("span");
   wrapper.className = "equation-token";
@@ -152,11 +165,127 @@ function createEquationCharacterNode(token, index) {
 }
 
 /**
+ * x²（{type:"power", base:"x", exponent:2}）を、上付き文字のspanとして組み立てる
+ * （equation-tokenクラス・dataset.tokenIndexは付けない、内部部品用のビルダー）。
+ */
+function buildPowerNode(token) {
+  const node = document.createElement("span");
+  node.className = "math-power";
+  node.setAttribute("aria-label", "xの二乗");
+
+  const base = document.createElement("span");
+  base.className = "var-x";
+  base.textContent = token.base;
+
+  const exponent = document.createElement("sup");
+  exponent.textContent = String(token.exponent);
+
+  node.appendChild(base);
+  node.appendChild(exponent);
+  return node;
+}
+
+/**
+ * x²トークン（2次方程式専用）を、入力欄の1つのまとまり（equation-token）として描画する。
+ * 分数と同様、「1つ消す」でxと2がまとめて削除され、カーソルは内部へ入らない。
+ */
+function createPowerTokenNode(token, index) {
+  const wrapper = document.createElement("span");
+  wrapper.className = "equation-token math-power";
+  wrapper.dataset.tokenIndex = String(index);
+  wrapper.setAttribute("aria-label", "xの二乗");
+
+  const base = document.createElement("span");
+  base.className = "var-x";
+  base.textContent = token.base;
+
+  const exponent = document.createElement("sup");
+  exponent.textContent = String(token.exponent);
+
+  wrapper.appendChild(base);
+  wrapper.appendChild(exponent);
+  return wrapper;
+}
+
+/**
+ * 「かっこの中身を2乗する」記号（{type:"square"}）を、上付き文字の"2"のspanとして
+ * 組み立てる（equation-tokenクラス・dataset.tokenIndexは付けない、内部部品用のビルダー）。
+ * 直前の"(...)"の直後に置かれる前提の後置演算子のため、底（base）は持たない。
+ */
+function buildSquareSuffixNode() {
+  const node = document.createElement("span");
+  node.className = "math-power";
+  node.setAttribute("aria-label", "2乗");
+
+  const exponent = document.createElement("sup");
+  exponent.textContent = "2";
+
+  node.appendChild(exponent);
+  return node;
+}
+
+/**
+ * 「□²」トークン（2次方程式専用）を、入力欄の1つのまとまり（equation-token）として描画する。
+ * x²と同様、「1つ消す」でこのトークンだけがまとめて削除される
+ * （直前の"(...)"自体は削除されず、通常どおり編集できる）。
+ */
+function createSquareTokenNode(index) {
+  const wrapper = document.createElement("span");
+  wrapper.className = "equation-token math-power";
+  wrapper.dataset.tokenIndex = String(index);
+  wrapper.setAttribute("aria-label", "2乗");
+
+  const exponent = document.createElement("sup");
+  exponent.textContent = "2";
+
+  wrapper.appendChild(exponent);
+  return wrapper;
+}
+
+/**
+ * 分数の分子・分母（文字列トークン、x²トークン、□²トークンが混在しうる配列）を、
+ * containerへ描画する。文字列トークンは"x"だけ斜体で、x²・□²トークンは上付きで表示する。
+ * ここで作るx²・□²はequation-tokenクラスを持たない（タップ位置判定の対象は
+ * 分数トークン自体であり、分子・分母の内部トークンではないため）。
+ */
+function appendMixedFractionPartTokens(container, tokens) {
+  tokens.forEach((token) => {
+    if (token && typeof token === "object" && token.type === "power") {
+      container.appendChild(buildPowerNode(token));
+      return;
+    }
+    if (token && typeof token === "object" && token.type === "square") {
+      container.appendChild(buildSquareSuffixNode());
+      return;
+    }
+    appendStyledVariableParts(container, token);
+  });
+}
+
+/**
  * 分数トークン（{type:"fraction", numeratorTokens, denominatorTokens, isComplete}）を、
  * 上下型のDOM（分子・分数線・分母）として描画する。完成した分数は1つのトークンとして
  * 扱うため（カーソルは内部へ入らない）、equation-tokenクラスとdata-token-indexを持たせる。
  * 分母が未入力の間は、破線の空欄プレースホルダーを表示する。
  */
+/**
+ * 分子・分母のトークン配列を、aria-label用の平易な文字列へ変換する
+ * （x²トークンは"x^2"として読み上げ用文字列に含める）。
+ */
+function fractionPartToPlainText(tokens) {
+  return tokens
+    .map((token) => {
+      if (token && typeof token === "object" && token.type === "power") {
+        return `${token.base}^${token.exponent}`;
+      }
+      if (token && typeof token === "object" && token.type === "square") {
+        return "^2";
+      }
+      return token;
+    })
+    .join("");
+}
+
 function createFractionTokenNode(token, index) {
   const wrapper = document.createElement("span");
   wrapper.className = token.isComplete
@@ -164,11 +293,9 @@ function createFractionTokenNode(token, index) {
     : "equation-token math-fraction math-fraction--pending";
   wrapper.dataset.tokenIndex = String(index);
 
-  const numeratorText = token.numeratorTokens.join("");
-
   const numerator = document.createElement("span");
   numerator.className = "math-fraction__numerator";
-  appendStyledVariableParts(numerator, numeratorText);
+  appendMixedFractionPartTokens(numerator, token.numeratorTokens);
 
   const bar = document.createElement("span");
   bar.className = "math-fraction__bar";
@@ -176,7 +303,7 @@ function createFractionTokenNode(token, index) {
   const denominator = document.createElement("span");
   denominator.className = "math-fraction__denominator";
   if (token.isComplete) {
-    appendStyledVariableParts(denominator, token.denominatorTokens.join(""));
+    appendMixedFractionPartTokens(denominator, token.denominatorTokens);
   } else {
     const placeholder = document.createElement("span");
     placeholder.className = "math-fraction__placeholder";
@@ -190,7 +317,7 @@ function createFractionTokenNode(token, index) {
   wrapper.setAttribute(
     "aria-label",
     token.isComplete
-      ? `${token.denominatorTokens.join("")}分の${numeratorText}`
+      ? `${fractionPartToPlainText(token.denominatorTokens)}分の${fractionPartToPlainText(token.numeratorTokens)}`
       : "分母が未入力の分数"
   );
 
@@ -335,14 +462,21 @@ export function renderDifficultySelection(difficulty) {
 }
 
 /**
- * 単元選択（1次方程式／連立方程式）の見た目を切り替える。
+ * 単元選択（1次方程式／連立方程式／2次方程式）の見た目を切り替える。
  */
 export function renderUnitSelection(unit) {
-  const isLinear = unit === "linear";
-  elements.unitLinearButton.classList.toggle("is-selected", isLinear);
-  elements.unitLinearButton.setAttribute("aria-pressed", String(isLinear));
-  elements.unitSimultaneousButton.classList.toggle("is-selected", !isLinear);
-  elements.unitSimultaneousButton.setAttribute("aria-pressed", String(!isLinear));
+  const buttonsByUnit = {
+    [UNIT_IDS.LINEAR]: elements.unitLinearButton,
+    [UNIT_IDS.SIMULTANEOUS]: elements.unitSimultaneousButton,
+    [UNIT_IDS.QUADRATIC]: elements.unitQuadraticButton
+  };
+
+  Object.entries(buttonsByUnit).forEach(([buttonUnit, button]) => {
+    if (!button) return;
+    const isSelected = buttonUnit === unit;
+    button.classList.toggle("is-selected", isSelected);
+    button.setAttribute("aria-pressed", String(isSelected));
+  });
 }
 
 // ============================================================
@@ -369,6 +503,33 @@ export function renderQuestionProgress(currentIndex, totalQuestions) {
 export function renderQuestionPrompt(prompt) {
   renderTextWithStyledVariable(elements.questionPrompt, prompt);
   elements.questionPrompt.scrollTop = 0;
+}
+
+/**
+ * 2次方程式の図形問題（十字路・ふたのない箱・動点）の図を準備する。
+ * 図はこの時点では表示しない。「図を表示」ボタンを押すまでは前面カードを開かず、
+ * diagramがnull、または描画に失敗した問題（quadratic-diagram-renderer.js側の責務）では
+ * 「図を表示」ボタン自体を表示しない。
+ */
+export function renderDiagram(diagram) {
+  if (!elements.diagramContainer) return;
+  renderQuadraticDiagram(elements.diagramContainer, diagram);
+
+  const renderedSuccessfully = Boolean(diagram) && !elements.diagramContainer.hidden;
+  if (elements.showDiagramButton) {
+    elements.showDiagramButton.hidden = !renderedSuccessfully;
+  }
+  hideDiagramPanel();
+}
+
+export function showDiagramPanel() {
+  elements.diagramPanel.hidden = false;
+  elements.diagramBackdrop.hidden = false;
+}
+
+export function hideDiagramPanel() {
+  elements.diagramPanel.hidden = true;
+  elements.diagramBackdrop.hidden = true;
 }
 
 /**
@@ -632,8 +793,8 @@ export function clearJudgeMessage() {
 // 数式キーボード（問題ごとの数値・記号キー）
 // ============================================================
 
-// 記号キーの統一表示順（将来のy・x²も見据えた順序。今回はx²は表示しない）
-const SYMBOL_ORDER = ["x", "y", "x²", "+", "-", "×", "fraction", "(", ")", "="];
+// 記号キーの統一表示順
+const SYMBOL_ORDER = ["x", "y", "x²", "square", "+", "-", "×", "fraction", "(", ")", "="];
 
 // キーボード上の表示文字（内部の入力値は問題データの表記をそのまま使う）
 const SYMBOL_DISPLAY = {
@@ -727,6 +888,46 @@ function createFractionKeyButton() {
   return button;
 }
 
+/**
+ * x²ボタン（2次方程式専用、上付き文字の見た目のキー）を作る。
+ * data-inputValueは持たせず、data-action="insert-power"で識別する
+ * （文字列ではなく{type:"power",...}オブジェクトを1つのトークンとして挿入するため、
+ * 分数ボタンと同じ仕組みにしている）。
+ */
+function createPowerKeyButton() {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "key-button key-button--symbol key-variable key-button--power";
+  button.dataset.action = "insert-power";
+  button.setAttribute("aria-label", "xの2乗を入力");
+  button.appendChild(buildPowerNode({ base: "x", exponent: 2 }));
+  return button;
+}
+
+/**
+ * 「□²」ボタン（2次方程式専用、かっこの中身をまとめて2乗するキー）を作る。
+ * data-inputValueは持たせず、data-action="insert-square"で識別する
+ * （文字列ではなく{type:"square"}オブジェクトを1つのトークンとして挿入するため、
+ * x²ボタン・分数ボタンと同じ仕組みにしている）。直前の"(...)"の直後に押すことを想定する
+ * （例："(x-8)" の直後に押すと "(x-8)²" になる）。
+ */
+function createSquareKeyButton() {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "key-button key-button--symbol key-variable key-button--power";
+  button.dataset.action = "insert-square";
+  button.setAttribute("aria-label", "かっこの中身の2乗を入力");
+
+  const label = document.createElement("span");
+  label.textContent = "□";
+  const exponent = document.createElement("sup");
+  exponent.textContent = "2";
+
+  button.appendChild(label);
+  button.appendChild(exponent);
+  return button;
+}
+
 function renderSymbolKeys(symbols) {
   elements.keypadSymbols.innerHTML = "";
   symbols.forEach((symbol) => {
@@ -734,9 +935,17 @@ function renderSymbolKeys(symbols) {
       elements.keypadSymbols.appendChild(createFractionKeyButton());
       return;
     }
+    if (symbol === "x²") {
+      elements.keypadSymbols.appendChild(createPowerKeyButton());
+      return;
+    }
+    if (symbol === "square") {
+      elements.keypadSymbols.appendChild(createSquareKeyButton());
+      return;
+    }
     const displayValue = SYMBOL_DISPLAY[symbol] || symbol;
     const variantClass =
-      symbol === "x" || symbol === "y" || symbol === "x²"
+      symbol === "x" || symbol === "y"
         ? "key-button--symbol key-variable"
         : "key-button--symbol key-op";
     elements.keypadSymbols.appendChild(
@@ -846,6 +1055,7 @@ export function resetGameScreenPanels() {
   hideHintPanel();
   hidePassConfirm();
   hideAnswerReveal();
+  hideDiagramPanel();
   clearJudgeMessage();
   clearInputGuidance();
   clearHintKeypadParts();
@@ -1133,6 +1343,12 @@ export function initUI(callbacks) {
     callbacks.onUnitSelect("simultaneous");
   });
 
+  if (elements.unitQuadraticButton) {
+    elements.unitQuadraticButton.addEventListener("click", () => {
+      callbacks.onUnitSelect("quadratic");
+    });
+  }
+
   elements.difficultyNormalButton.addEventListener("click", () => {
     callbacks.onDifficultySelect("NORMAL");
   });
@@ -1226,6 +1442,12 @@ export function initUI(callbacks) {
       case "create-fraction":
         callbacks.onCreateFraction();
         break;
+      case "insert-power":
+        callbacks.onInsertPower();
+        break;
+      case "insert-square":
+        callbacks.onInsertSquare();
+        break;
       default:
         break;
     }
@@ -1260,6 +1482,23 @@ export function initUI(callbacks) {
   elements.hintBackdrop.addEventListener("click", () => {
     hideHintPanel();
   });
+
+  if (elements.showDiagramButton) {
+    elements.showDiagramButton.addEventListener("click", () => {
+      showDiagramPanel();
+    });
+  }
+  if (elements.diagramCloseButton) {
+    elements.diagramCloseButton.addEventListener("click", () => {
+      hideDiagramPanel();
+    });
+  }
+  // 図カード以外の場所をタップ・クリックすると、図カードを閉じる
+  if (elements.diagramBackdrop) {
+    elements.diagramBackdrop.addEventListener("click", () => {
+      hideDiagramPanel();
+    });
+  }
 
   document.addEventListener("pointerdown", (event) => {
     if (elements.hintPanel.hidden) {

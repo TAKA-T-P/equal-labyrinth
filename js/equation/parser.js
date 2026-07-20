@@ -12,6 +12,7 @@ import { TokenType, EquationError } from "./tokenizer.js";
 export const NodeType = {
   NUMBER: "NUMBER",
   VARIABLE: "VARIABLE",
+  POWER: "POWER",
   BINARY_OP: "BINARY_OP",
   UNARY_MINUS: "UNARY_MINUS"
 };
@@ -108,12 +109,28 @@ function parsePrimary(cursor) {
     return { type: NodeType.VARIABLE, name: token.name };
   }
 
+  if (token.type === TokenType.POWER) {
+    return {
+      type: NodeType.POWER,
+      base: { type: NodeType.VARIABLE, name: token.base },
+      exponent: token.exponent
+    };
+  }
+
   if (token.type === TokenType.LPAREN) {
     const inner = parseExpressionInternal(cursor);
     if (cursor.isAtEnd() || cursor.peek().type !== TokenType.RPAREN) {
       throw new EquationError("かっこの対応が取れていません。");
     }
     cursor.advance();
+
+    // "(...)²"（SQUAREトークン）は、かっこの中身をまとめて2乗するPOWERノードにする
+    // （x²のPOWERノードと異なり、baseは変数1つではなく任意の式ASTになる）。
+    if (!cursor.isAtEnd() && cursor.peek().type === TokenType.SQUARE) {
+      cursor.advance();
+      return { type: NodeType.POWER, base: inner, exponent: 2 };
+    }
+
     return inner;
   }
 

@@ -27,21 +27,30 @@ export const UNIT_IDS = {
   QUADRATIC: "quadratic"
 };
 
-// 単元ごとの表示名・段位計算とコンボゲージの基準時間（timeB、秒）
+// 入力欄の種類（1本の式 or 連立の2本）
+export const INPUT_MODES = {
+  SINGLE: "single",
+  SYSTEM: "system"
+};
+
+// 単元ごとの表示名・段位計算とコンボゲージの基準時間（timeB、秒）・入力欄の種類
 export const UNIT_CONFIG = {
   [UNIT_IDS.LINEAR]: {
     displayName: "1次方程式",
-    baseTimeSeconds: 12
+    baseTimeSeconds: 12,
+    inputMode: INPUT_MODES.SINGLE
   },
   [UNIT_IDS.SIMULTANEOUS]: {
     displayName: "連立方程式",
-    baseTimeSeconds: 20
+    baseTimeSeconds: 20,
+    inputMode: INPUT_MODES.SYSTEM
   },
   [UNIT_IDS.QUADRATIC]: {
     displayName: "2次方程式",
-    baseTimeSeconds: 14
+    baseTimeSeconds: 14,
+    inputMode: INPUT_MODES.SINGLE
   }
 };
 
-// 今回選択可能な単元（2次方程式は準備中のまま）
-export const SELECTABLE_UNIT_IDS = [UNIT_IDS.LINEAR, UNIT_IDS.SIMULTANEOUS];
+// 今回選択可能な単元
+export const SELECTABLE_UNIT_IDS = [UNIT_IDS.LINEAR, UNIT_IDS.SIMULTANEOUS, UNIT_IDS.QUADRATIC];

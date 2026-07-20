@@ -8,7 +8,7 @@ const CATEGORY_ID = "L2-04";
 const CATEGORY_NAME = "2けたの自然数";
 const UNIT = "simultaneous";
 
-const KEYPAD_SYMBOLS = ["x", "y", "+", "="];
+const KEYPAD_SYMBOLS = ["x", "y", "+", "-", "="];
 
 export const twoDigitNumberTemplates = [
   {
@@ -79,7 +79,7 @@ export const twoDigitNumberTemplates = [
       let y;
       do {
         x = randomInt(2, 9);
-        y = randomInt(0, x - 1);
+        y = randomInt(1, x - 1);
       } while (x === y);
 
       const digitSum = x + y;

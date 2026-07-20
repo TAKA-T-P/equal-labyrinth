@@ -241,16 +241,36 @@ export function serializeFractionToken(token) {
 }
 
 /**
- * 入力トークン列（文字列トークンと分数トークンが混在する配列）を、
- * 正誤判定用の1つの文字列へ変換する。
+ * x²（2次方程式専用）トークンを "x^2" へ変換する。
+ * 正誤判定用の数式パーサーには、この結果をそのまま渡す。
+ */
+export function serializePowerToken(token) {
+  return `${token.base}^${token.exponent}`;
+}
+
+/**
+ * 「かっこの中身を2乗する」トークン（"square"、2次方程式専用）を "^2" へ変換する。
+ * 直前に入力された "(...)" の直後に置かれることを前提とした後置演算子で、
+ * 正誤判定用の数式パーサー（tokenizer.jsのSQUAREトークン）がこれをそのまま解析する。
+ */
+export function serializeSquareToken() {
+  return "^2";
+}
+
+/**
+ * 入力トークン列（文字列トークン、分数トークン、x²トークン、
+ * かっこを2乗するsquareトークンが混在する配列）を、正誤判定用の1つの文字列へ変換する。
  */
 export function serializeInputTokens(tokens) {
   return tokens
-    .map((token) =>
-      typeof token === "object" && token !== null && token.type === "fraction"
-        ? serializeFractionToken(token)
-        : token
-    )
+    .map((token) => {
+      if (typeof token === "object" && token !== null) {
+        if (token.type === "fraction") return serializeFractionToken(token);
+        if (token.type === "power") return serializePowerToken(token);
+        if (token.type === "square") return serializeSquareToken();
+      }
+      return token;
+    })
     .join("");
 }
 

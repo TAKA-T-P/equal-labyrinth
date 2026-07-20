@@ -29,7 +29,11 @@ function readAtomTokens(tokens, index) {
     return { innerTokens: tokens.slice(index + 1, j), nextIndex: j + 1 };
   }
 
-  if (token.type === TokenType.NUMBER || token.type === TokenType.VARIABLE) {
+  if (
+    token.type === TokenType.NUMBER ||
+    token.type === TokenType.VARIABLE ||
+    token.type === TokenType.POWER
+  ) {
     return { innerTokens: [token], nextIndex: index + 1 };
   }
 
@@ -44,6 +48,39 @@ function appendVariableToken(container, token) {
 }
 
 /**
+ * x²（POWERトークン）を上付き文字としてDOMへ追加する。
+ * 「1つ消す」で丸ごと削除される1つのトークンとして扱う（xと2の間にカーソルは入らない）。
+ */
+function appendPowerToken(container) {
+  const span = document.createElement("span");
+  span.className = "math-power";
+  span.setAttribute("aria-label", "xの二乗");
+
+  const base = document.createElement("span");
+  base.className = "var-x";
+  base.textContent = "x";
+
+  const exponent = document.createElement("sup");
+  exponent.textContent = "2";
+
+  span.appendChild(base);
+  span.appendChild(exponent);
+  container.appendChild(span);
+}
+
+/**
+ * 「かっこの中身を2乗する」記号（SQUAREトークン）を上付き文字の"2"としてDOMへ追加する。
+ * 直前の"(...)"はすでにappendPlainTokenのRPAREN分岐で描画済みのため、ここでは
+ * 上付きの"2"だけを追加する（例："(x−8)"の直後に呼ばれ、"(x−8)²"になる）。
+ */
+function appendSquareSuffix(container) {
+  const exponent = document.createElement("sup");
+  exponent.textContent = "2";
+  exponent.setAttribute("aria-label", "2乗");
+  container.appendChild(exponent);
+}
+
+/**
  * 分数ではない、通常のトークン1つをDOMへ追加する。
  */
 function appendPlainToken(container, token) {
@@ -53,6 +90,12 @@ function appendPlainToken(container, token) {
       break;
     case TokenType.VARIABLE:
       appendVariableToken(container, token);
+      break;
+    case TokenType.POWER:
+      appendPowerToken(container);
+      break;
+    case TokenType.SQUARE:
+      appendSquareSuffix(container);
       break;
     case TokenType.PLUS:
       container.appendChild(document.createTextNode("＋"));
@@ -182,6 +225,12 @@ export function formatEquationForDisplay(equationString) {
         }
         if (token.type === TokenType.VARIABLE) {
           return token.name || "x";
+        }
+        if (token.type === TokenType.POWER) {
+          return "x^2";
+        }
+        if (token.type === TokenType.SQUARE) {
+          return "^2";
         }
         return DISPLAY_SYMBOLS[token.type] || "";
       })

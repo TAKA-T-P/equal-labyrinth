@@ -54,8 +54,8 @@
         <button type="button" class="choice-button" id="unit-simultaneous" data-unit="simultaneous" aria-pressed="false">
           連立方程式
         </button>
-        <button type="button" class="choice-button is-disabled" id="unit-quadratic" disabled aria-disabled="true">
-          2次方程式<span class="badge-wip">準備中</span>
+        <button type="button" class="choice-button" id="unit-quadratic" data-unit="quadratic" aria-pressed="false">
+          2次方程式
         </button>
       </div>
 
@@ -142,6 +142,7 @@
       <div class="game-main">
         <div class="prompt-card">
           <p id="question-prompt" class="question-prompt">問題文がここに表示されます。</p>
+          <button type="button" id="show-diagram-button" class="show-diagram-button" hidden>図を表示</button>
         </div>
 
         <div class="equation-input-card" id="equation-input-single">
@@ -191,6 +192,12 @@
       <div id="hint-panel" class="hint-panel" hidden role="dialog" aria-label="ヒント">
         <p class="hint-panel-title">ヒント</p>
         <p id="hint-text" class="hint-panel-text"></p>
+      </div>
+
+      <div id="quadratic-diagram-backdrop" class="hint-backdrop" hidden></div>
+      <div id="quadratic-diagram-panel" class="hint-panel quadratic-diagram-panel" hidden role="dialog" aria-label="図">
+        <div id="quadratic-diagram-container" class="quadratic-diagram-container"></div>
+        <button type="button" id="quadratic-diagram-close-button" class="secondary-button quadratic-diagram-close-button">閉じる</button>
       </div>
 
       <div id="pass-confirm-backdrop" class="hint-backdrop" hidden></div>

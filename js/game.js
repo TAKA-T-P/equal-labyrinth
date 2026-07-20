@@ -38,8 +38,7 @@ import {
   validateSelectedCategories,
   getCategoriesForUnit
 } from "./questions/question-manager.js";
-import { validateEquation } from "./equation/equation-validator.js";
-import { validateSystemEquations } from "./equation/system-equation-validator.js";
+import { validateCurrentAnswer } from "./equation/answer-validator.js";
 import { tokenize, TokenType } from "./equation/tokenizer.js";
 import * as rankMode from "./modes/rank-mode.js";
 
@@ -88,9 +87,13 @@ function isInputStructurallyValid(inputString, requiredVariableNames = ["x"]) {
     return false;
   }
 
+  // x²（POWERトークン）はxを含む1つの塊なので、「xが含まれている」の判定にも数える
+  // （例：「x²＝144」のように、バラのxを含まない入力でも解答ボタンを有効にできるようにする）
   const hasAllRequiredVariables = requiredVariableNames.every((variableName) =>
     tokens.some(
-      (token) => token.type === TokenType.VARIABLE && token.name === variableName
+      (token) =>
+        (token.type === TokenType.VARIABLE && token.name === variableName) ||
+        (token.type === TokenType.POWER && token.base === variableName)
     )
   );
   if (!hasAllRequiredVariables) {
@@ -182,6 +185,8 @@ export function initGame() {
     onKeyPress: handleKeyPress,
     onHintPartPress: handleHintPartPress,
     onCreateFraction: handleCreateFraction,
+    onInsertPower: handleInsertPower,
+    onInsertSquare: handleInsertSquare,
     onHintFractionPartPress: handleHintFractionPartPress,
     onCursorLeft: handleCursorLeft,
     onCursorRight: handleCursorRight,
@@ -390,6 +395,7 @@ function beginQuestion(index) {
   ui.showEquationInputMode(gameState.unit);
   ui.renderQuestionProgress(index + 1, gameState.totalQuestions);
   ui.renderQuestionPrompt(gameState.currentQuestion.prompt);
+  ui.renderDiagram(gameState.currentQuestion.diagram || null);
   refreshEquationDisplay();
   ui.renderEquationKeypad(gameState.currentQuestion);
   ui.setSubmitButtonEnabled(false);
@@ -450,6 +456,27 @@ function handleKeyPress(char, isNumberKey) {
 }
 
 /**
+ * x²ボタン（2次方程式専用）が押されたときの処理。x²は1つの塊（アトミックなトークン）
+ * として挿入し、「1つ消す」で丸ごと削除される（xと2の間にカーソルは入らない）。
+ * 分母入力待ち中は、他の記号キーと同様に受け付けない。
+ */
+function handleInsertPower() {
+  if (gameState.fractionInputState.isWaitingForDenominator) return;
+  insertValueAtCursor({ type: "power", base: "x", exponent: 2 });
+}
+
+/**
+ * 「□²」ボタン（2次方程式専用）が押されたときの処理。直前に入力した「(...)」の
+ * 中身をまとめて2乗する後置演算子を、1つの塊（アトミックなトークン）として挿入する
+ * （例："(x-8)" の直後に押すと "(x-8)²" になる）。「1つ消す」で丸ごと削除される。
+ * 分母入力待ち中は、他の記号キーと同様に受け付けない。
+ */
+function handleInsertSquare() {
+  if (gameState.fractionInputState.isWaitingForDenominator) return;
+  insertValueAtCursor({ type: "square" });
+}
+
+/**
  * ヒントで公開された式パーツ（(15-x)など）を、1つの塊として現在アクティブな
  * 入力欄のカーソル位置へ挿入する（連立方程式でも、式①・式②を自動判断しない）。
  */
@@ -496,10 +523,13 @@ function handleHintFractionPartPress(part) {
 /**
  * 分子として使えないトークンかどうかを判定する
  * （空・演算子・＝・かっこ・分数トークン自身は分子にできない）。
+ * x²トークン（2次方程式専用）は、x²/2のような分子として使えるようにする。
  */
 function isValidFractionNumerator(token) {
   if (token === undefined || token === null) return false;
-  if (typeof token === "object") return false; // 分数トークンを分子にはできない（今回は非対応）
+  if (typeof token === "object") {
+    return token.type === "power"; // 分数トークンを分子にはできないが、x²トークンは可
+  }
   return !["+", "−", "-", "×", "=", "(", ")"].includes(token);
 }
 
@@ -843,10 +873,11 @@ function handleSubmit() {
 function handleTrainingSubmit() {
   if (gameState.inputLocked) return;
 
-  const result =
+  const input =
     gameState.unit === UNIT_IDS.SIMULTANEOUS
-      ? validateSystemEquations(getCurrentSystemInputStrings(), gameState.currentQuestion)
-      : validateEquation(getCurrentInputString(), gameState.currentQuestion.expectedX);
+      ? getCurrentSystemInputStrings()
+      : getCurrentInputString();
+  const result = validateCurrentAnswer(gameState.unit, input, gameState.currentQuestion);
 
   if (result.status === "correct") {
     handleCorrectAnswer();
@@ -868,6 +899,9 @@ function getDisplayEquationForCurrentQuestion() {
     return gameState.currentQuestion.canonicalEquations.map(
       (equation) => equation.internal
     );
+  }
+  if (gameState.unit === UNIT_IDS.QUADRATIC) {
+    return gameState.currentQuestion.canonicalEquation.internal;
   }
   return gameState.currentQuestion.canonicalEquation;
 }
@@ -999,11 +1033,16 @@ function recordHistory(result, elapsedSeconds) {
     return;
   }
 
+  const modelEquation =
+    gameState.unit === UNIT_IDS.QUADRATIC
+      ? gameState.currentQuestion.canonicalEquation.internal
+      : gameState.currentQuestion.canonicalEquation;
+
   gameState.history.push({
     ...baseEntry,
     variableDefinition: gameState.currentQuestion.variableDefinition,
     lastInput: getCurrentInputString(),
-    modelEquation: gameState.currentQuestion.canonicalEquation
+    modelEquation
   });
 }
 

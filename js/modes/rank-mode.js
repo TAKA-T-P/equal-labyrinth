@@ -23,8 +23,7 @@ import * as timer from "../timer.js";
 import * as audio from "../audio.js";
 import * as storage from "../storage.js";
 import { getNextRankQuestion } from "../questions/question-manager.js";
-import { validateEquation } from "../equation/equation-validator.js";
-import { validateSystemEquations } from "../equation/system-equation-validator.js";
+import { validateCurrentAnswer } from "../equation/answer-validator.js";
 import {
   calculateCorrectPoints,
   calculateIncorrectPoints,
@@ -249,6 +248,7 @@ function beginRankQuestion() {
   ui.renderUnitLabel(gameState.unit);
   ui.showEquationInputMode(gameState.unit);
   ui.renderQuestionPrompt(question.prompt);
+  ui.renderDiagram(question.diagram || null);
   refreshRankEquationDisplay();
   ui.renderEquationKeypad(question);
   ui.setSubmitButtonEnabled(false);
@@ -298,6 +298,9 @@ function getDisplayEquationForCurrentQuestion() {
       (equation) => equation.internal
     );
   }
+  if (gameState.unit === UNIT_IDS.QUADRATIC) {
+    return gameState.currentQuestion.canonicalEquation.internal;
+  }
   return gameState.currentQuestion.canonicalEquation;
 }
 
@@ -308,10 +311,11 @@ function getDisplayEquationForCurrentQuestion() {
 export function handleSubmit() {
   if (gameState.inputLocked) return;
 
-  const result =
+  const input =
     gameState.unit === UNIT_IDS.SIMULTANEOUS
-      ? validateSystemEquations(getCurrentSystemInputStrings(), gameState.currentQuestion)
-      : validateEquation(getCurrentInputString(), gameState.currentQuestion.expectedX);
+      ? getCurrentSystemInputStrings()
+      : getCurrentInputString();
+  const result = validateCurrentAnswer(gameState.unit, input, gameState.currentQuestion);
 
   if (result.status === "correct") {
     handleCorrectAnswer();
@@ -453,11 +457,16 @@ function recordRankHistory(result, elapsedSeconds, extra) {
     return;
   }
 
+  const modelEquation =
+    gameState.unit === UNIT_IDS.QUADRATIC
+      ? gameState.currentQuestion.canonicalEquation.internal
+      : gameState.currentQuestion.canonicalEquation;
+
   gameState.history.push({
     ...baseEntry,
     variableDefinition: gameState.currentQuestion.variableDefinition,
     lastInput: getCurrentInputString(),
-    modelEquation: gameState.currentQuestion.canonicalEquation
+    modelEquation
   });
 }
 

@@ -3,10 +3,12 @@
 文章題を読んで、正しい方程式を立てよう！
 計算はしなくてOK。数量の関係を式にできれば迷宮の扉が開く！
 
-中学生向けの方程式文章題学習アプリです。第3段階として、中2「連立方程式」の
-全12カテゴリを追加しました。中1「1次方程式」全11カテゴリと、120秒でスコア・コンボ・
-段位を競う「段位認定モード」は第2段階から引き続き利用できます。分数（÷）を含む問題では、
-学校の答案と同じ上下型の分数（[分数入力](#分数入力)を参照）で入力・表示できます。
+中学生向けの方程式文章題学習アプリです。第4段階として、中3「2次方程式」の
+全9カテゴリを追加しました。中1「1次方程式」全11カテゴリ・中2「連立方程式」全12カテゴリと、
+120秒でスコア・コンボ・段位を競う「段位認定モード」は第2〜3段階から引き続き利用できます。
+分数（÷）を含む問題では、学校の答案と同じ上下型の分数（[分数入力](#分数入力)を参照）で
+入力・表示でき、2次方程式ではx²も上付き文字の1トークンとして入力・表示できます
+（[x²の入力](#x²の入力)を参照）。
 
 ©2026 T.TAKEMOTO / KEC Glows
 
@@ -45,20 +47,28 @@ equal-labyrinth/
 │   │   └─ rank-calculator.js      段位計算（基準時間は呼び出し側から指定）
 │   │
 │   ├─ equation/
-│   │   ├─ tokenizer.js                    文字列 → トークン列（x・yの2変数に対応）
-│   │   ├─ parser.js                       トークン列 → AST（再帰下降パーサー、変数名を保持）
+│   │   ├─ tokenizer.js                    文字列 → トークン列（x・yの2変数、x²のPOWERトークンに対応）
+│   │   ├─ parser.js                       トークン列 → AST（再帰下降パーサー、NodeType.POWERを含む）
 │   │   ├─ linear-expression.js            1次式の演算・AST → 1次式（中1、xのみ）
 │   │   ├─ two-variable-expression.js      2変数1次式の演算・AST → 2変数1次式（中2、x・y）
+│   │   ├─ quadratic-expression.js         2次式の演算・AST → 2次式（中3、x・x²。次数2超は入力エラー）
 │   │   ├─ equation-validator.js           1次方程式の正誤判定（中1）
 │   │   ├─ system-equation-validator.js    連立方程式の正誤判定（中2）
-│   │   └─ equation-formatter.js           内部表現の式文字列を、上下型分数を含む
+│   │   ├─ quadratic-equation-validator.js 2次方程式の正誤判定（中3）
+│   │   ├─ answer-validator.js             単元ごとの正誤判定モジュールへの振り分けを1か所に集約
+│   │   │                                  （validateCurrentAnswer(unit, input, question)）
+│   │   └─ equation-formatter.js           内部表現の式文字列を、上下型分数・x²の上付き表示を含む
 │   │                                      DOMへ変換（正解表示・履歴・入力欄で共通利用）
 │   │
+│   ├─ diagrams/
+│   │   └─ quadratic-diagram-renderer.js   2次方程式の図形問題（十字路・ふたのない箱・動点）を
+│   │                                      静的SVGとして描画（createElementNS()のみ、innerHTML不使用）
+│   │
 │   └─ questions/
-│       ├─ generation-helpers.js   問題生成の共通ヘルパー（中1・中2で共有）
+│       ├─ generation-helpers.js   問題生成の共通ヘルパー（中1・中2・中3で共有）
 │       ├─ question-manager.js     出題キューの管理・単元/難易度別出題（getTemplatesForUnit等）
 │       ├─ question-validator.js   生成問題の検証（単元でvalidateLinearQuestion／
-│       │                          validateSimultaneousQuestionへ振り分け）
+│       │                          validateSimultaneousQuestion／validateQuadraticQuestionへ振り分け）
 │       │
 │       ├─ linear/                 中1「1次方程式」（全11カテゴリ）
 │       │   ├─ index.js            中1の全テンプレートを統合
@@ -75,21 +85,35 @@ equal-labyrinth/
 │       │   ├─ two-products.js     2種類の品物と代金（NORMAL）
 │       │   └─ admission-fees.js   大人・子どもの人数と料金（NORMAL）
 │       │
-│       └─ simultaneous/           中2「連立方程式」（全12カテゴリ）
-│           ├─ index.js            中2の全テンプレートを統合
-│           ├─ categories.js       カテゴリ定義（難易度含む）・共通ヘルパーの再エクスポート
-│           ├─ two-products.js     2種類の品物と代金（NORMAL）
-│           ├─ admission-fees.js   人数と料金（NORMAL）
-│           ├─ coins.js            硬貨・紙幣（NORMAL）
-│           ├─ two-digit-number.js 2けたの自然数（HARD）
-│           ├─ ages.js             年齢（NORMAL）
-│           ├─ speed-distance.js   速さ・道のり（NORMAL）
-│           ├─ train-passage.js    電車の通過（HARD）
-│           ├─ circular-track.js   池・トラックの周回（HARD）
-│           ├─ mixture.js          食塩水の混合（NORMAL）
-│           ├─ population-change.js 割合の増減・人数（HARD）
-│           ├─ price-discount.js   割合の増減・代金（HARD）
-│           └─ averages.js         平均（HARD）
+│       ├─ simultaneous/           中2「連立方程式」（全12カテゴリ）
+│       │   ├─ index.js            中2の全テンプレートを統合
+│       │   ├─ categories.js       カテゴリ定義（難易度含む）・共通ヘルパーの再エクスポート
+│       │   ├─ two-products.js     2種類の品物と代金（NORMAL）
+│       │   ├─ admission-fees.js   人数と料金（NORMAL）
+│       │   ├─ coins.js            硬貨・紙幣（NORMAL）
+│       │   ├─ two-digit-number.js 2けたの自然数（HARD）
+│       │   ├─ ages.js             年齢（NORMAL）
+│       │   ├─ speed-distance.js   速さ・道のり（NORMAL）
+│       │   ├─ train-passage.js    電車の通過（HARD）
+│       │   ├─ circular-track.js   池・トラックの周回（HARD）
+│       │   ├─ mixture.js          食塩水の混合（NORMAL）
+│       │   ├─ population-change.js 割合の増減・人数（HARD）
+│       │   ├─ price-discount.js   割合の増減・代金（HARD）
+│       │   └─ averages.js         平均（HARD）
+│       │
+│       └─ quadratic/              中3「2次方程式」（全9カテゴリ、27テンプレート以上）
+│           ├─ index.js            中3の全テンプレートを統合
+│           ├─ categories.js       カテゴリ定義（難易度含む）・共通ヘルパーの再エクスポート・
+│           │                      computeQuadraticRoots()（テンプレート生成時の解の自動計算）
+│           ├─ consecutive-integers.js  連続する整数の積（NORMAL）
+│           ├─ number-square.js         数とその平方（NORMAL）
+│           ├─ rectangle-area.js        長方形の面積（NORMAL）
+│           ├─ area-change.js           面積の増減（NORMAL）
+│           ├─ cross-road.js            面積・十字路（NORMAL、図あり）
+│           ├─ open-box.js              容積・ふたのない箱（NORMAL、図あり）
+│           ├─ moving-points.js         動点（HARD、図あり）
+│           ├─ price-sales.js           価格と売上（HARD）
+│           └─ profit-discount.js       割合の応用・利益と割引（HARD、分数UIを使用）
 │
 └─ assets/
     └─ README.md          将来、画像・音声を追加する場所の説明
@@ -141,7 +165,7 @@ equal-labyrinth/
 ### 共通
 
 - タイトル・設定画面（モード／単元／問題数／カテゴリ／難易度／効果音）
-- 単元選択：中1「1次方程式」・中2「連立方程式」（中3「2次方程式」は引き続き準備中）
+- 単元選択：中1「1次方程式」・中2「連立方程式」・中3「2次方程式」
 - カウントダウン（3・2・1・START!）
 - 中1「1次方程式」全11カテゴリ（個数・代金／所持金・過不足／分配・過不足／
   長いす・過不足／年齢／整数／速さ・時間・道のり／追いつき・出会い／
@@ -149,13 +173,20 @@ equal-labyrinth/
 - 中2「連立方程式」全12カテゴリ（2種類の品物と代金／人数と料金／硬貨・紙幣／
   2けたの自然数／年齢／速さ・道のり／電車の通過／池・トラックの周回／食塩水の混合／
   割合の増減・人数／割合の増減・代金／平均）、合計36種類以上の問題テンプレート
+- 中3「2次方程式」全9カテゴリ（連続する整数の積／数とその平方／長方形の面積／
+  面積の増減／面積・十字路／容積・ふたのない箱／動点／価格と売上／割合の応用・利益と割引）、
+  合計27種類以上の問題テンプレート（詳細は「中3『2次方程式』」を参照）
 - 問題のランダム出題（バッグ方式によるカテゴリの偏り防止、同一テンプレートの連続防止つき）
 - 問題ごとの経過時間計測（`performance.now()`ベース）
 - 数式専用キーボード（問題ごとの数値ボタン・記号ボタン・カーソル移動・消去。
   固定の0〜9キーは廃止し、詳細は「数式キーボードの仕様」を参照）
 - 1次方程式の正誤判定（構文解析による判定。文字列完全一致ではない）
 - 連立方程式の正誤判定（入力式と模範関係の同値判定。詳細は「連立方程式の正誤判定」を参照）
-- 連立方程式の2本入力欄（式①・式②、タップまたは「式切替」ボタンで切り替え）
+- 2次方程式の正誤判定（標準形どうしの係数比例判定。詳細は「2次方程式の正誤判定」を参照）
+- 連立方程式の2本入力欄（式①・式②、タップまたは「式切替」ボタンで切り替え）。
+  2次方程式は1次方程式と同じ1本の入力欄を使う（`UNIT_CONFIG[unit].inputMode`で切り替え）
+- x²の入力・上付き表示（詳細は「x²の入力」を参照）
+- 2次方程式の図形問題（十字路・ふたのない箱・動点）の静的SVG図（詳細は「図形問題の図」を参照）
 - 正解・不正解演出（判定メッセージは前面カード表示で1秒後に自動的に消える）
 - ヒント表示（ヒント文とあわせて「式パーツ」をキーボードへ追加。詳細は「ヒント式パーツ」を参照）。
   トレーニングモードでは出題直後から、段位認定モードでは20秒後から使用できる
@@ -178,7 +209,8 @@ equal-labyrinth/
 
 ### 段位認定モード
 
-- 単元（1次方程式／連立方程式）とNORMAL・HARDの難易度選択（詳細は「段位認定モードの遊び方」を参照）
+- 単元（1次方程式／連立方程式／2次方程式）とNORMAL・HARDの難易度選択
+  （詳細は「段位認定モードの遊び方」を参照）
 - 120秒の全体制限時間、残り10秒以下の演出
 - 残り時間0秒後、最終問題に対する30秒の猶予期間と時間切れ処理
 - スコア計算・コンボ・コンボ継続ゲージ（詳細は各セクションを参照。基準時間は単元ごとに異なる）
@@ -188,10 +220,9 @@ equal-labyrinth/
 
 ## 実装していない機能
 
-- 中3「2次方程式」（画面上は「準備中」として表示し、操作不可）
-- x^2の入力
-- 図を使う問題・動点問題
-- 複雑な分数入力
+- 複数項をまとめて分子・分母にする分数の手入力（`(x+y)/2`など）
+- 動点問題のアニメーション表示（静止画の図で方向を示すのみ）
+- 3次以上の方程式
 - オンラインランキング・ユーザーアカウント・サーバーへの記録保存
 
 ---
@@ -200,20 +231,33 @@ equal-labyrinth/
 
 各ファイル冒頭のコメントに役割を記載しています。大枠は次の通りです。
 
-- **equation/** ：数式の解析・1次式／2変数1次式演算・正誤判定・表示変換。
-  ゲームや問題データに依存しない独立モジュール群。`linear-expression.js`（中1・xのみ）と
-  `two-variable-expression.js`（中2・x/y）は別モジュールとして分離し、`tokenizer.js`・`parser.js`は
-  両方で共有する（変数トークンが`name`（"x"または"y"）を保持する形にして対応した）。
+- **equation/** ：数式の解析・1次式／2変数1次式／2次式演算・正誤判定・表示変換。
+  ゲームや問題データに依存しない独立モジュール群。`linear-expression.js`（中1・xのみ）、
+  `two-variable-expression.js`（中2・x/y）、`quadratic-expression.js`（中3・x/x²）は
+  それぞれ別モジュールとして分離し、`tokenizer.js`・`parser.js`は3つ全てで共有する
+  （変数トークンが`name`（"x"または"y"）を、x²は専用の`POWER`トークン・ノードを持つ形にして対応した）。
+  `answer-validator.js`の`validateCurrentAnswer(unit, input, question)`が、
+  `validateEquation()` / `validateSystemEquations()` / `validateQuadraticEquation()`への
+  振り分けを1か所に集約し、`game.js` / `rank-mode.js`側にunitの分岐を散らばらせないようにしている。
+- **diagrams/quadratic-diagram-renderer.js** ：2次方程式の図形問題（十字路・ふたのない箱・動点）専用の
+  静的SVG描画。`createElementNS()`のみで組み立て、問題データを`innerHTML`へ流し込むことはしない。
+  図の中に答え・完成した式は表示しない。データが不正・描画に失敗した場合はコンソール警告を出して
+  図の領域を隠すだけにとどめ、アプリ全体は止めない。
 - **questions/** ：問題テンプレートの管理・出題キューの構築・生成問題の検証。
   単元による分岐は`question-manager.js`の`getTemplatesForUnit()` / `getCategoriesForUnit()`と、
   `question-validator.js`の`validateQuestion()`の数か所へ集中させている。
 - **state.js** ：ゲーム状態を一元管理し、専用関数を通してのみ変更する。連立方程式用に
   `currentSystemInputTokens`（式①・式②の入力欄）・`activeSystemEquationIndex`・
   `systemCursorPositions`を追加し、専用の操作関数（`insertCharacterAtSystemCursor()`等）を用意した。
+  `serializeInputTokens()`は、分数トークン（`type: "fraction"`）に加えてx²トークン
+  （`type: "power"`）も判定用の文字列（`x^2`）へ変換する。
 - **game.js** ：共通処理（画面遷移・数式入力・ヒント・カウントダウンなど）と、
   トレーニングモード専用の進行（固定問題数での出題・正誤処理・結果集計）を管理する。
-  段位認定モード開始時は`rank-mode.js`へ処理を委譲する。単元に応じて、1本入力（中1）と
-  2本入力（中2）の処理を切り替える。
+  段位認定モード開始時は`rank-mode.js`へ処理を委譲する。単元に応じて、1本入力（中1・中3）と
+  2本入力（中2）の処理を切り替える。x²トークンの挿入（`handleInsertPower()`）は、
+  分数トークンの挿入と同じ「1つのオブジェクトをカーソル位置へ挿入する」経路
+  （`insertValueAtCursor()`）を共有するため、カーソル移動・削除・分母入力待ちの制御など、
+  既存の単一入力の仕組みをほぼそのまま再利用している。
 - **modes/rank-mode.js** ：段位認定モード専用の進行（120秒タイマー・難易度別の無制限出題・
   スコア/コンボ反映・最終問題の猶予処理・段位計算・ハイスコア保存）を管理する。
   スコア・コンボの計算処理そのものは持たず、`rank/`配下の純粋関数を呼び出す。
@@ -322,6 +366,185 @@ alternateEquations: [
 
 ---
 
+## 中3「2次方程式」
+
+第4段階で追加した中3「2次方程式」は、既存の中1「1次方程式」・中2「連立方程式」の実装（数式解析の
+共通部分・token単位の入力・ヒント・パス・段位認定の仕組みなど）を変更せず、
+**x²の入力・2次式の演算・2次方程式専用の正誤判定・図形問題のSVG描画**を新しいモジュールとして
+追加する形で実装した。入力欄は1次方程式と同じ1本の入力欄を使う（連立方程式のような2本入力ではない）。
+
+### x²の入力
+
+- 数式キーボードに専用の「x²」ボタンを追加した（`ui.js`の`createPowerKeyButton()`）。
+  内部の入力トークンは`{ type: "power", base: "x", exponent: 2 }`という1つのオブジェクトで、
+  分数トークンと同様に「1つのまとまり」として扱われる。「1つ消す」を押すとx²全体が
+  1回で削除され、カーソルがxと2の間に入ることはない。
+- 数式文字列（`tokenizer.js`）のレベルでは、Unicode上付き2（`x²`）とキャレット表記（`x^2`）の
+  両方を、`POWER`という1つのトークンとして認識する。`x^3`や`x^^2`などの2乗以外の指数は
+  「2乗（x^2）以外のべき乗には対応していません。」という入力エラーになる。
+  `parser.js`は対応する`NodeType.POWER`のASTノードを生成する。
+- 画面上では、入力欄・正解表示・パス表示・履歴・ヒント式パーツのすべてで、x²は
+  `<span class="math-power"><span class="var-x">x</span><sup>2</sup></span>`という
+  上付き文字のDOMとして描画される（`equation-formatter.js`の`appendPlainToken()`・
+  `ui.js`の`buildPowerNode()`）。生の`x^2`という文字列が画面上に残ることはない
+  （コンソール・内部データでは`x^2`のままでよい）。
+- 上下型分数の分子・分母にx²を含めることもできる（例：`x²/2`）。分子・分母のトークン配列に
+  x²オブジェクトが混在する場合も、`ui.js`の`appendMixedFractionPartTokens()`が
+  文字列トークンとx²トークンを区別して描画する。
+
+### 「□²」の入力（かっこの中身をまとめて2乗する）
+
+`c(x−d)(x−d)=V`のように、同じかっこを2回掛け合わせる式は表記として不自然なため、
+数式キーボードに「□²」ボタンを追加し、`c(x−d)²=V`のようにかっこの中身をまとめて
+2乗する入力に対応した（全カテゴリ共通、`keypadSymbols`に`"square"`を含む問題で表示される）。
+
+- 「□²」ボタンは、直前に入力した「(...)」の直後で押すことを想定した後置演算子で、
+  内部の入力トークンは`{ type: "square" }`という1つのオブジェクト（x²トークンと同様、
+  分数トークンと同じ「1つのまとまり」方式）。「1つ消す」を押すとこの記号だけが1回で削除され、
+  直前の「(...)」自体は残る。
+- 数式文字列（`tokenizer.js`）のレベルでは、閉じかっこ`)`の直後にあるUnicode上付き2（`²`）と
+  キャレット表記（`^2`）の両方を、`SQUARE`という後置演算子トークンとして認識する
+  （x²専用の`POWER`トークンとは別物）。`(x+1)^3`のような2乗以外の指数は入力エラーになる。
+- `parser.js`は、`(...)`を解析した直後にSQUAREトークンがあれば、その中身全体を
+  `NodeType.POWER`のASTノード（`base`が単一の変数ではなく、かっこの中身の式全体になる）へ
+  ラップする。x²（底が変数xだけのPOWERノード）と同じASTノード形状を再利用しているため、
+  `quadratic-expression.js`の`astToQuadraticExpression()`のPOWERケースは、底の式を
+  いったん2次式へ変換してから2乗する（`squareQuadraticExpression()`）という共通ロジックで
+  両方を処理する。底がすでにx²を含む式（2次式）の場合は、2乗すると4次式になってしまうため
+  入力エラーにする。
+- 画面上では、x²と同様に上付き文字として描画される（`equation-formatter.js`・`ui.js`とも、
+  SQUAREトークン用の描画関数を追加している）。
+- 正誤判定は標準形どうしの比例判定でしかないため、`c(x−d)²=V`と`c(x−d)(x−d)=V`は
+  数学的に同じ式として扱われ、どちらを入力しても正解になる
+  （`容積・ふたのない箱`カテゴリの模範式・模範式表示は、第4段階の途中でこの新しい
+  `c(x−d)²=V`表記に統一した）。
+
+### 2次式の内部表現（`js/equation/quadratic-expression.js`）
+
+1次式（`linear-expression.js`の`{ xCoefficient, constant }`）・2変数1次式
+（`two-variable-expression.js`の`{ xCoefficient, yCoefficient, constant }`）と同じ設計思想で、
+2次式を`{ xSquaredCoefficient, xCoefficient, constant }`というプレーンオブジェクトで表す。
+
+```javascript
+// 2x²+5x-12 → { xSquaredCoefficient: 2, xCoefficient: 5, constant: -12 }
+```
+
+`astToQuadraticExpression(node)`がASTノード（`NUMBER` / `VARIABLE` / `POWER` / `UNARY_MINUS` /
+`BINARY_OP`）を再帰的にこの形へ変換する。加減算はそのまま、乗算は次数が2を超えないように制限する
+（`multiplyQuadraticExpressions()`）。
+
+- 許可：定数×2次式以下（`3(x-4)(x-4)`のような定数倍）、1次式×1次式（結果が2次式になる、
+  `x(x+1)`・`(x+2)(x-3)`など）
+- 入力エラー：2次式×1次式以上、つまり結果が3次以上になる組み合わせ（`x*x*x`・`x^2*x`・
+  `(x+1)(x+2)(x+3)`など）。連続する乗算はASTの左結合評価によって自然に検出される
+  （`x*x*x`は`(x*x)*x`と評価され、最初の`x*x`が2次式になった時点で、次の×xが
+  「2次式×1次式」となり自動的にエラーになる）
+
+除算（`divideQuadraticExpression()`）は、分母が0でない定数の場合のみ許可する
+（`x^2/2`・`(x^2+5x)/3`は許可、`x^2/x`・`x/(x+1)`・`3/x`・`x^2/0`は入力エラー）。
+上下型分数UIは、分母が単一の数値であれば従来どおり動作する。
+
+### 2次方程式の正誤判定（`js/equation/quadratic-equation-validator.js`）
+
+連立方程式と同じ考え方で、**解の値が合っているだけでは正解にしない**。例えば模範式
+`x(x+1)=156`（連続する2整数の積）に対して、`x(x-12)=0`はx=12という正しい解を含むが、
+別の（無関係な）数量関係を表す式のため不正解にする。
+
+1. 入力式・模範式（`canonicalEquation.internal`）の両方を、左辺－右辺で
+   `{ xSquaredCoefficient, xCoefficient, constant }`の標準形へ変換する
+   （`parseEquationToQuadraticStandardForm()`）
+2. 標準形のx²の係数が0（＝1次式・定数式・恒等式に退化した式）は、常に不正解にする
+   （`x=12`・`2x=24`・`156=156`・`x²+x=x²+x`はすべてここで不正解になる）
+3. `areProportionalQuadraticEquations()`が、入力の係数`[a, b, c]`が模範式の係数`[A, B, C]`と
+   0でない定数倍の関係にあるかを判定する（係数比例判定、詳細は次項）
+4. 比例していれば、標準形を判別式で実際に解き（`solveQuadraticStandardForm()`）、
+   実数解を`roots`として返す
+
+```javascript
+// validateQuadraticEquation("x(x+1)=156", question) の返り値の例
+{
+  status: "correct",
+  message: "正解です",
+  standardForm: { xSquaredCoefficient: 1, xCoefficient: 1, constant: -156 },
+  roots: [-13, 12]
+}
+```
+
+`status`は`"correct"` / `"incorrect"` / `"input-error"`のいずれかで、複数の`=`・両辺の空・
+かっこの対応ミス・3次以上の乗算・変数での除算・0除算・2乗以外のべき乗などの構文エラーは
+`"input-error"`（不正解回数へ加算しない）、標準形どうしが比例しない場合は`"incorrect"`
+（不正解回数へ加算する）として区別する。
+
+### 係数比例判定
+
+`areProportionalQuadraticEquations(inputStandardForm, canonicalStandardForm, tolerance)`は、
+連立方程式の`areProportionalEquations()`と同じ「模範式の絶対値最大の係数を基準に倍率を求め、
+残りの係数も同じ倍率になっているか確認する」方式を、2変数（`[xCoefficient, yCoefficient, constant]`）
+ではなく3変数（`[xSquaredCoefficient, xCoefficient, constant]`）に拡張したもの。
+2次方程式では係数の値が大きくなりやすい（面積・売上金額など）ため、絶対誤差ではなく
+**相対誤差**を考慮した`nearlyEqual(a, b, tolerance)`（`scale = max(1, |a|, |b|); |a-b| <= tolerance*scale`）
+で比較する点が、連立方程式の判定（絶対誤差）との違い。
+
+### 全解と有効解の区別（`expectedRoots` / `validXValues`）
+
+2次方程式は解が2つ（まれに重解で1つ）になるが、文章題の答えとして意味を持つのは
+そのうち一部だけのことが多い。問題データでは、この2つを明確に分けて管理する。
+
+```javascript
+expectedRoots: [-13, 12],  // 標準形を実際に解いた、数学的にすべて正しい解
+validXValues: [12]         // 文章題の条件（正の整数など）を満たす、答えとして扱う解
+```
+
+- `expectedRoots`は、テンプレートの`generate()`が`canonicalEquation.internal`を
+  `computeQuadraticRoots()`（`questions/quadratic/categories.js`、内部で
+  `parseEquationToQuadraticStandardForm()` → `solveQuadraticStandardForm()`を呼ぶ）で
+  実際に解いて求める。手計算で導出した式を直接書かず、パーサー・ソルバーに解かせることで、
+  27個のテンプレートすべてで計算ミスのリスクを避けている。
+- 重解（判別式が0）の場合は`expectedRoots`に1回だけ登録する（例：動点カテゴリの
+  `x(8-x)=16` → `expectedRoots: [4]`。2回登録しない）。
+- `question-validator.js`の`validateQuadraticQuestion()`が、`expectedRoots`が実際に
+  `canonicalEquation`を解いた結果と一致すること、`validXValues`が空でなく`expectedRoots`の
+  部分集合であることを検証し、条件を満たさない問題は出題対象から除外する。
+
+### 図形問題の図（十字路・ふたのない箱・動点）
+
+`cross-road`（面積・十字路）・`open-box-net`（容積・ふたのない箱）・`moving-points-rectangle`（動点）
+の3カテゴリは、問題文だけでは状況を把握しにくいため、静的なSVG図を表示できる
+（`js/diagrams/quadratic-diagram-renderer.js`）。図は出題直後から常に表示するのではなく、
+生徒が問題文を読んでから任意のタイミングで確認できるよう、前面カードとして開閉する方式にしている。
+
+```javascript
+// question.diagram の例（cross-road）
+diagram: {
+  type: "cross-road",
+  widthValue: 12,
+  heightValue: 10,
+  pathWidthSymbol: "x",
+  ariaLabel: "縦10メートル、横12メートルの畑に、幅xメートルの十字型の道がある図"
+}
+```
+
+- 問題データには数値・記号などのプレーンなデータのみを保存し、生のHTML/SVG文字列は保存しない。
+  実際のSVG要素は`renderQuadraticDiagram(container, diagram)`が`document.createElementNS()`のみで
+  組み立てる。
+- 図を持つ問題では、問題文カードの右下に「図を表示」ボタン（`#show-diagram-button`）が表示される。
+  押すと、ヒントカード・パス確認カードと同じ仕組み（不透明な前面カード＋背景バックドロップ、
+  `ui.js`の`showDiagramPanel()` / `hideDiagramPanel()`）で図のカードが開く。
+- 図のカードは、カード内の「閉じる」ボタン（`#quadratic-diagram-close-button`）を押すか、
+  カードの外側（バックドロップ）をタップ・クリックすると閉じる。
+- `diagram`が`null`の問題（十字路・ふたのない箱・動点以外の6カテゴリ）、または`diagram`のデータが
+  不正で描画に失敗した問題では、「図を表示」ボタン自体を表示しない
+  （`ui.js`の`renderDiagram()`が、描画結果を見て`showDiagramButton.hidden`を切り替える）。
+- 図の中には、xの具体的な値・完成した方程式・答えを一切表示しない
+  （symbolや既知の数値だけを描画し、未知数はxの記号のまま示す）。
+- 問題が切り替わるたびに、図のカードは必ず閉じた状態から始まる
+  （`ui.js`の`resetGameScreenPanels()`が、ヒント・パス確認・正解表示のカードとあわせて
+  図のカードも閉じる）。
+- `diagram`のデータが不正、または描画中に例外が発生した場合も、コンソールへ警告を出すのみで、
+  問題の表示・入力・判定は通常どおり継続する（アプリを止めない）。
+
+---
+
 ## 数式キーボードの仕様
 
 数字を1桁ずつ入力する負担を減らすため、固定の`0`〜`9`・`.`キーは廃止し、
@@ -339,8 +562,9 @@ keypadSymbols: ["x", "+", "-", "(", ")", "="]  // その問題に必要な記号
   **模範方程式を組み立てるために必要な数値**を、問題文に登場する順に登録する。
 - 重複する数値は1つだけ登録すればよい（`ui.js`側でも重複を除去してから描画する）。
 - `keypadSymbols`に含まれる記号だけがキーボードに表示される。表示順は配列の記述順ではなく、
-  `ui.js`内の`SYMBOL_ORDER`（x → y → x² → + → − → × → fraction → ( → ) → =）という統一順に従う
-  （x²は今回まだ使用しない）。
+  `ui.js`内の`SYMBOL_ORDER`（x → y → x² → + → − → × → fraction → ( → ) → =）という統一順に従う。
+  `x²`は中3「2次方程式」専用で、押すと文字列ではなく`{type:"power",...}`オブジェクトが
+  1トークンとして挿入される（分数ボタンと同じ`data-action`方式。詳細は「x²の入力」を参照）。
 - 分数（割り算）を含む問題では、`÷`の代わりに`"fraction"`を`keypadSymbols`へ指定する。
   詳細は「分数入力」を参照。
 - 乗法記号を省略した式（`120x`など）を入力する問題では、`×`を`keypadSymbols`へ含める必要はない。
@@ -540,9 +764,9 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 
 ## 段位認定モードの遊び方
 
-タイトル画面で「段位認定」を選ぶと、問題数・カテゴリの代わりに単元（1次方程式／連立方程式）と
-難易度（NORMAL／HARD）の選択が表示される。スタートすると120秒のカウントダウンが始まり、
-時間が尽きるまで文章題に次々と解答する。正解数・解答時間・ミス・パスの回数から、
+タイトル画面で「段位認定」を選ぶと、問題数・カテゴリの代わりに単元（1次方程式／連立方程式／
+2次方程式）と難易度（NORMAL／HARD）の選択が表示される。スタートすると120秒のカウントダウンが
+始まり、時間が尽きるまで文章題に次々と解答する。正解数・解答時間・ミス・パスの回数から、
 「皆伝」〜「10級」までの段位が認定される。
 
 > 120秒以内に、できるだけ多くの方程式を立てよう！
@@ -550,11 +774,14 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 
 ヒント・パス・数式キーボードなど、基本的な操作方法はトレーニングモードと共通。
 連立方程式を選んだ場合は、式①・式②の2本を入力する（詳細は「連立方程式の入力画面」を参照）。
+2次方程式を選んだ場合は、1次方程式と同じ1本の入力欄にx²ボタンが加わる
+（詳細は「x²の入力」を参照）。
 
 ## NORMAL・HARDの違い
 
 中1「1次方程式」は`js/questions/linear/categories.js`の`LINEAR_CATEGORIES`、
-中2「連立方程式」は`js/questions/simultaneous/categories.js`の`SIMULTANEOUS_CATEGORIES`で、
+中2「連立方程式」は`js/questions/simultaneous/categories.js`の`SIMULTANEOUS_CATEGORIES`、
+中3「2次方程式」は`js/questions/quadratic/categories.js`の`QUADRATIC_CATEGORIES`で、
 カテゴリごとに`difficulty: "NORMAL"`または`"HARD"`を設定している。
 
 ### 中1「1次方程式」
@@ -570,6 +797,13 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 | --- | --- |
 | NORMAL | 2種類の品物と代金／人数と料金／硬貨・紙幣／年齢／速さ・道のり／食塩水の混合 |
 | HARD | 2けたの自然数／電車の通過／池・トラックの周回／割合の増減・人数／割合の増減・代金／平均 |
+
+### 中3「2次方程式」
+
+| 難易度 | 出題されるカテゴリ |
+| --- | --- |
+| NORMAL | 連続する整数の積／数とその平方／長方形の面積／面積の増減／面積・十字路／容積・ふたのない箱 |
+| HARD | 動点／価格と売上／割合の応用・利益と割引 |
 
 段位認定モードでは、選んだ単元・難易度に属するカテゴリだけから出題される
 （`question-manager.js`の`getNextRankQuestion(unit, difficulty, ...)`）。トレーニングモードでは、
@@ -598,7 +832,7 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 ## コンボ継続ゲージ計算
 
 単元ごとの基準時間`timeB`を`js/config.js`の`UNIT_CONFIG[unit].baseTimeSeconds`から取得し
-（1次方程式＝12秒、連立方程式＝20秒）、ゲージの基本継続時間を`timeB × 2`とする。
+（1次方程式＝12秒、連立方程式＝20秒、2次方程式＝14秒）、ゲージの基本継続時間を`timeB × 2`とする。
 現在のコンボ数を`n`とすると、ゲージの減少速度は`1 + 0.05n`倍になり、
 実際にゲージが空になるまでの時間は`(timeB × 2) ÷ (1 + 0.05n)`秒になる。
 この計算式自体は単元によらず共通で、`js/rank/combo-manager.js`の`createComboState(baseTimeSeconds)`が
@@ -625,6 +859,16 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 | 5 | 32.00秒 |
 | 10 | 約26.67秒 |
 
+### 2次方程式（基本継続時間28秒）
+
+| コンボ数 | ゲージ継続時間 |
+| ---: | ---: |
+| 1 | 約26.67秒 |
+| 2 | 約25.45秒 |
+| 3 | 約24.35秒 |
+| 5 | 22.40秒 |
+| 10 | 約18.67秒 |
+
 正解すると、次の問題が始まった時点でゲージが100％から動き出す（正解した瞬間ではない）。
 正解演出（約2秒）の間は全体タイマーとコンボゲージの両方を一時停止し、次の問題が表示された
 時点で再開することで、演出中に不当にゲージが減ることを防いでいる。
@@ -632,7 +876,8 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 ## 段位計算（`js/rank/rank-calculator.js`）
 
 正解した問題の解答時間の平均を`timeA`、基準時間`timeB`（`UNIT_CONFIG[unit].baseTimeSeconds`。
-1次方程式は12秒、連立方程式は20秒）として、次の式で基本段位係数を計算する（小数点以下切り上げ）。
+1次方程式は12秒、連立方程式は20秒、2次方程式は14秒）として、次の式で基本段位係数を計算する
+（小数点以下切り上げ）。
 
 ```javascript
 const baseCoefficient = Math.ceil(
@@ -667,6 +912,8 @@ equalLabyrinth.rank.linear.NORMAL
 equalLabyrinth.rank.linear.HARD
 equalLabyrinth.rank.simultaneous.NORMAL
 equalLabyrinth.rank.simultaneous.HARD
+equalLabyrinth.rank.quadratic.NORMAL
+equalLabyrinth.rank.quadratic.HARD
 ```
 
 ```javascript
@@ -729,22 +976,47 @@ console.log(result.displayRankName); // "皆伝"
 同様に`js/rank/combo-manager.js`（`createComboState(baseTimeSeconds)` → `registerCorrect()` /
 `tick()` / `registerPass()`）、`js/rank/score-manager.js`
 （`calculateCorrectPoints()` / `calculateIncorrectPoints()`）も、ブラウザなしで
-単体テストできる。連立方程式の基準時間（20秒）でコンボゲージを検証する場合は、
-`createComboState(20)`のように明示的に渡す（省略時は1次方程式の12秒がデフォルト）。
+単体テストできる。連立方程式の基準時間（20秒）・2次方程式の基準時間（14秒）でコンボゲージを
+検証する場合は、`createComboState(20)` / `createComboState(14)`のように明示的に渡す
+（省略時は1次方程式の12秒がデフォルト）。
 
 `js/equation/system-equation-validator.js`の`validateSystemEquations(inputStrings, question)`も
 DOM非依存の純粋関数のため、Node.js上で`canonicalEquations`と`expectedSolution`を持つ
 問題オブジェクトを直接渡してテストできる。
 
+### 2次方程式の正誤判定テスト方法
+
+`js/equation/quadratic-equation-validator.js`の`validateQuadraticEquation(inputString, question)`も
+同様にDOM非依存の純粋関数で、`question.canonicalEquation.internal`を持つオブジェクトを
+直接渡してNode.js上でテストできる。
+
+```javascript
+import { validateQuadraticEquation } from "./js/equation/quadratic-equation-validator.js";
+
+const question = { canonicalEquation: { internal: "x*(x+1)=156" } };
+
+validateQuadraticEquation("x(x+1)=156", question).status;        // "correct"
+validateQuadraticEquation("x(x-12)=0", question).status;         // "incorrect"（解は含むが無関係な式）
+validateQuadraticEquation("x^2*x=156", question).status;         // "input-error"（3次になる乗算）
+```
+
+`js/questions/quadratic/categories.js`の`computeQuadraticRoots(canonicalInternal)`を使うと、
+任意の2次方程式の内部表現文字列から実際の解を計算できる（テンプレートの`expectedRoots`の
+検算や、新しいテンプレート追加時の確認に使える）。
+
 ---
 
 ## 問題テンプレートの追加方法
 
-中1「1次方程式」（`js/questions/linear/`）・中2「連立方程式」（`js/questions/simultaneous/`）
-どちらも同じ手順で追加できる。以下は1次方程式を例にする（連立方程式の場合は
-`expectedX`→`expectedSolution: {x, y}`、`canonicalEquation`（文字列1本）→
-`canonicalEquations`（`{internal, display, relationName}`の配列2本）、
-`displayEquation`は使わない、という対応関係になる）。
+中1「1次方程式」（`js/questions/linear/`）・中2「連立方程式」（`js/questions/simultaneous/`）・
+中3「2次方程式」（`js/questions/quadratic/`）はいずれも同じ手順で追加できる。以下は
+1次方程式を例にする（連立方程式の場合は`expectedX`→`expectedSolution: {x, y}`、
+`canonicalEquation`（文字列1本）→`canonicalEquations`（`{internal, display, relationName}`の
+配列2本）、`displayEquation`は使わない、という対応関係になる。2次方程式の場合は
+`expectedX`→`expectedRoots`（解の配列）＋`validXValues`（文章題として有効な解の配列）、
+`canonicalEquation`（文字列1本）→`canonicalEquation`（`{internal, display, relationName}`の
+オブジェクト1本、フィールド名は同じだが型が異なる点に注意）、`variableDefinition`は
+1次方程式と同じ単数形の文字列、`diagram`（図形問題のみ）を追加する対応関係になる）。
 
 1. 対象カテゴリのJSファイルを開く（例：`js/questions/linear/price-basic.js`、
    連立方程式なら`js/questions/simultaneous/two-products.js`）
@@ -781,6 +1053,27 @@ DOM非依存の純粋関数のため、Node.js上で`canonicalEquations`と`expe
 12. ローカルサーバーでブラウザから起動し、実際に出題されることと、
     意図した数値ボタン・記号ボタン・ヒント式パーツだけが表示されることを確認する
 
+### 中3「2次方程式」テンプレート追加時の注意点
+
+2次方程式のテンプレート（`js/questions/quadratic/`）は、上記の共通手順に加えて次を守る。
+
+- **「いい整数の答え」を先に決めてから、問題文の数値を逆算する**（`canonicalEquation`の
+  係数をランダムに決めてから解くのではない）。整数解を優先し、無理数解は避ける
+  （詳細は「全解と有効解の区別」を参照）
+- `expectedRoots`・`validXValues`は手計算で書かず、`categories.js`の
+  `computeQuadraticRoots(canonicalInternal)`で実際に解いた結果を使う
+- 文章題の答えとして解が2つとも物理的に成立してしまう（＝答えが一意に定まらない）
+  組み合わせがないか確認する。特に「一方の辺を伸ばし、もう一方を縮める」ような
+  非対称な変化を扱うテンプレート（`area-change.js`の`L3-04-one-longer-one-shorter`、
+  `price-sales.js`の各テンプレートに実例がある）では、両方の解が有効範囲に入ってしまう
+  ケースが発生しうるため、生成後に有効範囲内の解が1つだけであることを確認し、
+  2つ以上ある場合はエラーを投げて再生成させるガードを入れる
+- `keypadSymbols`に`"x²"`を含める（模範式自体がx²を使わない場合でも、展開した標準形
+  （例：`x(x+1)=156`に対する`x²+x-156=0`）を入力できるようにするため）
+- 十字路・ふたのない箱・動点の3カテゴリでは、`diagram`データ（`type` /
+  `ariaLabel`などの必須フィールドは`question-validator.js`の`validateDiagram()`を参照）を設定する。
+  それ以外のカテゴリでは`diagram: null`にする
+
 ## 新しいカテゴリの追加方法
 
 ### 1次方程式
@@ -798,6 +1091,13 @@ DOM非依存の純粋関数のため、Node.js上で`canonicalEquations`と`expe
    `rankDifficulty`は、手順1で設定した`difficulty`と同じ値にする
 3. `js/questions/simultaneous/index.js`へ`import`を追加し、`simultaneousQuestionTemplates`へ展開する
 
+### 2次方程式
+
+1. `js/questions/quadratic/categories.js`の`QUADRATIC_CATEGORIES`へカテゴリ情報を追加する
+2. `js/questions/quadratic/`配下に新しい問題ファイルを作成する。各テンプレートの
+   `rankDifficulty`は、手順1で設定した`difficulty`と同じ値にする
+3. `js/questions/quadratic/index.js`へ`import`を追加し、`quadraticQuestionTemplates`へ展開する
+
 ### 共通
 
 - 設定画面のカテゴリ一覧は`categories.js`のデータ（`question-manager.js`の
@@ -808,7 +1108,8 @@ DOM非依存の純粋関数のため、Node.js上で`canonicalEquations`と`expe
 ## カテゴリ難易度の設定方法
 
 カテゴリの難易度は、単元ごとの`categories.js`1か所（`LINEAR_CATEGORIES`／
-`SIMULTANEOUS_CATEGORIES`の`difficulty`）でのみ管理し、各問題テンプレートの`rankDifficulty`は
+`SIMULTANEOUS_CATEGORIES`／`QUADRATIC_CATEGORIES`の`difficulty`）でのみ管理し、
+各問題テンプレートの`rankDifficulty`は
 それと一致させる。両者が食い違う場合、`question-validator.js`の`validateRankDifficulty()`が
 検証エラーとして出題対象から除外する（`question-manager.js`のフォールバック問題にも、
 同様に一致した`rankDifficulty`を設定している）。
@@ -861,8 +1162,7 @@ DOM非依存の純粋関数のため、Node.js上で`canonicalEquations`と`expe
 
 ### トレーニングモード（中2「連立方程式」・新規追加分）
 
-- タイトル画面で「連立方程式」を選択でき、「準備中」表示が消えていること
-  （「2次方程式」は引き続き「準備中」のまま選択できないこと）
+- タイトル画面で「連立方程式」を選択できること
 - 12カテゴリすべてが設定画面に表示され、選択・保存・復元できること
 - ゲーム画面で式①・式②の2つの入力欄が縦に並んで表示され、横並びにならないこと
   （幅320px〜1024px以上のいずれでも縦並びを維持すること）
@@ -916,31 +1216,83 @@ DOM非依存の純粋関数のため、Node.js上で`canonicalEquations`と`expe
 - 幅320px〜1024px以上のいずれでも、分数の分子・分母が欠けず、分数線が見え、
   横スクロールが発生しないこと
 
+### トレーニングモード（中3「2次方程式」・第4段階で追加）
+
+- タイトル画面で「2次方程式」を選択でき、9カテゴリすべてが設定画面に表示され、
+  選択・保存・復元できること
+- ゲーム画面で1次方程式と同じ1本の入力欄が使われ、連立方程式の2本入力欄は表示されないこと
+- 数式キーボードに「x²」ボタンが表示され、押すと上付き文字のx²が1つのトークンとして
+  カーソル位置へ挿入されること。「1つ消す」でx²全体が1回で削除されること（xと2が
+  別々に消えないこと）
+- x²を含む式が、入力欄・正解表示・パス表示・履歴のすべてで上付き文字として表示され、
+  生の`x^2`という文字列が画面に残らないこと
+- 数式キーボードに「□²」ボタンが、9カテゴリすべてで表示されること。「(」「x」「−」「4」「)」
+  「□²」の順に押すと「(x−4)²」が入力欄に上付き文字で表示され、「1つ消す」で「²」だけが
+  1回で削除され「(x−4)」が残ること
+- 容積・ふたのない箱（L3-06）で、模範式が`c(x−d)²＝V`という上付き表記で表示されること
+  （`c(x−d)(x−d)＝V`という展開形の表記には戻らないこと）
+- 容積・ふたのない箱で、`c(x-d)^2=V`・`c(x-d)²=V`・`c(x-d)(x-d)=V`のいずれの入力も正解になること
+  （比例判定は表記の違いに関わらず数学的に同値な式をすべて正解にするため）
+- 底がすでにx²を含む式の2乗（`(x^2+1)^2=4`など）や、2乗した式へのさらなる乗算
+  （`(x-8)^2*x=4`など）が入力エラーになること（不正解回数へ加算されないこと）
+- 次の入力が正解になること（`x(x+1)=156`が模範式の場合）：
+  `x(x+1)=156` `x²+x=156` `x²+x-156=0` `2x²+2x=312` `156=x(x+1)` `(x-12)(x+13)=0`
+- 次の入力が不正解になること（同じ模範式の場合）：
+  `x=12` `x²=144` `x(x-12)=0` `(x-12)(x+1)=0` `x²-12x=0` `x²+x=x²+x`
+  `x(x+1)=x²+x` `2x=24` `156=156`
+- 次の入力が入力エラーになり、不正解回数へ加算されないこと：
+  `x*x*x=156` `x²*x=156` `(x+1)(x+2)(x+3)=0` `x²/x=1` `x/(x+1)=1` `3/x=1`
+  `x²/0=1` `x^^2=4` `x^3=8`
+- 面積・十字路／容積・ふたのない箱／動点の3カテゴリで、問題文カードの右下に「図を表示」
+  ボタンが表示され、出題直後は図が表示されていないこと。ボタンを押すと、対応する静的SVG図
+  （十字路・展開図・長方形と2点の移動方向）が不透明な前面カードとして表示され、図の中に
+  答え・完成した式が表示されないこと
+- 図のカードの「閉じる」ボタン、またはカード外側（バックドロップ）のタップ・クリックで
+  図のカードが閉じること。次の問題に進むと、図のカードが必ず閉じた状態から始まること
+- それ以外の6カテゴリでは、「図を表示」ボタン自体が表示されないこと
+- 割合の応用・利益と割引（L3-09）で、上下型分数（`x/10`）を使った式が入力・判定できること
+  （既存の分数UIをそのまま利用していること）
+- 重解になる問題（動点カテゴリなど）で、正解表示・履歴の解が1回だけ表示されること
+- 分数・x²を使わない中1・中2の既存カテゴリが、これまでどおり動作すること（回帰確認）
+- 段位認定モードで「2次方程式」とNORMAL・HARDを選択でき、対応する難易度のカテゴリ
+  （NORMAL：連続する整数の積〜容積・ふたのない箱、HARD：動点〜割合の応用・利益と割引）
+  だけが出題されること
+- 幅320px〜430px（および768px以上）のいずれでも、x²の上付き文字が欠けず、図がはみ出さず、
+  横スクロールが発生しないこと（実機確認は`320px`・`375px`で実施、`768px`以上は
+  デスクトップ幅として目視確認）
+
 ### 段位認定モード（Node.jsでのロジック検証）
 
-- 中1・中2それぞれ全カテゴリ×3テンプレート以上（1次方程式33、連立方程式36）が、
-  それぞれ30回生成しても`question-validator.js`の検証（`rankDifficulty`の一致を含む）を
-  通過すること
+- 中1・中2・中3それぞれ全カテゴリ×3テンプレート以上（1次方程式33、連立方程式36、
+  2次方程式27）が、それぞれ30回生成しても`question-validator.js`の検証
+  （`rankDifficulty`の一致を含む）を通過すること
 - `getNextRankQuestion("linear", "NORMAL", ...)` / `("linear", "HARD", ...)` /
-  `("simultaneous", "NORMAL", ...)` / `("simultaneous", "HARD", ...)`が、それぞれ対応する
+  `("simultaneous", "NORMAL", ...)` / `("simultaneous", "HARD", ...)` /
+  `("quadratic", "NORMAL", ...)` / `("quadratic", "HARD", ...)`が、それぞれ対応する
   単元・難易度のカテゴリだけを返し、同じテンプレートを連続で返さないこと
 - `calculateRankResult()`が、仕様書の計算例3パターン（平均12秒・補正なし→皆伝／
   平均15秒・不正解2・パス1・正解6問→二段／HARD・正解2問→八段＋）と一致すること
 - `calculateRankResult({..., baseTime: 20})`が、連立方程式の仕様例（平均20秒・補正なし→皆伝）
   と一致すること
+- `calculateRankResult({..., baseTime: 14})`が、2次方程式の仕様例
+  （`√(14/14×400)−20=0`→皆伝）と一致すること
 - `calculateRankResult()`が、正解0問の場合に必ず係数20（10級）を返すこと、
   平均時間が極端に短い／長い場合でも係数が0〜20にクランプされること
 - `calculateCorrectPoints(n)`が`1000+100n`（1〜10コンボで1100〜2000点）と一致し、
   `calculateIncorrectPoints()`が`-300`を、`calculatePassPoints()`が`-500`を返すこと
 - `combo-manager.js`のコンボゲージ継続時間が、`createComboState(12)`（1次方程式）で
   1〜10コンボで仕様表どおり（約22.86秒〜16.00秒）に、`createComboState(20)`（連立方程式）で
-  仕様表どおり（約38.10秒〜26.67秒）になること。ゲージ切れでコンボが0にリセットされ、
+  仕様表どおり（約38.10秒〜26.67秒）に、`createComboState(14)`（2次方程式）で
+  仕様表どおり（約26.67秒〜18.67秒）になること。ゲージ切れでコンボが0にリセットされ、
   不正解だけでは即座にリセットされないこと
 - `validateSystemEquations()`が、仕様書section 56〜58の正解・不正解・入力エラー例（27例）
   すべてで期待どおりの`status`を返すこと
-- `saveRankHighScore("simultaneous", "NORMAL", ...)` / `("HARD", ...)`が、
-  `equalLabyrinth.rank.simultaneous.NORMAL` / `.HARD`へ独立して保存され、
-  1次方程式側のハイスコアに影響しないこと
+- `validateQuadraticEquation()`が、正解・不正解・入力エラーの例（本README「2次方程式の
+  正誤判定」・「動作確認したテスト（中3「2次方程式」）」に記載の例）すべてで
+  期待どおりの`status`を返すこと
+- `saveRankHighScore("linear"／"simultaneous"／"quadratic", "NORMAL"／"HARD", ...)`の
+  6通りの組み合わせが、`equalLabyrinth.rank.{unit}.{difficulty}`としてそれぞれ独立に保存され、
+  互いに影響しないこと
 - トレーニング・段位認定を通じて全JSファイルの構文チェック（`node --check`）が通ること、
   `ui.js`が参照するDOM IDがすべて`index.html`に存在すること
 
@@ -951,7 +1303,7 @@ DOM非依存の純粋関数のため、Node.js上で`canonicalEquations`と`expe
 1. `equal-labyrinth`フォルダをローカルサーバーで配信する
    （VS Code Live Server、または`python -m http.server 8000`）
 2. ブラウザで配信されたURLを開く
-3. タイトル画面で単元（1次方程式／連立方程式）・問題数・カテゴリ・効果音を設定し、
+3. タイトル画面で単元（1次方程式／連立方程式／2次方程式）・問題数・カテゴリ・効果音を設定し、
    「スタート」を押す
 
 ---
@@ -959,11 +1311,15 @@ DOM非依存の純粋関数のため、Node.js上で`canonicalEquations`と`expe
 ## 既知の制約
 
 - 効果音はWeb Audio APIによる単純な生成音であり、外部音声ファイルは使用していない
-- 中3「2次方程式」単元は画面上「準備中」と表示されるのみで、今回の第3段階では
-  選択・操作できない（`UNIT_CONFIG`に`baseTimeSeconds: 14`のエントリだけ先行して用意してあるが、
-  `SELECTABLE_UNIT_IDS`には含めていない）
 - 除算は分母が定数の場合のみ許可しており、`1/2x`・`x/y`・`x/(x+1)`のような
   変数を含む・非1次の除算は入力エラーになる
+- 2次方程式のべき乗は2乗のみに対応し、`x^3`・`x^4`・`y²`のような2乗以外・x以外のべき乗には
+  対応していない。x²（`x^2`）と「□²」（`(かっこの中身)^2`、「□²の入力」を参照）はどちらも
+  2乗専用で、底（2乗されるかっこの中身）がすでにx²を含む式の場合は、2乗すると4次式に
+  なってしまうため入力エラーになる
+- 2次方程式の乗算は、次数が2を超える組み合わせ（`x*x*x`・2次式×1次式以上）を
+  すべて入力エラーとして拒否する（`quadratic-expression.js`の`multiplyQuadraticExpressions()`）。
+  除算は分母が0でない定数の場合のみ許可する
 - 数式入力は半角・全角の演算記号（`×÷−`など）と`*` `/` `-`の両方を認識するが、
   全角数字（１２３など）には対応していない
 - 数式キーボードの数値ボタンは、各問題テンプレートの`keypadNumbers`に明示された数値のみを表示する
@@ -989,6 +1345,10 @@ DOM非依存の純粋関数のため、Node.js上で`canonicalEquations`と`expe
   文章題の数量関係を表さない式（消去法で導出した式や無関係な式）は不正解として扱う。
   この判定は文字列比較ではなく標準形（`ax+by+c=0`）への変換と比例判定によって行っているため、
   項の順序や係数の書き方の違い（`x+y=10`と`y+x=10`など）は正しく同一視される
+- 2次方程式の正誤判定も同じ考え方で、標準形`{xSquaredCoefficient, xCoefficient, constant}`が
+  模範式の0でない定数倍になっているかで判定する。そのため、正しい解を含んでいても文章題の
+  数量関係と無関係な式（`x(x-12)=0`のような、答えだけを逆算して作った式）は不正解になり、
+  項の順序・展開の仕方の違い（`x(x+1)=156`と`x²+x-156=0`と`156=x(x+1)`）は正しく同一視される
 - 解答ボタンの有効化条件（両辺非空・必要な変数を含む・＝が1つ等）はUI側（ボタンの`disabled`属性）
   でのみ判定しており、`handleSubmit()`自身は構造的妥当性を事前に再チェックしていない。
   ただし、無効化された`<button disabled>`はクリックしてもイベントが発火しないため、
