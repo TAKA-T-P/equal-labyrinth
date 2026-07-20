@@ -472,6 +472,9 @@ input[type="range"] {
 }
 
 .equation-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
   background: var(--color-panel);
   border: 2px solid var(--color-panel-border);
@@ -490,7 +493,7 @@ input[type="range"] {
 }
 
 .equation-slot-label {
-  display: block;
+  flex: 0 0 auto;
   font-size: 0.7rem;
   font-weight: 700;
   color: var(--color-text-muted);
@@ -500,28 +503,47 @@ input[type="range"] {
   color: var(--color-correct-gold);
 }
 
+.equation-slot .equation-input-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .equation-slot .equation-input-display {
   min-height: 34px;
   font-size: 1.15rem;
 }
 
+/* 入力対象でない式（式①・式②のうち非アクティブな方）のカーソルは点滅表示しない */
+.equation-slot:not(.is-active) .equation-cursor {
+  visibility: hidden;
+}
+
 /* ---------------- 判定メッセージ ---------------- */
-/* メッセージがある間だけ、不透明なカードとして表示する */
+/* 他の表示に埋もれないよう、画面中央に不透明なカードとして前面表示する。
+   メッセージは1秒後にJS側（ui.jsのshowJudgeMessage）で自動的に消える。 */
 
 .judge-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 62;
   min-height: 0;
   font-size: 1rem;
   font-weight: 800;
   text-align: center;
+  pointer-events: none;
 }
 
 .judge-message:not(:empty) {
-  min-height: 1.4em;
+  min-width: 200px;
+  max-width: min(85vw, 380px);
   background: var(--color-panel);
+  opacity: 1;
   border: 2px solid var(--color-panel-border);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
-  box-shadow: var(--shadow-panel);
+  padding: 12px 18px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 
 .judge-message.is-correct {
@@ -586,6 +608,28 @@ input[type="range"] {
 .hint-panel-text {
   font-size: 1rem;
   line-height: 1.8;
+}
+
+/* ---------------- パス確認（前面に表示するカード） ---------------- */
+
+.pass-confirm-panel {
+  width: min(92vw, 320px);
+  text-align: center;
+}
+
+.pass-confirm-text {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.pass-confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pass-confirm-actions button {
+  flex: 1 1 auto;
 }
 
 /* ---------------- 模範解答（前面に表示するカード） ---------------- */
@@ -676,9 +720,18 @@ input[type="range"] {
 
 /* 数値エリアと記号エリアを見た目で区別する */
 .keypad-numbers {
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
   background: rgba(201, 161, 59, 0.1);
   border: 1px solid rgba(201, 161, 59, 0.35);
+}
+
+/* 数値ボタンは4個以上並んでも、なるべく1段に収まるよう小さめにする */
+.keypad-numbers .key-button {
+  padding: 3px 4px;
+}
+
+.keypad-numbers .key-button--number {
+  font-size: 0.85rem;
 }
 
 .keypad-symbols {

@@ -68,6 +68,10 @@ const elements = {
   hintBackdrop: document.getElementById("hint-backdrop"),
   hintPanel: document.getElementById("hint-panel"),
   hintText: document.getElementById("hint-text"),
+  passConfirmBackdrop: document.getElementById("pass-confirm-backdrop"),
+  passConfirmPanel: document.getElementById("pass-confirm-panel"),
+  passConfirmYesButton: document.getElementById("pass-confirm-yes"),
+  passConfirmNoButton: document.getElementById("pass-confirm-no"),
   answerRevealBackdrop: document.getElementById("answer-reveal-backdrop"),
   answerRevealPanel: document.getElementById("answer-reveal-panel"),
   answerRevealStatus: document.getElementById("answer-reveal-status"),
@@ -447,6 +451,16 @@ export function isHintPanelOpen() {
   return !elements.hintPanel.hidden;
 }
 
+export function showPassConfirm() {
+  elements.passConfirmPanel.hidden = false;
+  elements.passConfirmBackdrop.hidden = false;
+}
+
+export function hidePassConfirm() {
+  elements.passConfirmPanel.hidden = true;
+  elements.passConfirmBackdrop.hidden = true;
+}
+
 const ANSWER_STATUS_CLASS = {
   correct: "is-correct",
   pass: "is-pass"
@@ -507,6 +521,9 @@ const JUDGE_CLASS_BY_STATUS = {
   pass: "is-pass"
 };
 
+const JUDGE_MESSAGE_DISPLAY_MILLISECONDS = 1000;
+let judgeMessageTimeoutId = null;
+
 export function showJudgeMessage(status, message) {
   const el = elements.judgeMessage;
   el.textContent = message;
@@ -529,9 +546,21 @@ export function showJudgeMessage(status, message) {
       card.classList.add("is-incorrect-flash");
     }
   }
+
+  if (judgeMessageTimeoutId !== null) {
+    clearTimeout(judgeMessageTimeoutId);
+  }
+  judgeMessageTimeoutId = setTimeout(() => {
+    judgeMessageTimeoutId = null;
+    clearJudgeMessage();
+  }, JUDGE_MESSAGE_DISPLAY_MILLISECONDS);
 }
 
 export function clearJudgeMessage() {
+  if (judgeMessageTimeoutId !== null) {
+    clearTimeout(judgeMessageTimeoutId);
+    judgeMessageTimeoutId = null;
+  }
   elements.judgeMessage.textContent = "";
   elements.judgeMessage.className = "judge-message";
 }
@@ -655,6 +684,7 @@ export function setKeyboardEnabled(enabled) {
 
 export function resetGameScreenPanels() {
   hideHintPanel();
+  hidePassConfirm();
   hideAnswerReveal();
   clearJudgeMessage();
   clearHintKeypadParts();
@@ -1053,6 +1083,19 @@ export function initUI(callbacks) {
     if (!clickedInsideHint && !clickedHintButton) {
       hideHintPanel();
     }
+  });
+
+  elements.passConfirmYesButton.addEventListener("click", () => {
+    callbacks.onPassConfirmYes();
+  });
+
+  elements.passConfirmNoButton.addEventListener("click", () => {
+    callbacks.onPassConfirmNo();
+  });
+
+  // パス確認カード以外の場所をタップ・クリックすると、「いいえ」と同じ扱いで閉じる
+  elements.passConfirmBackdrop.addEventListener("click", () => {
+    callbacks.onPassConfirmNo();
   });
 
   renderQuestionCountLabel(APP_CONFIG.defaultQuestions);

@@ -181,6 +181,8 @@ export function initGame() {
     onNextQuestion: handleNextQuestion,
     onHintRequest: handleHintRequest,
     onPass: handlePass,
+    onPassConfirmYes: handlePassConfirmYes,
+    onPassConfirmNo: handlePassConfirmNo,
     onRetry: handleRetry,
     onGiveUp: handleGiveUp,
     onBackToTitle: handleBackToTitle,
@@ -379,20 +381,13 @@ function beginQuestion(index) {
   ui.renderEquationKeypad(gameState.currentQuestion);
   ui.setSubmitButtonEnabled(false);
 
-  timer.startQuestionTimer({
-    onHintAvailable: handleHintAvailable,
-    onPassAvailable: handlePassAvailable
-  });
-}
-
-function handleHintAvailable() {
+  // トレーニングモードでは、段位認定と異なりヒント・パスを最初から使用できる
   gameState.hintAvailable = true;
-  ui.setHintButtonEnabled(true);
-}
-
-function handlePassAvailable() {
   gameState.passAvailable = true;
+  ui.setHintButtonEnabled(true);
   ui.setPassButtonEnabled(true);
+
+  timer.startQuestionTimer({});
 }
 
 // ============================================================
@@ -673,7 +668,21 @@ function handleNextQuestion() {
   advanceToNextQuestionOrResult();
 }
 
+/**
+ * 「パス」ボタンが押されたときの処理。即座にパスせず、まず確認カードを表示する
+ * （トレーニング・段位認定共通）。
+ */
 function handlePass() {
+  if (!gameState.passAvailable || gameState.inputLocked) return;
+  ui.showPassConfirm();
+}
+
+/**
+ * パス確認カードで「はい」が押されたときの処理。ここで初めてパスを実行する。
+ */
+function handlePassConfirmYes() {
+  ui.hidePassConfirm();
+
   if (gameState.mode === "rank") {
     rankMode.handlePass();
     return;
@@ -681,7 +690,14 @@ function handlePass() {
   handleTrainingPass();
 }
 
-async function handleTrainingPass() {
+/**
+ * パス確認カードで「いいえ」（または背景タップ）が押されたときの処理。何もせず閉じる。
+ */
+function handlePassConfirmNo() {
+  ui.hidePassConfirm();
+}
+
+function handleTrainingPass() {
   if (!gameState.passAvailable || gameState.inputLocked) return;
 
   const elapsedSeconds = timer.stopQuestionTimer();
@@ -698,8 +714,9 @@ async function handleTrainingPass() {
   gameState.passCount += 1;
   recordHistory("pass", elapsedSeconds);
 
-  await sleep(APP_CONFIG.passDisplayMilliseconds);
-  advanceToNextQuestionOrResult();
+  // 段位認定モードと異なり、トレーニングモードでは自動で次の問題へ進まず
+  // 「次へ」ボタンを押すまで模範式を表示し続ける
+  ui.showNextQuestionButton(true);
 }
 
 function lockQuestionInput() {

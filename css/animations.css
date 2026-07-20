@@ -206,22 +206,24 @@
   animation: incorrect-shake 0.4s ease-in-out;
 }
 
+/* judge-messageはposition: fixedで画面中央に固定表示するため（translate(-50%, -50%)）、
+   シェイクのtranslateXはその中央位置を基準に加算し、中央からずれないようにする */
 @keyframes incorrect-shake {
   0%,
   100% {
-    transform: translateX(0);
+    transform: translate(-50%, -50%) translateX(0);
   }
   20% {
-    transform: translateX(-6px);
+    transform: translate(-50%, -50%) translateX(-6px);
   }
   40% {
-    transform: translateX(6px);
+    transform: translate(-50%, -50%) translateX(6px);
   }
   60% {
-    transform: translateX(-4px);
+    transform: translate(-50%, -50%) translateX(-4px);
   }
   80% {
-    transform: translateX(4px);
+    transform: translate(-50%, -50%) translateX(4px);
   }
 }
 

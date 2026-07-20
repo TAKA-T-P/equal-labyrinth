@@ -191,6 +191,15 @@
         <p id="hint-text" class="hint-panel-text"></p>
       </div>
 
+      <div id="pass-confirm-backdrop" class="hint-backdrop" hidden></div>
+      <div id="pass-confirm-panel" class="hint-panel pass-confirm-panel" hidden role="dialog" aria-label="パスの確認">
+        <p class="pass-confirm-text">パスしますか？</p>
+        <div class="pass-confirm-actions">
+          <button type="button" id="pass-confirm-no" class="secondary-button">いいえ</button>
+          <button type="button" id="pass-confirm-yes" class="primary-button">はい</button>
+        </div>
+      </div>
+
       <div id="answer-reveal-backdrop" class="hint-backdrop" hidden></div>
       <div id="answer-reveal-panel" class="answer-reveal-panel" hidden role="status" aria-live="assertive">
         <p id="answer-reveal-status" class="answer-reveal-status"></p>

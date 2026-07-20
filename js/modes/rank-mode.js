@@ -28,6 +28,7 @@ import { validateSystemEquations } from "../equation/system-equation-validator.j
 import {
   calculateCorrectPoints,
   calculateIncorrectPoints,
+  calculatePassPoints,
   formatScore,
   formatScoreDelta
 } from "../rank/score-manager.js";
@@ -395,6 +396,12 @@ export async function handlePass() {
   gameState.combo = 0;
   ui.renderRankComboGauge(1);
 
+  const delta = calculatePassPoints();
+  gameState.score += delta;
+  gameState.lastScoreChange = delta;
+  ui.animateScoreTo(gameState.score);
+  ui.showRankScoreChange(formatScoreDelta(delta));
+
   audio.playPassSound();
   ui.showAnswerReveal(
     "pass",
@@ -404,7 +411,7 @@ export async function handlePass() {
   );
 
   gameState.passCount += 1;
-  recordRankHistory("pass", elapsedSeconds, { scoreDelta: 0, comboAtCorrect: null });
+  recordRankHistory("pass", elapsedSeconds, { scoreDelta: delta, comboAtCorrect: null });
 
   await sleep(APP_CONFIG.passDisplayMilliseconds);
   beginRankQuestion();

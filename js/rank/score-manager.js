@@ -3,7 +3,8 @@
 
 export const CORRECT_BASE_POINTS = 1000;
 export const CORRECT_COMBO_BONUS = 100;
-export const INCORRECT_PENALTY = -500;
+export const INCORRECT_PENALTY = -300;
+export const PASS_PENALTY = -500;
 
 /**
  * 正解時の加算点を計算する。
@@ -18,6 +19,13 @@ export function calculateCorrectPoints(comboAfterCorrect) {
  */
 export function calculateIncorrectPoints() {
   return INCORRECT_PENALTY;
+}
+
+/**
+ * パス時の減点を計算する。
+ */
+export function calculatePassPoints() {
+  return PASS_PENALTY;
 }
 
 /**
