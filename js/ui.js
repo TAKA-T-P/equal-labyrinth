@@ -86,8 +86,6 @@ const elements = {
   mathKeyboard: document.getElementById("math-keyboard"),
   keypadNumbers: document.getElementById("keypad-numbers"),
   keypadSymbols: document.getElementById("keypad-symbols"),
-  hintPartsKeypad: document.getElementById("hint-parts-keypad"),
-  hintPartsList: document.getElementById("hint-parts-list"),
 
   // 結果画面（トレーニング）
   resultHeading: document.getElementById("result-heading"),
@@ -370,7 +368,7 @@ export function renderQuestionProgress(currentIndex, totalQuestions) {
 
 export function renderQuestionPrompt(prompt) {
   renderTextWithStyledVariable(elements.questionPrompt, prompt);
-  elements.questionPrompt.parentElement.scrollTop = 0;
+  elements.questionPrompt.scrollTop = 0;
 }
 
 /**
@@ -810,26 +808,26 @@ function createHintPartButton(part) {
 }
 
 /**
- * ヒント使用時に、そのヒントに対応する式パーツをキーボードへ追加する。
- * partsが空の場合は何もしない（領域は非表示のまま）。
+ * ヒント使用時に、そのヒントに対応する式パーツを、数値ボタンと同じカード
+ * （keypad-numbers）へ追加する。partsが空の場合は何もしない。
  */
 export function renderHintKeypadParts(parts) {
   if (!Array.isArray(parts) || parts.length === 0) {
     return;
   }
-  elements.hintPartsList.innerHTML = "";
   parts.forEach((part) => {
-    elements.hintPartsList.appendChild(createHintPartButton(part));
+    elements.keypadNumbers.appendChild(createHintPartButton(part));
   });
-  elements.hintPartsKeypad.hidden = false;
 }
 
 /**
- * 式パーツ領域をクリアする。問題切り替え時に必ず呼び出す。
+ * 数値ボタンのカードに追加された式パーツだけを取り除く（数値ボタンは残す）。
+ * 問題切り替え時に必ず呼び出す。
  */
 export function clearHintKeypadParts() {
-  elements.hintPartsList.innerHTML = "";
-  elements.hintPartsKeypad.hidden = true;
+  elements.keypadNumbers
+    .querySelectorAll('[data-hint-part="true"]')
+    .forEach((button) => button.remove());
 }
 
 export function setHintButtonRevealed(revealed) {

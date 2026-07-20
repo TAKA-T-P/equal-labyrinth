@@ -213,6 +213,19 @@
       </div>
 
       <div class="game-bottom">
+        <div id="math-keyboard" class="math-keyboard" role="group" aria-label="数式キーボード">
+          <div id="keypad-numbers" class="keypad-numbers" role="group" aria-label="数値キー・ヒントパーツ"></div>
+
+          <div id="keypad-symbols" class="keypad-symbols" role="group" aria-label="記号キー"></div>
+
+          <div id="keypad-edit" class="keypad-edit" role="group" aria-label="編集キー">
+            <button type="button" class="key-button key-control" data-action="cursor-left" aria-label="カーソルを左へ移動">←</button>
+            <button type="button" class="key-button key-control" data-action="cursor-right" aria-label="カーソルを右へ移動">→</button>
+            <button type="button" class="key-button key-control" data-action="backspace" aria-label="1つ消す">1つ消す</button>
+            <button type="button" class="key-button key-control key-clear" data-action="clear" aria-label="全消去">全消去</button>
+          </div>
+        </div>
+
         <div class="action-row">
           <button type="button" id="hint-button" class="secondary-button" disabled>ヒント</button>
           <button type="button" id="pass-button" class="secondary-button" disabled>パス</button>
@@ -224,24 +237,6 @@
             hidden
           >式②へ</button>
           <button type="button" id="submit-button" class="primary-button" disabled>解答する</button>
-        </div>
-
-        <div id="math-keyboard" class="math-keyboard" role="group" aria-label="数式キーボード">
-          <div id="keypad-numbers" class="keypad-numbers" role="group" aria-label="数値キー"></div>
-
-          <div id="keypad-symbols" class="keypad-symbols" role="group" aria-label="記号キー"></div>
-
-          <div id="hint-parts-keypad" class="hint-parts-keypad" role="group" aria-label="ヒントパーツ" hidden>
-            <p class="hint-parts-label">ヒントパーツ</p>
-            <div id="hint-parts-list" class="hint-parts-list"></div>
-          </div>
-
-          <div id="keypad-edit" class="keypad-edit" role="group" aria-label="編集キー">
-            <button type="button" class="key-button key-control" data-action="cursor-left" aria-label="カーソルを左へ移動">←</button>
-            <button type="button" class="key-button key-control" data-action="cursor-right" aria-label="カーソルを右へ移動">→</button>
-            <button type="button" class="key-button key-control" data-action="backspace" aria-label="1つ消す">1つ消す</button>
-            <button type="button" class="key-button key-control key-clear" data-action="clear" aria-label="全消去">全消去</button>
-          </div>
         </div>
       </div>
     </div>

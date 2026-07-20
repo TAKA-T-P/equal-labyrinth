@@ -127,7 +127,7 @@
 /* ---------------- ヒントパーツの出現演出 ---------------- */
 /* 強い点滅は使わず、ふわっと現れる程度にとどめる */
 
-.hint-parts-keypad {
+.key-button--hint-part {
   animation: hint-part-appear 0.3s ease-out;
 }
 

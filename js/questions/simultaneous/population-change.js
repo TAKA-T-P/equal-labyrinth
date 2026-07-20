@@ -7,7 +7,7 @@ const CATEGORY_ID = "L2-10";
 const CATEGORY_NAME = "割合の増減・人数";
 const UNIT = "simultaneous";
 
-const KEYPAD_SYMBOLS = ["x", "y", "+", "="];
+const KEYPAD_SYMBOLS = ["x", "y", "+", "-", "="];
 const PERCENT_CHOICES = [5, 10, 15, 20];
 
 /**
@@ -22,9 +22,14 @@ function buildPopulationNumbers() {
 
   const decimalIncrease = (100 + increasePercent) / 100;
   const decimalDecrease = (100 - decreasePercent) / 100;
+  const increaseRatio = increasePercent / 100;
+  const decreaseRatio = decreasePercent / 100;
 
   const lastYearTotal = x + y;
   const newTotal = decimalIncrease * x + decimalDecrease * y;
+  // 増減後の合計から、昨年の合計を引いた「変化量」に着目した式も別解として認める
+  // （増加分increaseRatio*xから減少分decreaseRatio*yを引くと、増減量の合計になる）
+  const changeAmount = newTotal - lastYearTotal;
 
   return {
     x,
@@ -33,8 +38,11 @@ function buildPopulationNumbers() {
     decreasePercent,
     decimalIncrease,
     decimalDecrease,
+    increaseRatio,
+    decreaseRatio,
     lastYearTotal,
-    newTotal
+    newTotal,
+    changeAmount
   };
 }
 
@@ -51,8 +59,11 @@ export const populationChangeTemplates = [
         decreasePercent,
         decimalIncrease,
         decimalDecrease,
+        increaseRatio,
+        decreaseRatio,
         lastYearTotal,
-        newTotal
+        newTotal,
+        changeAmount
       } = buildPopulationNumbers();
 
       return {
@@ -84,9 +95,27 @@ export const populationChangeTemplates = [
           }
         ],
 
+        // 「増減後の合計」ではなく「人数の変化量」に着目した式も別解として認める
+        alternateEquations: [
+          {
+            index: 1,
+            internal: `${increaseRatio}*x-${decreaseRatio}*y=${changeAmount}`,
+            display: `${increaseRatio}x－${decreaseRatio}y＝${changeAmount}`,
+            relationName: "人数の変化量の関係"
+          }
+        ],
+
         solutionDisplay: `x＝${x}、y＝${y}`,
 
-        keypadNumbers: buildKeypadNumbers([lastYearTotal, decimalIncrease, decimalDecrease, newTotal]),
+        keypadNumbers: buildKeypadNumbers([
+          lastYearTotal,
+          decimalIncrease,
+          decimalDecrease,
+          newTotal,
+          increaseRatio,
+          decreaseRatio,
+          Math.abs(changeAmount)
+        ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
         hint: `今年のA組の人数は「${decimalIncrease}×x」、B組の人数は「${decimalDecrease}×y」と表せます。`,
@@ -109,8 +138,11 @@ export const populationChangeTemplates = [
         decreasePercent,
         decimalIncrease,
         decimalDecrease,
+        increaseRatio,
+        decreaseRatio,
         lastYearTotal,
-        newTotal
+        newTotal,
+        changeAmount
       } = buildPopulationNumbers();
 
       return {
@@ -142,9 +174,26 @@ export const populationChangeTemplates = [
           }
         ],
 
+        alternateEquations: [
+          {
+            index: 1,
+            internal: `${increaseRatio}*x-${decreaseRatio}*y=${changeAmount}`,
+            display: `${increaseRatio}x－${decreaseRatio}y＝${changeAmount}`,
+            relationName: "人数の変化量の関係"
+          }
+        ],
+
         solutionDisplay: `x＝${x}、y＝${y}`,
 
-        keypadNumbers: buildKeypadNumbers([lastYearTotal, decimalIncrease, decimalDecrease, newTotal]),
+        keypadNumbers: buildKeypadNumbers([
+          lastYearTotal,
+          decimalIncrease,
+          decimalDecrease,
+          newTotal,
+          increaseRatio,
+          decreaseRatio,
+          Math.abs(changeAmount)
+        ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
         hint: `今年のサッカー部の人数は「${decimalIncrease}×x」、野球部の人数は「${decimalDecrease}×y」と表せます。`,
@@ -167,8 +216,11 @@ export const populationChangeTemplates = [
         decreasePercent,
         decimalIncrease,
         decimalDecrease,
+        increaseRatio,
+        decreaseRatio,
         lastYearTotal,
-        newTotal
+        newTotal,
+        changeAmount
       } = buildPopulationNumbers();
 
       return {
@@ -200,9 +252,26 @@ export const populationChangeTemplates = [
           }
         ],
 
+        alternateEquations: [
+          {
+            index: 1,
+            internal: `${increaseRatio}*x-${decreaseRatio}*y=${changeAmount}`,
+            display: `${increaseRatio}x－${decreaseRatio}y＝${changeAmount}`,
+            relationName: "利用者数の変化量の関係"
+          }
+        ],
+
         solutionDisplay: `x＝${x}、y＝${y}`,
 
-        keypadNumbers: buildKeypadNumbers([lastYearTotal, decimalIncrease, decimalDecrease, newTotal]),
+        keypadNumbers: buildKeypadNumbers([
+          lastYearTotal,
+          decimalIncrease,
+          decimalDecrease,
+          newTotal,
+          increaseRatio,
+          decreaseRatio,
+          Math.abs(changeAmount)
+        ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
         hint: `今月の午前の利用者数は「${decimalIncrease}×x」、午後の利用者数は「${decimalDecrease}×y」と表せます。`,

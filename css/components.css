@@ -107,6 +107,8 @@
 .question-prompt {
   font-size: 0.92rem;
   line-height: 1.45;
+  max-height: 7.25em; /* line-height(1.45) × 5行ぶん */
+  overflow-y: auto;
 }
 
 /* ---------------- 選択ボタン群（モード・単元） ---------------- */
@@ -338,7 +340,7 @@ input[type="range"] {
 }
 
 .rank-hud-time {
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 800;
   color: var(--color-text-main);
 }
@@ -354,7 +356,7 @@ input[type="range"] {
 }
 
 .rank-hud-score {
-  font-size: 1.15rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--color-correct-gold);
   font-variant-numeric: tabular-nums;
@@ -525,7 +527,7 @@ input[type="range"] {
   border: 2px solid var(--color-panel-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-panel);
-  padding: 6px 10px;
+  padding: 1px 10px;
 }
 
 .equation-slot.is-active {
@@ -811,41 +813,6 @@ input[type="range"] {
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-/* ヒント使用時にだけ現れる、式パーツ専用エリア（巻物・光を連想させる配色） */
-.hint-parts-keypad {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 2px solid var(--color-correct-gold);
-  border-radius: 10px;
-  padding: 6px 8px;
-  background: linear-gradient(
-    135deg,
-    rgba(232, 201, 104, 0.18),
-    rgba(124, 79, 214, 0.14)
-  );
-  box-shadow: 0 0 14px rgba(232, 201, 104, 0.25);
-}
-
-.hint-parts-keypad[hidden] {
-  display: none;
-}
-
-.hint-parts-label {
-  flex-shrink: 0;
-  white-space: nowrap;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--color-correct-gold);
-}
-
-.hint-parts-list {
-  flex: 1 1 auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
 .key-button {
   min-height: 34px;
   padding: 3px 6px;
@@ -887,19 +854,23 @@ input[type="range"] {
   color: var(--color-incorrect);
 }
 
-/* ヒントパーツボタン：他の解答ボタンと同じ縦幅にそろえ、横方向は少し広めにとる */
+/* ヒントパーツボタン：数値ボタンと同じカード（keypad-numbers）内に、
+   区別しやすい金色の縁取りで表示する。数値の列幅に埋もれないよう、
+   カードの横幅いっぱいに1段を使う。 */
 .key-button--hint-part {
   min-height: 34px;
   padding: 3px 14px;
-  flex: 0 1 auto;
   white-space: nowrap;
-  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   background: rgba(232, 201, 104, 0.16);
   border: 1px solid var(--color-correct-gold);
   color: var(--color-correct-gold);
   font-size: 1rem;
+}
+
+.keypad-numbers .key-button--hint-part {
+  grid-column: 1 / -1;
 }
 
 /* 分数ボタン（数式キーボード上、÷の代わりに配置する）：□/─/□のアイコンで表す */

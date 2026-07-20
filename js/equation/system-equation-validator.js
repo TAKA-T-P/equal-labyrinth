@@ -107,6 +107,36 @@ export function areProportionalEquations(inputExpression, canonicalExpression, t
 }
 
 /**
+ * 標準形が、候補の標準形のいずれか1つとでも「0でない定数倍」の関係にあるかを判定する。
+ */
+function isProportionalToAnyOf(standardForm, candidates, tolerance) {
+  return candidates.some((candidate) => areProportionalEquations(standardForm, candidate, tolerance));
+}
+
+/**
+ * canonicalEquationsの各スロット（式①・式②）について、正解として受け付ける標準形の
+ * 候補一覧を作る。question.alternateEquationsに{index, internal}が登録されている場合、
+ * そのindexのスロットへ「別解」として追加する（例：増減後の合計に着目した式に加えて、
+ * 変化量に着目した式も正解にする）。
+ * @returns {[Array, Array]} 添字0・1が、それぞれcanonicalEquations[0]・[1]の
+ *   スロットに対応する候補標準形の配列
+ */
+function buildAcceptableExpressionsBySlot(question) {
+  const acceptable = [
+    [parseEquationToStandardForm(question.canonicalEquations[0].internal)],
+    [parseEquationToStandardForm(question.canonicalEquations[1].internal)]
+  ];
+
+  if (Array.isArray(question.alternateEquations)) {
+    for (const alternate of question.alternateEquations) {
+      acceptable[alternate.index].push(parseEquationToStandardForm(alternate.internal));
+    }
+  }
+
+  return acceptable;
+}
+
+/**
  * 標準形2本（a1x+b1y+c1=0, a2x+b2y+c2=0）を実際に解く。
  * 行列式が0（解なし・解が無数）の場合はnullを返す。
  * @returns {{x: number, y: number}|null}
@@ -174,15 +204,14 @@ export function validateSystemEquations(inputStrings, question) {
     );
   }
 
-  const canonicalExpr1 = parseEquationToStandardForm(question.canonicalEquations[0].internal);
-  const canonicalExpr2 = parseEquationToStandardForm(question.canonicalEquations[1].internal);
+  const acceptableExpressions = buildAcceptableExpressionsBySlot(question);
 
   const matchesInOrder =
-    areProportionalEquations(standard1, canonicalExpr1, tolerance) &&
-    areProportionalEquations(standard2, canonicalExpr2, tolerance);
+    isProportionalToAnyOf(standard1, acceptableExpressions[0], tolerance) &&
+    isProportionalToAnyOf(standard2, acceptableExpressions[1], tolerance);
   const matchesSwapped =
-    areProportionalEquations(standard1, canonicalExpr2, tolerance) &&
-    areProportionalEquations(standard2, canonicalExpr1, tolerance);
+    isProportionalToAnyOf(standard1, acceptableExpressions[1], tolerance) &&
+    isProportionalToAnyOf(standard2, acceptableExpressions[0], tolerance);
 
   if (!matchesInOrder && !matchesSwapped) {
     return buildResult(

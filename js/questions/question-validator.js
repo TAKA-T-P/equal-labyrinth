@@ -147,6 +147,75 @@ function equationContainsDivision(equationString) {
 }
 
 /**
+ * alternateEquations（式①・式②のどちらかについて、別解として追加で正解にする式）を検証する。
+ * 未設定（undefined）の場合は何も検証しない。各要素について、
+ * keypadNumbersで入力できること・解析できること・もう一方のcanonicalEquationsと
+ * 組み合わせてもexpectedSolutionへ解けることを確認する。
+ */
+function validateAlternateEquations(question) {
+  if (question.alternateEquations === undefined) {
+    return null;
+  }
+  if (!Array.isArray(question.alternateEquations)) {
+    return "alternateEquationsが配列ではありません。";
+  }
+
+  const tolerance = APP_CONFIG.numericTolerance;
+
+  for (const alternate of question.alternateEquations) {
+    if (!alternate || typeof alternate !== "object") {
+      return "alternateEquationsの要素がオブジェクトではありません。";
+    }
+    if (alternate.index !== 0 && alternate.index !== 1) {
+      return "alternateEquationsのindexは0または1である必要があります。";
+    }
+    if (typeof alternate.internal !== "string" || alternate.internal.trim() === "") {
+      return "alternateEquationsのinternalが空です。";
+    }
+    if (typeof alternate.display !== "string" || alternate.display.trim() === "") {
+      return "alternateEquationsのdisplayが空です。";
+    }
+
+    const keypadCoverageReason = validateKeypadCoversEquation(
+      alternate.internal,
+      question.keypadNumbers
+    );
+    if (keypadCoverageReason) {
+      return `alternateEquations: ${keypadCoverageReason}`;
+    }
+
+    let alternateStandard;
+    try {
+      alternateStandard = parseEquationToStandardForm(alternate.internal);
+    } catch (error) {
+      return `alternateEquationsのinternalを解析できません：${error.message}`;
+    }
+
+    const otherIndex = alternate.index === 0 ? 1 : 0;
+    let otherStandard;
+    try {
+      otherStandard = parseEquationToStandardForm(question.canonicalEquations[otherIndex].internal);
+    } catch (error) {
+      // canonicalEquations自体の解析エラーは、呼び出し側の別のチェックで検出される
+      continue;
+    }
+
+    const solved = solveTwoVariableSystem(alternateStandard, otherStandard, tolerance);
+    if (!solved) {
+      return "alternateEquationsが、もう一方のcanonicalEquationsと組み合わせても解けません（比例している可能性があります）。";
+    }
+    if (
+      Math.abs(solved.x - question.expectedSolution.x) > tolerance ||
+      Math.abs(solved.y - question.expectedSolution.y) > tolerance
+    ) {
+      return "alternateEquationsの解がexpectedSolutionと一致しません。";
+    }
+  }
+
+  return null;
+}
+
+/**
  * ヒント使用時に追加する式パーツ1件を検証する。
  * 完成した方程式全体（＝を含むもの）は登録できない。
  * 分数型（type: "fraction"）の場合は、numerator・denominatorも検証する。
@@ -501,6 +570,11 @@ function validateSimultaneousQuestion(question) {
       valid: false,
       reason: "canonicalEquationsの解がexpectedSolutionと一致しません。"
     };
+  }
+
+  const alternateEquationsReason = validateAlternateEquations(question);
+  if (alternateEquationsReason) {
+    return { valid: false, reason: alternateEquationsReason };
   }
 
   return { valid: true };

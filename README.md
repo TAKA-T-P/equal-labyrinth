@@ -283,6 +283,36 @@ equal-labyrinth/
 
 のように、数学的に解ける・同じ解を持つだけの式は正解にならない。
 
+### 別解（alternateEquations）
+
+同じ立式であっても、文章題を「増減後の合計」に着目して立てるか「変化量」に着目して
+立てるかで、教育的に自然な式が2通り以上ある問題がある（例：「割合の増減・人数」
+「割合の増減・代金」）。このような場合、問題データに`alternateEquations`
+（`{index, internal, display, relationName}`の配列。`index`は`canonicalEquations`の
+どちらのスロットの別解かを表す）を追加すると、そのスロットは`canonicalEquations[index]`
+「または」`alternateEquations`のいずれかと定数倍の関係にあれば正解として扱われる
+（`system-equation-validator.js`の`buildAcceptableExpressionsBySlot()`）。
+
+```javascript
+canonicalEquations: [
+  { internal: "x+y=140", display: "x＋y＝140", relationName: "昨年の人数の合計" },
+  { internal: "1.1*x+0.95*y=148", display: "1.1x＋0.95y＝148", relationName: "今年の人数の合計" }
+],
+alternateEquations: [
+  {
+    index: 1,
+    internal: "0.1*x-0.05*y=8",
+    display: "0.1x－0.05y＝8",
+    relationName: "人数の変化量の関係"
+  }
+]
+```
+
+ただし、式①・式②の両方を別解（またはその両方を模範式）で埋めることはできない。
+必ず一方が`canonicalEquations`の一方、もう一方が残りのスロット（模範式または
+そのスロットの別解）と1対1で対応する必要がある（＝2つの独立した数量関係を
+表現しているかどうかという判定方針自体は変わらない）。
+
 ### 解の確認（念のための追加チェック）
 
 各式が模範関係と一致したうえで、`solveTwoVariableSystem()`が実際にクラメルの公式で

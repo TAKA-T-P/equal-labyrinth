@@ -7,7 +7,7 @@ const CATEGORY_ID = "L2-11";
 const CATEGORY_NAME = "割合の増減・代金";
 const UNIT = "simultaneous";
 
-const KEYPAD_SYMBOLS = ["x", "y", "+", "="];
+const KEYPAD_SYMBOLS = ["x", "y", "+", "-", "="];
 const DISCOUNT_CHOICES = [10, 20, 30, 40];
 
 /**
@@ -27,11 +27,28 @@ function buildDiscountNumbers() {
 
   const decimalA = (100 - discountA) / 100;
   const decimalB = (100 - discountB) / 100;
+  const ratioA = discountA / 100;
+  const ratioB = discountB / 100;
 
   const priceTotal = x + y;
   const discountedTotal = decimalA * x + decimalB * y;
+  // 定価の合計から割引後の代金の合計を引いた「値引き額の合計」に着目した式も別解として認める
+  // （ratioA*x＋ratioB*yは、それぞれの商品の値引き額の合計になる）
+  const discountAmount = priceTotal - discountedTotal;
 
-  return { x, y, discountA, discountB, decimalA, decimalB, priceTotal, discountedTotal };
+  return {
+    x,
+    y,
+    discountA,
+    discountB,
+    decimalA,
+    decimalB,
+    ratioA,
+    ratioB,
+    priceTotal,
+    discountedTotal,
+    discountAmount
+  };
 }
 
 export const priceDiscountTemplates = [
@@ -40,8 +57,19 @@ export const priceDiscountTemplates = [
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { x, y, discountA, discountB, decimalA, decimalB, priceTotal, discountedTotal } =
-        buildDiscountNumbers();
+      const {
+        x,
+        y,
+        discountA,
+        discountB,
+        decimalA,
+        decimalB,
+        ratioA,
+        ratioB,
+        priceTotal,
+        discountedTotal,
+        discountAmount
+      } = buildDiscountNumbers();
 
       return {
         id: createUniqueId(this.templateId),
@@ -72,9 +100,27 @@ export const priceDiscountTemplates = [
           }
         ],
 
+        // 「割引後の代金の合計」ではなく「値引き額の合計」に着目した式も別解として認める
+        alternateEquations: [
+          {
+            index: 1,
+            internal: `${ratioA}*x+${ratioB}*y=${discountAmount}`,
+            display: `${ratioA}x＋${ratioB}y＝${discountAmount}`,
+            relationName: "値引き額の合計の関係"
+          }
+        ],
+
         solutionDisplay: `x＝${x}、y＝${y}`,
 
-        keypadNumbers: buildKeypadNumbers([priceTotal, decimalA, decimalB, discountedTotal]),
+        keypadNumbers: buildKeypadNumbers([
+          priceTotal,
+          decimalA,
+          decimalB,
+          discountedTotal,
+          ratioA,
+          ratioB,
+          discountAmount
+        ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
         hint: `割引後のシャツの代金は「${decimalA}×x」、ズボンの代金は「${decimalB}×y」と表せます。`,
@@ -90,8 +136,19 @@ export const priceDiscountTemplates = [
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { x, y, discountA, discountB, decimalA, decimalB, priceTotal, discountedTotal } =
-        buildDiscountNumbers();
+      const {
+        x,
+        y,
+        discountA,
+        discountB,
+        decimalA,
+        decimalB,
+        ratioA,
+        ratioB,
+        priceTotal,
+        discountedTotal,
+        discountAmount
+      } = buildDiscountNumbers();
 
       return {
         id: createUniqueId(this.templateId),
@@ -122,9 +179,26 @@ export const priceDiscountTemplates = [
           }
         ],
 
+        alternateEquations: [
+          {
+            index: 1,
+            internal: `${ratioA}*x+${ratioB}*y=${discountAmount}`,
+            display: `${ratioA}x＋${ratioB}y＝${discountAmount}`,
+            relationName: "値引き額の合計の関係"
+          }
+        ],
+
         solutionDisplay: `x＝${x}、y＝${y}`,
 
-        keypadNumbers: buildKeypadNumbers([priceTotal, decimalA, decimalB, discountedTotal]),
+        keypadNumbers: buildKeypadNumbers([
+          priceTotal,
+          decimalA,
+          decimalB,
+          discountedTotal,
+          ratioA,
+          ratioB,
+          discountAmount
+        ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
         hint: `割引後の上着の代金は「${decimalA}×x」、くつの代金は「${decimalB}×y」と表せます。`,
@@ -140,8 +214,19 @@ export const priceDiscountTemplates = [
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { x, y, discountA, discountB, decimalA, decimalB, priceTotal, discountedTotal } =
-        buildDiscountNumbers();
+      const {
+        x,
+        y,
+        discountA,
+        discountB,
+        decimalA,
+        decimalB,
+        ratioA,
+        ratioB,
+        priceTotal,
+        discountedTotal,
+        discountAmount
+      } = buildDiscountNumbers();
 
       return {
         id: createUniqueId(this.templateId),
@@ -172,9 +257,26 @@ export const priceDiscountTemplates = [
           }
         ],
 
+        alternateEquations: [
+          {
+            index: 1,
+            internal: `${ratioA}*x+${ratioB}*y=${discountAmount}`,
+            display: `${ratioA}x＋${ratioB}y＝${discountAmount}`,
+            relationName: "値引き額の合計の関係"
+          }
+        ],
+
         solutionDisplay: `x＝${x}、y＝${y}`,
 
-        keypadNumbers: buildKeypadNumbers([priceTotal, decimalA, decimalB, discountedTotal]),
+        keypadNumbers: buildKeypadNumbers([
+          priceTotal,
+          decimalA,
+          decimalB,
+          discountedTotal,
+          ratioA,
+          ratioB,
+          discountAmount
+        ]),
         keypadSymbols: KEYPAD_SYMBOLS,
 
         hint: `割引後のテーブルの代金は「${decimalA}×x」、いすの代金は「${decimalB}×y」と表せます。`,
