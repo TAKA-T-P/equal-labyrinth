@@ -206,6 +206,12 @@
   font-weight: 700;
 }
 
+/* 制限時間・ミス上限が「なし」以外（＝実際に危険がある）ときだけ、
+   値の文字を黄色にして目立たせる */
+.quest-mission-info dd.is-danger {
+  color: var(--color-correct-gold);
+}
+
 /* ---------------- 敵出現・ミッション確認 ---------------- */
 
 .quest-room-name-label {

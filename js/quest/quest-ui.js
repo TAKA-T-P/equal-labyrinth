@@ -183,19 +183,22 @@ function createMissionInfoList(mission) {
   const list = document.createElement("dl");
   list.className = "quest-mission-info";
 
+  // 「なし」以外（＝実際に制限時間・ミス上限がある）の場合だけ、値の文字を
+  // 黄色にして危険であることを目立たせる。必要正解数・ヒント・出題カテゴリは対象外。
   const rows = [
-    ["必要正解数", `${mission.requiredCorrectText}`],
-    ["制限時間", mission.timeLimitText],
-    ["ミス上限", mission.maxIncorrectText],
-    ["ヒント", mission.hintText],
-    ["出題カテゴリ", mission.categoryLabel]
+    ["必要正解数", `${mission.requiredCorrectText}`, false],
+    ["制限時間", mission.timeLimitText, mission.timeLimitText !== "なし"],
+    ["ミス上限", mission.maxIncorrectText, mission.maxIncorrectText !== "なし"],
+    ["ヒント", mission.hintText, false],
+    ["出題カテゴリ", mission.categoryLabel, false]
   ];
 
-  rows.forEach(([label, value]) => {
+  rows.forEach(([label, value, isDanger]) => {
     const dt = document.createElement("dt");
     dt.textContent = label;
     const dd = document.createElement("dd");
     dd.textContent = value;
+    dd.classList.toggle("is-danger", isDanger);
     list.appendChild(dt);
     list.appendChild(dd);
   });
