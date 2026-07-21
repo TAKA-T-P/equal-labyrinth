@@ -143,10 +143,28 @@
   display: none;
 }
 
-/* 図カード（前面に表示する不透明カード。hint-panelの見た目を流用する） */
-.quadratic-diagram-panel {
+/* 図カード（前面に表示する不透明カード。hint-panelの見た目を流用する）
+   画面上部の問題文カードと重ならないよう、中央（top: 50%）ではなく画面下寄りに固定する。
+   「top: 60%」のような相対位置だと、画面が低い端末では図カード自体の高さのぶん
+   問題文カードまで届いてしまうため、bottom基準の絶対位置にして確実に離す。
+   （.hint-panelと同じ特異性の`top: 50%`/`transform`を上書きするため、
+   あえて2クラス連結にしている） */
+.hint-panel.quadratic-diagram-panel {
+  top: auto;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
   width: min(92vw, 380px);
+  max-height: min(70vh, calc(100vh - 140px));
   text-align: center;
+}
+
+/* 図を表示している間、問題文カードだけは背景を暗くする幕（quadratic-diagram-backdrop）
+   より前面に出し、暗くならないようにする。図カード自体は下方向にずらしてあるため、
+   問題文カードの上に図カードが重なることはない。 */
+body.is-diagram-open .prompt-card {
+  position: relative;
+  z-index: 61;
 }
 
 .quadratic-diagram-close-button {

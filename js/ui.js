@@ -441,7 +441,7 @@ const MODE_DESCRIPTIONS = {
     "正解数・解答時間・ミス・パスから段位を認定します。",
   quest:
     "A〜Zの部屋を分岐しながら進む、全5ステージの冒険。\n" +
-    "文章題を解いて敵を倒し、宝箱からアイテムを集めよう！"
+    "文章題を解いて敵を倒し、アイテムを集めよう！"
 };
 
 /**
@@ -547,11 +547,15 @@ export function renderDiagram(diagram) {
 export function showDiagramPanel() {
   elements.diagramPanel.hidden = false;
   elements.diagramBackdrop.hidden = false;
+  // 図を表示している間も問題文が読めるよう、問題文カードだけは
+  // 背景を暗くする幕（diagramBackdrop）より前面に出す
+  document.body.classList.add("is-diagram-open");
 }
 
 export function hideDiagramPanel() {
   elements.diagramPanel.hidden = true;
   elements.diagramBackdrop.hidden = true;
+  document.body.classList.remove("is-diagram-open");
 }
 
 /**

@@ -29,7 +29,6 @@ const elements = {
   enemyIntroEmoji: document.getElementById("quest-enemy-intro-emoji"),
   enemyIntroMessage: document.getElementById("quest-enemy-intro-message"),
   enemyIntroMission: document.getElementById("quest-enemy-intro-mission"),
-  enemyIntroReward: document.getElementById("quest-enemy-intro-reward"),
   fightButton: document.getElementById("quest-fight-button"),
   introRetireButton: document.getElementById("quest-intro-retire-button"),
 
@@ -237,8 +236,8 @@ function createRoomChoiceCard(choice, onSelect) {
   card.appendChild(title);
   card.appendChild(emoji);
   card.appendChild(enemyName);
-  card.appendChild(missionList);
   card.appendChild(selectButton);
+  card.appendChild(missionList);
 
   return card;
 }
@@ -278,8 +277,6 @@ export function renderEnemyIntro(data) {
 
   elements.enemyIntroMission.innerHTML = "";
   elements.enemyIntroMission.appendChild(createMissionInfoList(data.missionDisplay));
-
-  elements.enemyIntroReward.textContent = `${data.reward.emoji} ${data.reward.name}`;
 
   elements.fightButton.disabled = false;
 }

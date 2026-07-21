@@ -69,6 +69,7 @@ const OPENING_LINES = [
 let pendingRoomCategoryAssignment = {};
 let pendingFailureNextRoomId = null;
 let pendingIsBossFailure = false;
+let lastUrgentTickSecond = null;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -338,10 +339,21 @@ function applyHintModeForQuestion(hintMode) {
 }
 
 function startRoomTimerForCurrentRoom() {
+  lastUrgentTickSecond = null;
   questTimer.startRoomTimer(questState.currentRoom.timeLimitMs, {
     onTick: (remainingMs) => {
       questState.currentRoom.remainingTimeMs = remainingMs;
       updateQuestHudDisplay();
+
+      // 制限時間のある部屋でのみ発火する（onTick自体、制限時間なしの部屋では
+      // quest-timer.jsがタイマーを起動しないため呼ばれない）。段位認定モードと
+      // 同じ残り時間から、1秒につき1回だけ効果音を鳴らす。
+      const remainingSeconds = Math.ceil(remainingMs / 1000);
+      const isUrgent = remainingMs > 0 && remainingMs <= APP_CONFIG.rankUrgentThresholdSeconds * 1000;
+      if (isUrgent && lastUrgentTickSecond !== remainingSeconds) {
+        lastUrgentTickSecond = remainingSeconds;
+        audio.playUrgentTickSound();
+      }
     },
     onExpired: handleRoomTimeExpired
   });
