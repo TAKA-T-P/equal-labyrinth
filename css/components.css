@@ -193,6 +193,18 @@
   font-weight: 600;
 }
 
+/* モード選択（トレーニング／クエスト／段位認定）の3つは、狭い画面幅でも
+   必ず同じ段に横並びになるよう、他の選択ボタン群より横幅を詰める */
+.mode-choice-group {
+  flex-wrap: nowrap;
+}
+
+.mode-choice-group .choice-button {
+  min-width: 0;
+  padding: 6px 4px;
+  font-size: 0.82rem;
+}
+
 .choice-button.is-selected {
   background: linear-gradient(
     135deg,
