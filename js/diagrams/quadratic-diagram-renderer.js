@@ -30,6 +30,34 @@ function createSvgText(x, y, text, attributes = {}) {
   return element;
 }
 
+/**
+ * 「この数値はどこからどこまでの長さか」を示す、ひげ（引き出し線）を描く。
+ * 2点(x1,y1)-(x2,y2)を、指定した向き・量だけ弧を描くように膨らませてつなぐ
+ * 破線の曲線で、寸法線のように長さの範囲を視覚的に示す。
+ * @param {number} x1
+ * @param {number} y1
+ * @param {number} x2
+ * @param {number} y2
+ * @param {number} bulge 弧の膨らむ量（px）。垂直な区間では正で右・負で左、
+ *   水平な区間では正で下・負で上へ膨らむ。
+ */
+function createLengthWhisker(x1, y1, x2, y2, bulge) {
+  const midX = (x1 + x2) / 2;
+  const midY = (y1 + y2) / 2;
+  const isVertical = x1 === x2;
+  const controlX = isVertical ? midX + bulge : midX;
+  const controlY = isVertical ? midY : midY + bulge;
+
+  return createSvgElement("path", {
+    d: `M ${x1} ${y1} Q ${controlX} ${controlY} ${x2} ${y2}`,
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": 1,
+    "stroke-dasharray": "3 3",
+    opacity: 0.55
+  });
+}
+
 function createRootSvg(ariaLabel) {
   return createSvgElement("svg", {
     viewBox: VIEW_BOX,
@@ -66,10 +94,12 @@ function buildCrossRoadSvg(diagram) {
   const svg = createRootSvg(ariaLabel);
 
   const fieldX = 50;
-  const fieldY = 30;
+  const fieldY = 44;
   const fieldW = 220;
-  const fieldH = 160;
-  const pathW = 40;
+  const fieldH = 140;
+  const pathW = 36;
+  const roadLeftX = fieldX + (fieldW - pathW) / 2;
+  const roadRightX = fieldX + (fieldW + pathW) / 2;
 
   svg.appendChild(
     createSvgElement("rect", {
@@ -86,7 +116,7 @@ function buildCrossRoadSvg(diagram) {
   // 縦の道
   svg.appendChild(
     createSvgElement("rect", {
-      x: fieldX + (fieldW - pathW) / 2,
+      x: roadLeftX,
       y: fieldY,
       width: pathW,
       height: fieldH,
@@ -107,15 +137,21 @@ function buildCrossRoadSvg(diagram) {
     })
   );
 
-  svg.appendChild(createSvgText(fieldX + fieldW / 2, fieldY + fieldH + 24, `横 ${widthValue}`));
+  // 「20m」＝長方形の横幅全体であることを示すひげ（下辺の左端〜右端）
+  svg.appendChild(createLengthWhisker(fieldX, fieldY + fieldH, fieldX + fieldW, fieldY + fieldH, 18));
+  svg.appendChild(createSvgText(fieldX + fieldW / 2, fieldY + fieldH + 32, `横 ${widthValue}`));
+
+  // 「10m」＝長方形の縦幅全体であることを示すひげ（左辺の上端〜下端）
+  svg.appendChild(createLengthWhisker(fieldX, fieldY, fieldX, fieldY + fieldH, -18));
   svg.appendChild(
-    createSvgText(fieldX - 22, fieldY + fieldH / 2, `縦 ${heightValue}`, {
-      transform: `rotate(-90 ${fieldX - 22} ${fieldY + fieldH / 2})`
+    createSvgText(fieldX - 34, fieldY + fieldH / 2, `縦 ${heightValue}`, {
+      transform: `rotate(-90 ${fieldX - 34} ${fieldY + fieldH / 2})`
     })
   );
 
-  const pathLabelX = fieldX + fieldW / 2;
-  svg.appendChild(createSvgText(pathLabelX, fieldY - 10, `幅 ${pathWidthSymbol}`));
+  // 「x m」＝縦の道の幅だけであることを示すひげ（上辺のうち道の部分だけ）
+  svg.appendChild(createLengthWhisker(roadLeftX, fieldY, roadRightX, fieldY, -14));
+  svg.appendChild(createSvgText(fieldX + fieldW / 2, fieldY - 22, `幅 ${pathWidthSymbol}`));
 
   return svg;
 }
@@ -131,8 +167,8 @@ function buildOpenBoxNetSvg(diagram) {
   const svg = createRootSvg(ariaLabel);
 
   const paperX = 60;
-  const paperY = 20;
-  const paperSize = 200;
+  const paperY = 40;
+  const paperSize = 184;
   const cutSize = 50;
 
   svg.appendChild(
@@ -190,8 +226,15 @@ function buildOpenBoxNetSvg(diagram) {
     );
   });
 
-  svg.appendChild(createSvgText(paperX + paperSize / 2, paperY - 8, `1辺 ${paperSideSymbol}`));
-  svg.appendChild(createSvgText(paperX + cutSize / 2, paperY + cutSize / 2 + 5, `${cutSideValue}`));
+  // 「x cm」＝厚紙の1辺全体であることを示すひげ（上辺の左端〜右端）
+  svg.appendChild(createLengthWhisker(paperX, paperY, paperX + paperSize, paperY, -16));
+  svg.appendChild(createSvgText(paperX + paperSize / 2, paperY - 24, `1辺 ${paperSideSymbol}`));
+
+  // 「5cm」＝切り取る正方形の1辺だけであることを示すひげ（左上の隅の上端〜下端）
+  svg.appendChild(createLengthWhisker(paperX, paperY, paperX, paperY + cutSize, -16));
+  svg.appendChild(
+    createSvgText(paperX - 30, paperY + cutSize / 2 + 5, `${cutSideValue}`)
+  );
 
   return svg;
 }
