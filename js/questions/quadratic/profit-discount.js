@@ -11,7 +11,7 @@ import {
 const CATEGORY_ID = "L3-09";
 const CATEGORY_NAME = "割合の応用・利益と割引";
 const UNIT = "quadratic";
-const KEYPAD_SYMBOLS = ["x", "x²", "square", "+", "-", "×", "fraction", "(", ")", "="];
+const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "fraction", "(", ")", "="];
 
 function buildProfitDiscountQuestion({ templateId, itemName, basePrice }) {
   const n = randomInt(1, 9); // x割（1〜9割）

@@ -11,7 +11,7 @@ import {
 const CATEGORY_ID = "L3-05";
 const CATEGORY_NAME = "面積・十字路";
 const UNIT = "quadratic";
-const KEYPAD_SYMBOLS = ["x", "x²", "square", "+", "-", "×", "(", ")", "="];
+const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
 function buildCrossRoadQuestion({ templateId, scenario, widthValue, heightValue }) {
   const minSide = Math.min(widthValue, heightValue);

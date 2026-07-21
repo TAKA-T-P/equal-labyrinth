@@ -10,7 +10,7 @@ import {
 const CATEGORY_ID = "L3-02";
 const CATEGORY_NAME = "数とその平方";
 const UNIT = "quadratic";
-const KEYPAD_SYMBOLS = ["x", "x²", "square", "+", "-", "×", "(", ")", "="];
+const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
 export const numberSquareTemplates = [
   {

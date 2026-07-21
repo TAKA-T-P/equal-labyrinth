@@ -10,7 +10,7 @@ import {
 const CATEGORY_ID = "L3-01";
 const CATEGORY_NAME = "連続する整数の積";
 const UNIT = "quadratic";
-const KEYPAD_SYMBOLS = ["x", "x²", "square", "+", "×", "(", ")", "="];
+const KEYPAD_SYMBOLS = ["x", "square", "+", "(", ")", "="];
 
 export const consecutiveIntegersTemplates = [
   {

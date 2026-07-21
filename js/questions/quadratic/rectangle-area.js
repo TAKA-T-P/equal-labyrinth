@@ -10,7 +10,7 @@ import {
 const CATEGORY_ID = "L3-03";
 const CATEGORY_NAME = "長方形の面積";
 const UNIT = "quadratic";
-const KEYPAD_SYMBOLS = ["x", "x²", "square", "+", "-", "×", "(", ")", "="];
+const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
 export const rectangleAreaTemplates = [
   {

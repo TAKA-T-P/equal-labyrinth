@@ -11,9 +11,9 @@ import {
 const CATEGORY_ID = "L3-06";
 const CATEGORY_NAME = "容積・ふたのない箱";
 const UNIT = "quadratic";
-const KEYPAD_SYMBOLS = ["x", "x²", "square", "-", "×", "(", ")", "="];
+const KEYPAD_SYMBOLS = ["x", "square", "-", "(", ")", "="];
 // 長方形パターンは「x＋widthDiff−2c」のように＋も使うため、専用の記号一覧を使う
-const RECTANGULAR_KEYPAD_SYMBOLS = ["x", "x²", "square", "+", "-", "×", "(", ")", "="];
+const RECTANGULAR_KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
 function buildOpenBoxQuestion({ templateId, scenario, cutSideValue }) {
   const doubledCut = cutSideValue * 2;

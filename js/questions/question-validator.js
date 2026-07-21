@@ -638,8 +638,9 @@ function validateQuadraticRankDifficulty(question) {
 }
 
 /**
- * 2次方程式用のkeypadSymbolsを検証する。x・x²・＝がすべて必要になる点が、
- * 中1（xのみ必須）との違い。
+ * 2次方程式用のkeypadSymbolsを検証する。x・square（□²）・＝がすべて必要になる点が、
+ * 中1（xのみ必須）との違い。x²ボタンは「x」→「□²」で代用できるため必須にしない
+ * （x²は非表示だがALLOWED_KEYPAD_SYMBOLSには残しており、指定しても許可はする）。
  */
 function validateKeypadSymbolsForQuadratic(keypadSymbols) {
   if (!Array.isArray(keypadSymbols) || keypadSymbols.length === 0) {
@@ -648,8 +649,8 @@ function validateKeypadSymbolsForQuadratic(keypadSymbols) {
   if (!keypadSymbols.includes("x")) {
     return "keypadSymbolsにxが含まれていません。";
   }
-  if (!keypadSymbols.includes("x²")) {
-    return "keypadSymbolsにx²が含まれていません。";
+  if (!keypadSymbols.includes("square")) {
+    return "keypadSymbolsにsquare（□²）が含まれていません。";
   }
   if (!keypadSymbols.includes("=")) {
     return "keypadSymbolsに＝が含まれていません。";

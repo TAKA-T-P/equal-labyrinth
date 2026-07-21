@@ -12,7 +12,7 @@ import {
 const CATEGORY_ID = "L3-07";
 const CATEGORY_NAME = "動点";
 const UNIT = "quadratic";
-const KEYPAD_SYMBOLS = ["x", "x²", "square", "-", "×", "(", ")", "="];
+const KEYPAD_SYMBOLS = ["x", "square", "-", "(", ")", "="];
 
 function buildMovingPointsQuestion({
   templateId,

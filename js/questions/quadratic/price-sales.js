@@ -10,7 +10,7 @@ import {
 const CATEGORY_ID = "L3-08";
 const CATEGORY_NAME = "価格と売上";
 const UNIT = "quadratic";
-const KEYPAD_SYMBOLS = ["x", "x²", "square", "+", "-", "×", "(", ")", "="];
+const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
 export const priceSalesTemplates = [
   {

@@ -10,7 +10,7 @@ import {
 const CATEGORY_ID = "L3-04";
 const CATEGORY_NAME = "面積の増減";
 const UNIT = "quadratic";
-const KEYPAD_SYMBOLS = ["x", "x²", "square", "+", "-", "×", "(", ")", "="];
+const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
 export const areaChangeTemplates = [
   {
