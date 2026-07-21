@@ -50,6 +50,7 @@
 .title-header {
   text-align: center;
   padding: 12px 0 4px;
+  margin-bottom: -10px;
 }
 
 .title-footer {

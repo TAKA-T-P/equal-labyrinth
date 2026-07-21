@@ -10,6 +10,7 @@
   font-family: "Arial Black", "Arial Narrow Bold", Impact, "Segoe UI", sans-serif;
   font-size: clamp(1.6rem, 7.5vw, 2.3rem);
   font-weight: 900;
+  line-height: 1.05;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   background: linear-gradient(90deg, #ffe9a8, #d8b4ff 60%, #9fc4ff);
@@ -22,6 +23,7 @@
 .app-subtitle {
   margin-top: 2px;
   font-size: 1rem;
+  line-height: 1.2;
   color: var(--color-text-muted);
 }
 
@@ -298,19 +300,20 @@ input[type="range"] {
 .category-list {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 0;
 }
 
 .category-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 36px;
+  gap: 8px;
+  min-height: 24px;
+  padding: 2px 0;
 }
 
 .category-item input[type="checkbox"] {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   accent-color: var(--color-button-gold);
 }
@@ -322,7 +325,7 @@ input[type="range"] {
 
 .category-item-name {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.76rem;
 }
 
 .warning-text {
