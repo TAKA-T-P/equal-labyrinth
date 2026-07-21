@@ -159,10 +159,11 @@
   text-align: center;
 }
 
-/* 図を表示している間、問題文カードだけは背景を暗くする幕（quadratic-diagram-backdrop）
-   より前面に出し、暗くならないようにする。図カード自体は下方向にずらしてあるため、
-   問題文カードの上に図カードが重なることはない。 */
-body.is-diagram-open .prompt-card {
+/* 図・ヒントを表示している間、問題文カードだけは背景を暗くする幕
+   （quadratic-diagram-backdrop・hint-backdrop）より前面に出し、暗くならないようにする。
+   図カード自体は下方向にずらしてあるため、問題文カードの上に図カードが重なることはない。 */
+body.is-diagram-open .prompt-card,
+body.is-hint-open .prompt-card {
   position: relative;
   z-index: 61;
 }
@@ -847,9 +848,22 @@ input[type="range"] {
   margin-bottom: 0;
 }
 
-.answer-reveal-next {
-  width: 100%;
+.answer-reveal-actions {
+  display: flex;
+  gap: 8px;
   margin-top: 12px;
+}
+
+.answer-reveal-retry {
+  flex: 1 1 0;
+}
+
+.answer-reveal-retry[hidden] {
+  display: none;
+}
+
+.answer-reveal-next {
+  flex: 1 1 0;
 }
 
 .answer-reveal-next[hidden] {

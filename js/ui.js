@@ -94,6 +94,7 @@ const elements = {
   modelEquationsContainer: document.getElementById("model-equations-container"),
   solutionText: document.getElementById("solution-text"),
   nextQuestionButton: document.getElementById("next-question-button"),
+  retryQuestionButton: document.getElementById("retry-question-button"),
   hintButton: document.getElementById("hint-button"),
   passButton: document.getElementById("pass-button"),
   submitButton: document.getElementById("submit-button"),
@@ -698,11 +699,14 @@ export function showHintPanel(hintText) {
   renderTextWithStyledVariable(elements.hintText, hintText);
   elements.hintPanel.hidden = false;
   elements.hintBackdrop.hidden = false;
+  // ヒント表示中も問題文が読めるよう、問題文カードだけは背景を暗くする幕より前面に出す
+  document.body.classList.add("is-hint-open");
 }
 
 export function hideHintPanel() {
   elements.hintPanel.hidden = true;
   elements.hintBackdrop.hidden = true;
+  document.body.classList.remove("is-hint-open");
 }
 
 export function isHintPanelOpen() {
@@ -763,6 +767,7 @@ export function hideAnswerReveal() {
   elements.answerRevealPanel.hidden = true;
   elements.answerRevealBackdrop.hidden = true;
   showNextQuestionButton(false);
+  showRetryQuestionButton(false);
 }
 
 /**
@@ -770,6 +775,14 @@ export function hideAnswerReveal() {
  */
 export function showNextQuestionButton(show) {
   elements.nextQuestionButton.hidden = !show;
+}
+
+/**
+ * トレーニングモードの正解・パス時に、「次へ」の左隣に表示する「もう一度」ボタンの
+ * 表示を切り替える。同じ問題を出題し直す（`handleRetryQuestion()`）ためのボタン。
+ */
+export function showRetryQuestionButton(show) {
+  elements.retryQuestionButton.hidden = !show;
 }
 
 const JUDGE_CLASS_BY_STATUS = {
@@ -1457,6 +1470,10 @@ export function initUI(callbacks) {
 
   elements.nextQuestionButton.addEventListener("click", () => {
     callbacks.onNextQuestion();
+  });
+
+  elements.retryQuestionButton.addEventListener("click", () => {
+    callbacks.onRetryQuestion();
   });
 
   elements.replayButton.addEventListener("click", () => {

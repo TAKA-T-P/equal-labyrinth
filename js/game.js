@@ -198,6 +198,7 @@ export function initGame() {
     onEquationInputTap: handleEquationInputTap,
     onSubmit: handleSubmit,
     onNextQuestion: handleNextQuestion,
+    onRetryQuestion: handleRetryQuestion,
     onHintRequest: handleHintRequest,
     onPass: handlePass,
     onPassConfirmYes: handlePassConfirmYes,
@@ -952,6 +953,7 @@ function handleCorrectAnswer() {
 
   // トレーニングモードでは、生徒が「次へ」を押すまで正解表示を残す
   ui.showNextQuestionButton(true);
+  ui.showRetryQuestionButton(true);
 }
 
 /**
@@ -959,7 +961,20 @@ function handleCorrectAnswer() {
  */
 function handleNextQuestion() {
   ui.showNextQuestionButton(false);
+  ui.showRetryQuestionButton(false);
   advanceToNextQuestionOrResult();
+}
+
+/**
+ * トレーニングモードで、正解・パス表示の「もう一度」ボタンが押されたときの処理。
+ * 次の問題へは進まず、同じ問題を出題直後の状態（入力欄・ヒント・パスの解禁状態など）
+ * へ戻す。正解数・パス回数・履歴はすでに記録された分をそのまま残す。
+ */
+function handleRetryQuestion() {
+  ui.showNextQuestionButton(false);
+  ui.showRetryQuestionButton(false);
+  ui.hideAnswerReveal();
+  beginQuestion(gameState.currentQuestionIndex);
 }
 
 /**
@@ -1011,6 +1026,7 @@ function handleTrainingPass() {
   // 段位認定モードと異なり、トレーニングモードでは自動で次の問題へ進まず
   // 「次へ」ボタンを押すまで模範式を表示し続ける
   ui.showNextQuestionButton(true);
+  ui.showRetryQuestionButton(true);
 }
 
 function lockQuestionInput() {
