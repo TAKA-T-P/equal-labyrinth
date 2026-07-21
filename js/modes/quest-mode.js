@@ -207,7 +207,10 @@ async function enterRoomAndBeginMission(roomId, options = {}) {
         previousCategoryId ? [previousCategoryId] : []
       );
     questState.currentRoom.categoryId = categoryId;
-    questState.currentRoom.questionCategorySequence = [categoryId];
+    // 必要正解数1〜2問の部屋は、同じカテゴリを部屋内の全問で使う（「？？？」にはしない）ため、
+    // 必要正解数の分だけ同じcategoryIdを並べ、2問目以降もquestionCategorySequenceの
+    // 範囲内に収まるようにする（1要素だけだと2問目でundefinedになり出題が止まってしまう）。
+    questState.currentRoom.questionCategorySequence = Array(room.mission.requiredCorrect).fill(categoryId);
   }
 
   const timeLimitSeconds = computeTimeLimitSeconds(room.mission.timeLimitMultiplier, questState.unit);
