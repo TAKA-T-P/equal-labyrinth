@@ -110,41 +110,44 @@ export function showQuestView(viewName) {
 // ============================================================
 
 /**
- * 冒険マップを描画する。まだ到達していないステージは「？」で表示する。
- * @param {string[]} visitedRoomIds ステージ順（1〜5）に並んだ、これまでに訪れた部屋ID
+ * 冒険マップを描画する。まだ到達していないステージは「??」で表示する。
+ * 例：B🐗 → D🐍 → I👁️ → ?? → ??
+ * @param {Array<{roomId: string, emoji: string}>} visitedRooms
+ *   ステージ順（1〜5）に並んだ、これまでに訪れた部屋の部屋ID・敵の絵文字
  * @param {number} totalStages
  */
-export function renderQuestMap(visitedRoomIds, totalStages = 5) {
+export function renderQuestMap(visitedRooms, totalStages = 5) {
   elements.map.innerHTML = "";
 
+  const heading = document.createElement("p");
+  heading.className = "quest-map-heading";
+  heading.textContent = "ROOM";
+  elements.map.appendChild(heading);
+
+  const chain = document.createElement("div");
+  chain.className = "quest-map-chain";
+
   for (let stage = 1; stage <= totalStages; stage += 1) {
-    const roomId = visitedRoomIds[stage - 1];
-    const row = document.createElement("div");
-    row.className = "quest-map-row";
-    if (stage === visitedRoomIds.length) {
-      row.classList.add("is-current");
+    const room = visitedRooms[stage - 1];
+
+    const entry = document.createElement("span");
+    entry.className = "quest-map-entry";
+    if (stage === visitedRooms.length) {
+      entry.classList.add("is-current");
     }
-
-    const label = document.createElement("span");
-    label.className = "quest-map-label";
-    label.textContent = `STAGE ${stage}`;
-
-    const value = document.createElement("span");
-    value.className = "quest-map-value";
-    value.textContent = roomId ? `${roomId}の部屋` : "？";
-
-    row.appendChild(label);
-    row.appendChild(value);
-    elements.map.appendChild(row);
+    entry.textContent = room ? `${room.roomId}${room.emoji}` : "??";
+    chain.appendChild(entry);
 
     if (stage < totalStages) {
-      const arrow = document.createElement("div");
-      arrow.className = "quest-map-arrow";
-      arrow.textContent = "↓";
+      const arrow = document.createElement("span");
+      arrow.className = "quest-map-chain-arrow";
+      arrow.textContent = "→";
       arrow.setAttribute("aria-hidden", "true");
-      elements.map.appendChild(arrow);
+      chain.appendChild(arrow);
     }
   }
+
+  elements.map.appendChild(chain);
 }
 
 // ============================================================

@@ -112,6 +112,16 @@ function buildRoomChoiceDisplay(room, categoryId) {
 }
 
 /**
+ * マップ表示用に、訪れた部屋IDの列を「部屋ID＋敵の絵文字」の列へ変換する。
+ */
+function buildVisitedRoomsForMap() {
+  return questState.visitedRoomIds.map((roomId) => ({
+    roomId,
+    emoji: getRoom(roomId).enemy.emoji
+  }));
+}
+
+/**
  * 2部屋分のカテゴリを、重複しないよう選出する
  * （必要正解数3問以上の「？？？」部屋は対象外＝groupIdにnullを渡す）。
  */
@@ -189,7 +199,7 @@ async function enterRoomAndBeginMission(roomId, options = {}) {
   enterRoom(roomId);
   questState.currentStage = room.stage;
   recordEnemyEncounter(room.enemy);
-  questUi.renderQuestMap(questState.visitedRoomIds);
+  questUi.renderQuestMap(buildVisitedRoomsForMap());
 
   const isHidden = isHiddenCategoryMission(room.mission.requiredCorrect);
   if (isHidden) {

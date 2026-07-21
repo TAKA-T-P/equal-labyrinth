@@ -75,43 +75,43 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   padding: 10px 12px;
   background: var(--color-panel);
   border: 1px solid var(--color-panel-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-panel);
-  font-size: 0.78rem;
+  font-size: 0.85rem;
 }
 
-.quest-map-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  justify-content: center;
+.quest-map-heading {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   color: var(--color-text-muted);
 }
 
-.quest-map-row.is-current {
-  color: var(--color-correct-gold);
+.quest-map-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: 6px;
+  row-gap: 4px;
+}
+
+.quest-map-entry {
+  color: var(--color-text-muted);
   font-weight: 700;
 }
 
-.quest-map-label {
-  min-width: 4.5em;
-  text-align: right;
+.quest-map-entry.is-current {
+  color: var(--color-correct-gold);
 }
 
-.quest-map-value {
-  min-width: 3em;
-  text-align: left;
-}
-
-.quest-map-arrow {
+.quest-map-chain-arrow {
   color: var(--color-text-muted);
-  font-size: 0.7rem;
-  line-height: 1;
+  font-size: 0.75rem;
 }
 
 /* ---------------- オープニング ---------------- */
@@ -190,6 +190,14 @@
 .quest-mission-info dt {
   color: var(--color-text-muted);
   text-align: left;
+}
+
+/* 敵出現画面（「○○があらわれた！」）のミッション情報だけは、
+   部屋選択カードと違って横幅いっぱいに広げず、画面中央に寄せて表示する */
+#quest-enemy-intro-mission {
+  grid-template-columns: max-content max-content;
+  justify-content: center;
+  width: auto;
 }
 
 .quest-mission-info dd {
