@@ -402,6 +402,9 @@ function beginQuestion(index) {
   ui.resetGameScreenPanels();
   ui.showRankHud(false);
   ui.showRetireButton(true);
+  // クエストモードではパスボタン自体を非表示にするため、直前にクエストモードを
+  // 遊んでいた場合に備えて、トレーニングモードでは必ず表示し直す
+  ui.setPassButtonVisible(true);
   ui.renderUnitLabel(gameState.unit);
   ui.showEquationInputMode(gameState.unit);
   ui.renderQuestionProgress(index + 1, gameState.totalQuestions);

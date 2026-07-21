@@ -245,6 +245,9 @@ function beginRankQuestion() {
 
   ui.showScreen("game");
   ui.resetGameScreenPanels();
+  // クエストモードではパスボタン自体を非表示にするため、直前にクエストモードを
+  // 遊んでいた場合に備えて、段位認定モードでは必ず表示し直す
+  ui.setPassButtonVisible(true);
   ui.renderUnitLabel(gameState.unit);
   ui.showEquationInputMode(gameState.unit);
   ui.renderQuestionPrompt(question.prompt);
