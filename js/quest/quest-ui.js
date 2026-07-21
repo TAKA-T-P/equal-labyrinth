@@ -308,14 +308,14 @@ export function getVictoryEmojiElement() {
 // ============================================================
 
 export function resetTreasureChest() {
-  elements.treasureChest.textContent = "📦";
+  elements.treasureChest.textContent = "🔒";
   elements.treasureChest.classList.remove("quest-anim-chest-open", "is-open");
   elements.openChestButton.hidden = false;
   elements.openChestButton.disabled = false;
 }
 
 export function markTreasureChestOpen() {
-  elements.treasureChest.textContent = "📂";
+  elements.treasureChest.textContent = "🔓";
   elements.treasureChest.classList.add("is-open");
   elements.openChestButton.hidden = true;
 }
