@@ -238,10 +238,31 @@ function showEnemyIntro(room, isHidden) {
 }
 
 // ============================================================
-// 「たたかう」→ 出題
+// 「たたかう」→ カウントダウン → 出題
 // ============================================================
 
+/**
+ * トレーニング・段位認定と同じ「3・2・1・START!」のカウントダウン画面を挟む。
+ * 部屋タイマー・問題タイマーはこの後のbeginQuestQuestion()内で開始するため、
+ * カウントダウン中はどちらのタイマーも動いていない。
+ */
+async function runQuestCountdown() {
+  ui.showScreen("countdown");
+  const steps = ["3", "2", "1", "START!"];
+
+  for (const step of steps) {
+    ui.renderCountdownValue(step);
+    if (step === "START!") {
+      audio.playStartSound();
+    } else {
+      audio.playCountdownSound();
+    }
+    await sleep(APP_CONFIG.countdownMilliseconds);
+  }
+}
+
 async function handleFight() {
+  await runQuestCountdown();
   await beginQuestQuestion();
 }
 

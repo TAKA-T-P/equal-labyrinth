@@ -467,6 +467,12 @@ export function renderModeSelection(mode) {
   elements.rankDifficultyGroup.hidden = !isRank;
 
   elements.modeDescription.textContent = MODE_DESCRIPTIONS[mode] || "";
+
+  // タイトル画面の背景を、選んだモードに応じてごくわずかに色づける
+  // （クエストは既定の背景のまま）。#screen-titleにだけ適用するため、
+  // 他の画面（ゲーム中・結果画面など）の背景には影響しない。
+  elements.screens.title.classList.toggle("mode-tint-training", isTraining);
+  elements.screens.title.classList.toggle("mode-tint-rank", isRank);
 }
 
 export function renderDifficultySelection(difficulty) {

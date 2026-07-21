@@ -39,11 +39,11 @@
         <button type="button" class="choice-button is-selected" id="mode-training" data-mode="training" aria-pressed="true">
           トレーニング
         </button>
-        <button type="button" class="choice-button" id="mode-rank" data-mode="rank" aria-pressed="false">
-          段位認定
-        </button>
         <button type="button" class="choice-button" id="mode-quest" data-mode="quest" aria-pressed="false">
           クエスト
+        </button>
+        <button type="button" class="choice-button" id="mode-rank" data-mode="rank" aria-pressed="false">
+          段位認定
         </button>
       </div>
 
@@ -157,13 +157,15 @@
       <div class="game-main">
         <div class="prompt-card">
           <p id="question-prompt" class="question-prompt">問題文がここに表示されます。</p>
-          <button type="button" id="show-diagram-button" class="show-diagram-button" hidden>図を表示</button>
         </div>
 
-        <div class="equation-input-card" id="equation-input-single">
-          <div id="equation-input-scroll" class="equation-input-scroll">
-            <div id="equation-input-display" class="equation-input-display" aria-live="polite"></div>
+        <div class="equation-input-row">
+          <div class="equation-input-card" id="equation-input-single">
+            <div id="equation-input-scroll" class="equation-input-scroll">
+              <div id="equation-input-display" class="equation-input-display" aria-live="polite"></div>
+            </div>
           </div>
+          <button type="button" id="show-diagram-button" class="show-diagram-button" hidden>図を表示</button>
         </div>
 
         <div class="equation-system-input" id="equation-input-system" hidden>

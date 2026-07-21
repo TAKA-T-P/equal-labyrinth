@@ -99,33 +99,44 @@
 }
 
 .prompt-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
   background: var(--color-parchment);
   color: var(--color-parchment-text);
   border-color: #b89b5e;
 }
 
 .question-prompt {
-  align-self: stretch;
   font-size: 0.92rem;
   line-height: 1.45;
   max-height: 7.25em; /* line-height(1.45) × 5行ぶん */
   overflow-y: auto;
 }
 
-/* 2次方程式の図形問題（十字路・ふたのない箱・動点）専用：「図を表示」ボタン（問題文の右下） */
+/* 数式入力欄と「図を表示」ボタンを横並びにする行
+   （ボタンは2次方程式の図形問題（十字路・ふたのない箱・動点）専用で、
+   それ以外の問題ではhiddenのまま） */
+.equation-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.equation-input-row .equation-input-card {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .show-diagram-button {
+  flex: 0 0 auto;
+  align-self: center;
   min-height: 30px;
   padding: 4px 14px;
   border-radius: 8px;
-  border: 1px solid #b89b5e;
-  background: rgba(255, 255, 255, 0.25);
-  color: var(--color-parchment-text);
+  border: 1px solid var(--color-panel-border);
+  background: var(--color-panel);
+  color: var(--color-text-main);
   font-size: 0.82rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .show-diagram-button[hidden] {

@@ -204,8 +204,7 @@ function createMissionInfoList(mission) {
 
 /**
  * 部屋選択カード1枚を作る。
- * @param {{roomId: string, enemy: {emoji: string, name: string},
- *   missionDisplay: object, reward: {emoji: string, name: string}}} choice
+ * @param {{roomId: string, enemy: {emoji: string, name: string}, missionDisplay: object}} choice
  * @param {() => void} onSelect
  */
 function createRoomChoiceCard(choice, onSelect) {
@@ -226,17 +225,6 @@ function createRoomChoiceCard(choice, onSelect) {
 
   const missionList = createMissionInfoList(choice.missionDisplay);
 
-  const rewardRow = document.createElement("p");
-  rewardRow.className = "quest-reward-preview";
-  const rewardLabel = document.createElement("span");
-  rewardLabel.className = "quest-reward-preview-label";
-  rewardLabel.textContent = "勝利報酬";
-  const rewardLine = document.createElement("span");
-  rewardLine.className = "quest-reward-line";
-  rewardLine.textContent = `${choice.reward.emoji} ${choice.reward.name}`;
-  rewardRow.appendChild(rewardLabel);
-  rewardRow.appendChild(rewardLine);
-
   const selectButton = document.createElement("button");
   selectButton.type = "button";
   selectButton.className = "primary-button quest-room-card-select";
@@ -250,7 +238,6 @@ function createRoomChoiceCard(choice, onSelect) {
   card.appendChild(emoji);
   card.appendChild(enemyName);
   card.appendChild(missionList);
-  card.appendChild(rewardRow);
   card.appendChild(selectButton);
 
   return card;
