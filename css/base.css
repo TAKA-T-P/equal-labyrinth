@@ -70,15 +70,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* タイトル画面の背景を、選択中のモードに応じてごくわずかに色づける
-   （トレーニング＝わずかに緑、段位認定＝わずかに赤。クエストは既定の背景のまま）。
-   bodyの背景と同じ形の放射グラデーションに、薄い色のグラデーションを重ねるだけで、
+/* タイトル画面の背景を、選択中のモードに応じて色づける
+   （トレーニング＝緑、段位認定＝赤。クエストは既定の背景のまま）。
+   bodyの背景と同じ形の放射グラデーションに、色のグラデーションを重ねるだけで、
    基本の色味そのものは変えない。#screen-titleにだけ適用するため、他の画面には影響しない。 */
 #screen-title.mode-tint-training {
   background: radial-gradient(
       circle at 50% 0%,
-      rgba(53, 196, 106, 0.12),
-      rgba(53, 196, 106, 0) 70%
+      rgba(53, 196, 106, 0.34),
+      rgba(53, 196, 106, 0) 100%
     ),
     radial-gradient(
       circle at 50% 0%,
@@ -91,8 +91,8 @@ body {
 #screen-title.mode-tint-rank {
   background: radial-gradient(
       circle at 50% 0%,
-      rgba(239, 95, 108, 0.12),
-      rgba(239, 95, 108, 0) 70%
+      rgba(239, 95, 108, 0.34),
+      rgba(239, 95, 108, 0) 100%
     ),
     radial-gradient(
       circle at 50% 0%,
