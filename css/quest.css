@@ -267,6 +267,20 @@
 .quest-item-emoji {
   font-size: 4rem;
   line-height: 1;
+  /* 表示中はずっとゆっくり明滅する光るエフェクトをかける
+     （宝箱を開けた直後の.quest-anim-item-reveal演出とは別。
+     演出中はそちらのanimationが上書きし、演出が終わると自動的にこちらへ戻る） */
+  animation: quest-item-glow-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes quest-item-glow-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(232, 201, 104, 0.45));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(232, 201, 104, 0.85));
+  }
 }
 
 .quest-item-name {
@@ -290,6 +304,59 @@
 
 .quest-failure-line {
   margin-top: 2px;
+}
+
+/* ---------------- 冒険結果（ボス撃破エンディングのみ：光が差し込む背景演出） ---------------- */
+/* 敗走エンディング・リタイア結果には出さない（is-victory-endingクラスがある時だけ）。
+   ::beforeで放射状の光の筋を回転させ、::afterで中央にやわらかい光の輪を重ねる。
+   どちらもz-index:-1で、見出し・記録などの実際のコンテンツより後ろに敷く。 */
+#quest-view-summary.is-victory-ending {
+  position: relative;
+  overflow: hidden;
+}
+
+#quest-view-summary.is-victory-ending::before,
+#quest-view-summary.is-victory-ending::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+#quest-view-summary.is-victory-ending::before {
+  top: -30%;
+  width: 260%;
+  height: 260%;
+  transform: translateX(-50%);
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(232, 201, 104, 0.22) 0deg 3deg,
+    rgba(232, 201, 104, 0) 3deg 26deg
+  );
+  animation: quest-victory-rays-spin 24s linear infinite;
+}
+
+#quest-view-summary.is-victory-ending::after {
+  top: -15%;
+  width: 70%;
+  height: 45%;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 246, 214, 0.4),
+    rgba(232, 201, 104, 0) 70%
+  );
+  filter: blur(4px);
+}
+
+@keyframes quest-victory-rays-spin {
+  from {
+    transform: translateX(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateX(-50%) rotate(360deg);
+  }
 }
 
 /* ---------------- 冒険結果（共通） ---------------- */

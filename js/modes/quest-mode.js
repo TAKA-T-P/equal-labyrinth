@@ -708,10 +708,11 @@ function handleFailureNext() {
 // 冒険結果（ボス撃破エンディング／敗走エンディング／リタイア結果）
 // ============================================================
 
-function buildQuestSummaryData(heading, message) {
+function buildQuestSummaryData(heading, message, isVictory) {
   return {
     heading,
     message,
+    isVictory,
     enemies: questState.encounteredEnemies,
     items: questState.acquiredItemsThisRun,
     correctCount: questState.totals.correctCount,
@@ -722,9 +723,9 @@ function buildQuestSummaryData(heading, message) {
   };
 }
 
-async function showQuestSummaryScreen(heading, message) {
+async function showQuestSummaryScreen(heading, message, isVictory = false) {
   questUi.showQuestView("summary");
-  questUi.renderQuestSummary(buildQuestSummaryData(heading, message));
+  questUi.renderQuestSummary(buildQuestSummaryData(heading, message, isVictory));
 }
 
 async function showQuestClearEnding() {
@@ -732,7 +733,8 @@ async function showQuestClearEnding() {
   await questEffects.playQuestClearEffect();
   await showQuestSummaryScreen(
     "イコール・ラビリンス攻略！",
-    "キミは数々の試練を乗り越え、迷宮から生還した！"
+    "キミは数々の試練を乗り越え、迷宮から生還した！",
+    true
   );
 }
 
