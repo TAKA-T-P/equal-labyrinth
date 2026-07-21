@@ -178,6 +178,7 @@ export async function startQuest(unit) {
 export function stopQuestSession() {
   questTimer.stopRoomTimer();
   timer.stopQuestionTimer();
+  audio.stopQuestEffectSounds();
   questUi.hideQuestScreen();
   ui.showQuestHud(false);
 }
@@ -596,7 +597,7 @@ async function handleMissionSuccess() {
   questUi.showQuestView("victory");
   questUi.renderVictory(room);
 
-  await questEffects.playEnemyDefeatEffect(questUi.getVictoryEmojiElement());
+  await questEffects.playEnemyDefeatEffect(questUi.getVictoryEmojiElement(), { isBoss: isBossRoom(room) });
   await sleep(400);
 
   questState.status = "treasure";
@@ -713,7 +714,6 @@ function buildQuestSummaryData(heading, message) {
     message,
     enemies: questState.encounteredEnemies,
     items: questState.acquiredItemsThisRun,
-    routeText: questState.visitedRoomIds.join(" → "),
     correctCount: questState.totals.correctCount,
     incorrectCount: questState.totals.incorrectCount,
     hintUseCount: questState.totals.hintUseCount,
@@ -766,6 +766,7 @@ async function handleRetireConfirmYes() {
 
   questTimer.stopRoomTimer();
   timer.stopQuestionTimer();
+  audio.stopQuestEffectSounds();
   ui.hideAnswerReveal();
   ui.hideHintPanel();
 

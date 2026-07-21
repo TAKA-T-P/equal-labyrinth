@@ -50,7 +50,6 @@ const elements = {
   summaryMessage: document.getElementById("quest-summary-message"),
   summaryEnemies: document.getElementById("quest-summary-enemies"),
   summaryItems: document.getElementById("quest-summary-items"),
-  summaryRoute: document.getElementById("quest-summary-route"),
   summaryCorrect: document.getElementById("quest-summary-correct"),
   summaryIncorrect: document.getElementById("quest-summary-incorrect"),
   summaryHints: document.getElementById("quest-summary-hints"),
@@ -382,7 +381,6 @@ function renderEmojiList(container, entries) {
  *   message: string,
  *   enemies: Array<{emoji:string, name:string}>,
  *   items: Array<{emoji:string, name:string}>,
- *   routeText: string,
  *   correctCount: number,
  *   incorrectCount: number,
  *   hintUseCount: number,
@@ -396,8 +394,6 @@ export function renderQuestSummary(data) {
 
   renderEmojiList(elements.summaryEnemies, data.enemies);
   renderEmojiList(elements.summaryItems, data.items);
-
-  elements.summaryRoute.textContent = data.routeText;
 
   elements.summaryCorrect.textContent = `${data.correctCount}問`;
   elements.summaryIncorrect.textContent = `${data.incorrectCount}回`;

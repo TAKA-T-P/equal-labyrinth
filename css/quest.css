@@ -324,13 +324,6 @@
   font-size: 0.85rem;
 }
 
-.quest-summary-route {
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  word-break: break-word;
-}
-
 /* ---------------- リタイア確認モーダル ---------------- */
 
 .quest-retire-confirm-panel {

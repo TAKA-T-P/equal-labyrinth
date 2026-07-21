@@ -52,17 +52,22 @@ export async function playEnemyAppearEffect(emojiElement, options = {}) {
  * 敵撃破演出。何度か点滅させたのち、縮小・透明化して消える。
  * prefers-reduced-motionが有効な場合は、短いフェードだけにする。
  * @param {HTMLElement} emojiElement
+ * @param {{isBoss?: boolean}} options
  */
-export async function playEnemyDefeatEffect(emojiElement) {
-  audio.playQuestEnemyDefeatSound();
+export async function playEnemyDefeatEffect(emojiElement, options = {}) {
+  audio.playQuestEnemyDefeatSound({ isBoss: Boolean(options.isBoss) });
 
   if (prefersReducedMotion()) {
     await withTemporaryClass(emojiElement, "quest-anim-fade-out", 300);
     return;
   }
 
-  await withTemporaryClass(emojiElement, "quest-anim-blink", 600);
-  await withTemporaryClass(emojiElement, "quest-anim-vanish", 500);
+  // ボス撃破音（約1.35秒）は通常の敵撃破音（約0.85秒）より長いため、
+  // 点滅・消滅の演出も少しだけ引き延ばして同期させる。
+  const blinkDuration = options.isBoss ? 700 : 600;
+  const vanishDuration = options.isBoss ? 650 : 500;
+  await withTemporaryClass(emojiElement, "quest-anim-blink", blinkDuration);
+  await withTemporaryClass(emojiElement, "quest-anim-vanish", vanishDuration);
 }
 
 /**
@@ -91,7 +96,7 @@ export function playTreasureFoundEffect() {
  * @param {HTMLElement} itemEmojiElement
  */
 export async function playItemRevealEffect(itemEmojiElement) {
-  audio.playQuestItemGetSound();
+  audio.playQuestItemAcquiredSound();
 
   const reduced = prefersReducedMotion();
   const className = reduced ? "quest-anim-fade-in" : "quest-anim-item-reveal";
