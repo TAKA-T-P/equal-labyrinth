@@ -71,7 +71,7 @@ body {
 }
 
 /* タイトル画面の背景を、選択中のモードに応じて色づける
-   （トレーニング＝緑、段位認定＝赤。クエストは既定の背景のまま）。
+   （トレーニング＝緑、段位認定＝赤、クエスト＝青）。
    bodyの背景と同じ形の放射グラデーションに、色のグラデーションを重ねるだけで、
    基本の色味そのものは変えない。#screen-titleにだけ適用するため、他の画面には影響しない。 */
 #screen-title.mode-tint-training {
@@ -93,6 +93,20 @@ body {
       circle at 50% 0%,
       rgba(239, 95, 108, 0.34),
       rgba(239, 95, 108, 0) 100%
+    ),
+    radial-gradient(
+      circle at 50% 0%,
+      var(--color-bg-gradient-start),
+      var(--color-bg-gradient-end) 75%
+    );
+  background-attachment: fixed;
+}
+
+#screen-title.mode-tint-quest {
+  background: radial-gradient(
+      circle at 50% 0%,
+      rgba(63, 95, 214, 0.34),
+      rgba(63, 95, 214, 0) 100%
     ),
     radial-gradient(
       circle at 50% 0%,
