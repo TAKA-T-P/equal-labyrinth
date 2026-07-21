@@ -31,6 +31,36 @@ function createSvgText(x, y, text, attributes = {}) {
 }
 
 /**
+ * 「幅 x」のように、末尾の文字変数（x）だけ数式用フォント（.var-x、既存の
+ * 問題文・入力欄と同じTimes系イタリック体）で表示するラベルを作る。
+ * @param {number} x
+ * @param {number} y
+ * @param {string} prefix 変数の前に付ける文字列（末尾の半角スペースを含める）
+ * @param {string} variableSymbol 変数部分（通常は"x"）
+ * @param {object} attributes text要素へ追加する属性（transformなど）
+ */
+function createSvgTextWithVariable(x, y, prefix, variableSymbol, attributes = {}) {
+  const element = createSvgElement("text", {
+    x,
+    y,
+    "text-anchor": "middle",
+    "font-size": "16",
+    fill: "currentColor",
+    ...attributes
+  });
+
+  const prefixTspan = createSvgElement("tspan");
+  prefixTspan.textContent = prefix;
+  element.appendChild(prefixTspan);
+
+  const variableTspan = createSvgElement("tspan", { class: "var-x" });
+  variableTspan.textContent = variableSymbol;
+  element.appendChild(variableTspan);
+
+  return element;
+}
+
+/**
  * 「この数値はどこからどこまでの長さか」を示す、ひげ（引き出し線）を描く。
  * 2点(x1,y1)-(x2,y2)を、指定した向き・量だけ弧を描くように膨らませてつなぐ
  * 破線の曲線で、寸法線のように長さの範囲を視覚的に示す。
@@ -151,7 +181,7 @@ function buildCrossRoadSvg(diagram) {
 
   // 「x m」＝縦の道の幅だけであることを示すひげ（上辺のうち道の部分だけ）
   svg.appendChild(createLengthWhisker(roadLeftX, fieldY, roadRightX, fieldY, -14));
-  svg.appendChild(createSvgText(fieldX + fieldW / 2, fieldY - 22, `幅 ${pathWidthSymbol}`));
+  svg.appendChild(createSvgTextWithVariable(fieldX + fieldW / 2, fieldY - 22, "幅 ", pathWidthSymbol));
 
   return svg;
 }
@@ -228,7 +258,7 @@ function buildOpenBoxNetSvg(diagram) {
 
   // 「x cm」＝厚紙の1辺全体であることを示すひげ（上辺の左端〜右端）
   svg.appendChild(createLengthWhisker(paperX, paperY, paperX + paperSize, paperY, -16));
-  svg.appendChild(createSvgText(paperX + paperSize / 2, paperY - 24, `1辺 ${paperSideSymbol}`));
+  svg.appendChild(createSvgTextWithVariable(paperX + paperSize / 2, paperY - 24, "1辺 ", paperSideSymbol));
 
   // 「5cm」＝切り取る正方形の1辺だけであることを示すひげ（左上の隅の上端〜下端）
   svg.appendChild(createLengthWhisker(paperX, paperY, paperX, paperY + cutSize, -16));
