@@ -41,6 +41,7 @@ import {
 import { validateCurrentAnswer } from "./equation/answer-validator.js";
 import { tokenize, TokenType } from "./equation/tokenizer.js";
 import * as rankMode from "./modes/rank-mode.js";
+import * as questMode from "./modes/quest-mode.js";
 
 let questionQueue = [];
 
@@ -211,6 +212,8 @@ export function initGame() {
     onPhysicalKeyDown: handlePhysicalKeyDown
   });
 
+  questMode.initQuestModeUI({ onBackToTitle: handleBackToTitle });
+
   ui.renderQuestionCountLabel(gameState.totalQuestions);
   ui.renderCategoryCheckboxes(
     getCategoriesForUnit(gameState.unit),
@@ -234,8 +237,9 @@ function updateStartButtonAvailability() {
     gameState.selectedCategories.length === getCategoriesForUnit(gameState.unit).length
   );
 
-  if (gameState.mode === "rank") {
-    // 段位認定モードは、難易度に既定値があるため常に開始できる
+  if (gameState.mode === "rank" || gameState.mode === "quest") {
+    // 段位認定モードは難易度に、クエストモードは部屋データに既定値があるため、
+    // どちらも問題数・カテゴリ選択なしで常に開始できる
     ui.setStartButtonEnabled(true);
     ui.showCategoryWarning(false);
     return;
@@ -344,6 +348,13 @@ async function handleStart() {
 
 async function startNewGame() {
   resetGameState();
+
+  if (gameState.mode === "quest") {
+    // クエストモードは、共通のカウントダウン画面を経由せず、
+    // 専用のオープニング画面から始まる
+    await questMode.startQuest(gameState.unit);
+    return;
+  }
 
   if (gameState.mode === "training") {
     questionQueue = buildTrainingQuestionQueue(
@@ -867,6 +878,10 @@ function handleSubmit() {
     rankMode.handleSubmit();
     return;
   }
+  if (gameState.mode === "quest") {
+    questMode.handleSubmit();
+    return;
+  }
   handleTrainingSubmit();
 }
 
@@ -1145,8 +1160,14 @@ function handleRetry() {
 
 /**
  * トレーニングモードの「リタイア」ボタン。ゲームをその場で終了し、結果画面へ進む。
+ * クエストモードでは、同じボタンからクエスト専用のリタイア確認モーダルを開く
+ * （即座に終了せず、確認を挟む）。
  */
 function handleGiveUp() {
+  if (gameState.mode === "quest") {
+    questMode.handleRetireRequest();
+    return;
+  }
   timer.stopQuestionTimer();
   ui.hideAnswerReveal();
   ui.hideHintPanel();
@@ -1167,6 +1188,9 @@ function handleBackToTitle() {
   timer.stopQuestionTimer();
   if (gameState.mode === "rank") {
     rankMode.stopRankSession();
+  }
+  if (gameState.mode === "quest") {
+    questMode.stopQuestSession();
   }
   ui.hideAnswerReveal();
   ui.hideHintPanel();

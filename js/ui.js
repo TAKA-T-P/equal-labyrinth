@@ -12,12 +12,14 @@ const elements = {
     countdown: document.getElementById("screen-countdown"),
     game: document.getElementById("screen-game"),
     result: document.getElementById("screen-result"),
-    "rank-result": document.getElementById("screen-rank-result")
+    "rank-result": document.getElementById("screen-rank-result"),
+    quest: document.getElementById("screen-quest")
   },
 
   // タイトル画面
   modeTrainingButton: document.getElementById("mode-training"),
   modeRankButton: document.getElementById("mode-rank"),
+  modeQuestButton: document.getElementById("mode-quest"),
   modeDescription: document.getElementById("mode-description"),
   unitLinearButton: document.getElementById("unit-linear"),
   unitSimultaneousButton: document.getElementById("unit-simultaneous"),
@@ -49,6 +51,11 @@ const elements = {
   rankScore: document.getElementById("rank-score"),
   rankScoreChange: document.getElementById("rank-score-change"),
   rankComboGaugeFill: document.getElementById("rank-combo-gauge-fill"),
+  questTopbarInfo: document.getElementById("quest-topbar-info"),
+  questTopbarStageRoom: document.getElementById("quest-topbar-stage-room"),
+  questTopbarEnemyEmoji: document.getElementById("quest-topbar-enemy-emoji"),
+  questTopbarProgress: document.getElementById("quest-topbar-progress"),
+  questTopbarTime: document.getElementById("quest-topbar-time"),
   questionPrompt: document.getElementById("question-prompt"),
   showDiagramButton: document.getElementById("show-diagram-button"),
   diagramBackdrop: document.getElementById("quadratic-diagram-backdrop"),
@@ -431,24 +438,33 @@ const MODE_DESCRIPTIONS = {
   training: "制限時間なし、問題数や出題内容を選んで自由に練習。",
   rank:
     "120秒以内に、できるだけ多くの方程式を立てよう！\n" +
-    "正解数・解答時間・ミス・パスから段位を認定します。"
+    "正解数・解答時間・ミス・パスから段位を認定します。",
+  quest:
+    "A〜Zの部屋を分岐しながら進む、全5ステージの冒険。\n" +
+    "文章題を解いて敵を倒し、宝箱からアイテムを集めよう！"
 };
 
 /**
- * モード選択（トレーニング／段位認定）の見た目を切り替える。
+ * モード選択（トレーニング／段位認定／クエスト）の見た目を切り替える。
  * トレーニング専用設定（問題数・カテゴリ）と、段位認定専用設定（難易度）の
- * 表示・非表示もあわせて切り替える。
+ * 表示・非表示もあわせて切り替える（クエストは、どちらの設定も表示しない）。
  */
 export function renderModeSelection(mode) {
   const isTraining = mode === "training";
+  const isRank = mode === "rank";
+  const isQuest = mode === "quest";
 
   elements.modeTrainingButton.classList.toggle("is-selected", isTraining);
   elements.modeTrainingButton.setAttribute("aria-pressed", String(isTraining));
-  elements.modeRankButton.classList.toggle("is-selected", !isTraining);
-  elements.modeRankButton.setAttribute("aria-pressed", String(!isTraining));
+  elements.modeRankButton.classList.toggle("is-selected", isRank);
+  elements.modeRankButton.setAttribute("aria-pressed", String(isRank));
+  if (elements.modeQuestButton) {
+    elements.modeQuestButton.classList.toggle("is-selected", isQuest);
+    elements.modeQuestButton.setAttribute("aria-pressed", String(isQuest));
+  }
 
   elements.trainingOnlySettings.hidden = !isTraining;
-  elements.rankDifficultyGroup.hidden = isTraining;
+  elements.rankDifficultyGroup.hidden = !isRank;
 
   elements.modeDescription.textContent = MODE_DESCRIPTIONS[mode] || "";
 }
@@ -658,6 +674,14 @@ export function setHintButtonEnabled(enabled) {
  */
 export function setPassButtonEnabled(enabled) {
   elements.passButton.disabled = !enabled;
+}
+
+/**
+ * クエストモードにはパス機能がないため、パスボタン自体を非表示にする
+ * （トレーニング・段位認定では常に表示する）。
+ */
+export function setPassButtonVisible(visible) {
+  elements.passButton.hidden = !visible;
 }
 
 export function showHintPanel(hintText) {
@@ -1081,6 +1105,36 @@ export function showRankHud(show) {
   elements.questionProgress.hidden = show;
 }
 
+// ============================================================
+// クエストモードのHUD（ゲーム画面上部の小さな状況欄）
+// ============================================================
+
+/**
+ * クエストHUDの表示・非表示を切り替える。
+ * 表示中は、トレーニング用の問題数表示（第N問／M問）を隠す（段位認定と同じ方針）。
+ */
+export function showQuestHud(show) {
+  elements.questTopbarInfo.hidden = !show;
+  elements.unitLabel.hidden = show;
+  elements.questionProgress.hidden = show;
+}
+
+/**
+ * クエストHUD（STAGE n/5　○の部屋／正解・ミス／残り時間）を描画する。
+ * @param {{stage:number, roomId:string, enemyEmoji:string, correctCount:number,
+ *   requiredCorrect:number, incorrectCount:number, maxIncorrect:number|null,
+ *   remainingSecondsText:number|null}} data
+ */
+export function renderQuestHud(data) {
+  elements.questTopbarStageRoom.textContent = `STAGE ${data.stage}/5　${data.roomId}の部屋`;
+  elements.questTopbarEnemyEmoji.textContent = data.enemyEmoji;
+  elements.questTopbarProgress.textContent =
+    `正解 ${data.correctCount}/${data.requiredCorrect}` +
+    (data.maxIncorrect === null ? "" : `　ミス ${data.incorrectCount}/${data.maxIncorrect}`);
+  elements.questTopbarTime.textContent =
+    data.remainingSecondsText === null ? "残り時間 なし" : `残り時間 ${data.remainingSecondsText}秒`;
+}
+
 /**
  * トレーニングモードでは「リタイア」ボタンを、段位認定モードでは「リトライ」ボタンを表示する。
  */
@@ -1334,6 +1388,12 @@ export function initUI(callbacks) {
   elements.modeRankButton.addEventListener("click", () => {
     callbacks.onModeSelect("rank");
   });
+
+  if (elements.modeQuestButton) {
+    elements.modeQuestButton.addEventListener("click", () => {
+      callbacks.onModeSelect("quest");
+    });
+  }
 
   elements.unitLinearButton.addEventListener("click", () => {
     callbacks.onUnitSelect("linear");

@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="./css/layout.css" />
 <link rel="stylesheet" href="./css/components.css" />
 <link rel="stylesheet" href="./css/animations.css" />
+<link rel="stylesheet" href="./css/quest.css" />
 </head>
 <body>
 <div id="app">
@@ -40,6 +41,9 @@
         </button>
         <button type="button" class="choice-button" id="mode-rank" data-mode="rank" aria-pressed="false">
           段位認定
+        </button>
+        <button type="button" class="choice-button" id="mode-quest" data-mode="quest" aria-pressed="false">
+          クエスト
         </button>
       </div>
 
@@ -129,6 +133,17 @@
               <div class="rank-combo-gauge-track">
                 <div id="rank-combo-gauge-fill" class="rank-combo-gauge-fill"></div>
               </div>
+            </div>
+          </div>
+
+          <div id="quest-topbar-info" class="quest-topbar-info" hidden>
+            <div class="quest-topbar-row">
+              <span id="quest-topbar-stage-room" class="quest-topbar-stage-room"></span>
+              <span id="quest-topbar-enemy-emoji" class="quest-topbar-enemy-emoji" aria-hidden="true"></span>
+            </div>
+            <div class="quest-topbar-row">
+              <span id="quest-topbar-progress" class="quest-topbar-progress"></span>
+              <span id="quest-topbar-time" class="quest-topbar-time"></span>
             </div>
           </div>
         </div>
@@ -336,6 +351,128 @@
       <div id="rank-history-list" class="history-list"></div>
     </div>
   </section>
+
+  <!-- クエストモード専用画面 -->
+  <section id="screen-quest" class="screen" data-screen="quest" hidden>
+    <div class="screen-inner quest-screen">
+
+      <div id="quest-map" class="quest-map" role="group" aria-label="冒険マップ"></div>
+
+      <!-- オープニング -->
+      <div id="quest-view-opening" class="quest-view" hidden>
+        <div id="quest-opening-lines" class="quest-opening-lines" aria-live="polite"></div>
+        <div id="quest-opening-room-choices" class="quest-room-choice-grid" hidden></div>
+      </div>
+
+      <!-- 部屋選択 -->
+      <div id="quest-view-room-select" class="quest-view" hidden>
+        <h2 class="quest-view-heading">目の前には、2つの扉がある。<br />どちらの部屋を選びますか？</h2>
+        <div id="quest-room-select-choices" class="quest-room-choice-grid"></div>
+      </div>
+
+      <!-- 敵出現・ミッション確認 -->
+      <div id="quest-view-enemy-intro" class="quest-view" hidden>
+        <p id="quest-enemy-intro-room-name" class="quest-room-name-label"></p>
+        <div id="quest-enemy-intro-emoji" class="quest-enemy-emoji"></div>
+        <p id="quest-enemy-intro-message" class="quest-enemy-message"></p>
+        <dl id="quest-enemy-intro-mission" class="quest-mission-info"></dl>
+        <p class="quest-reward-preview">
+          <span class="quest-reward-preview-label">勝利報酬</span>
+          <span id="quest-enemy-intro-reward" class="quest-reward-line"></span>
+        </p>
+        <div class="quest-action-row">
+          <button type="button" id="quest-fight-button" class="primary-button">たたかう</button>
+          <button type="button" id="quest-intro-retire-button" class="secondary-button">リタイア</button>
+        </div>
+      </div>
+
+      <!-- 敵撃破 -->
+      <div id="quest-view-victory" class="quest-view" hidden>
+        <div id="quest-victory-emoji" class="quest-enemy-emoji"></div>
+        <p id="quest-victory-message" class="quest-view-heading"></p>
+      </div>
+
+      <!-- 宝箱 -->
+      <div id="quest-view-treasure" class="quest-view" hidden>
+        <p class="quest-view-heading">宝箱を見つけた！</p>
+        <div id="quest-treasure-chest" class="quest-chest" aria-hidden="true">📦</div>
+        <button type="button" id="quest-open-chest-button" class="primary-button">宝箱を開ける</button>
+      </div>
+
+      <!-- アイテム獲得 -->
+      <div id="quest-view-item-get" class="quest-view" hidden>
+        <p class="quest-view-heading">宝箱の中から</p>
+        <div id="quest-item-get-emoji" class="quest-item-emoji"></div>
+        <p id="quest-item-get-name" class="quest-item-name"></p>
+        <p id="quest-item-get-count" class="quest-item-count"></p>
+        <p class="quest-view-subheading">を手に入れた！</p>
+        <button type="button" id="quest-item-get-next-button" class="primary-button">次へ</button>
+      </div>
+
+      <!-- ミッション失敗・敗走 -->
+      <div id="quest-view-failure" class="quest-view" hidden>
+        <p id="quest-failure-message" class="quest-failure-message"></p>
+        <button type="button" id="quest-failure-next-button" class="primary-button">次へ進む</button>
+      </div>
+
+      <!-- 冒険結果（ボス撃破エンディング／敗走エンディング／リタイア結果で共通利用） -->
+      <div id="quest-view-summary" class="quest-view" hidden>
+        <p id="quest-summary-heading" class="quest-view-heading"></p>
+        <p id="quest-summary-message" class="quest-summary-message"></p>
+
+        <h3 class="quest-summary-subheading">出会った敵</h3>
+        <div id="quest-summary-enemies" class="quest-summary-emoji-list"></div>
+
+        <h3 class="quest-summary-subheading">獲得したアイテム</h3>
+        <div id="quest-summary-items" class="quest-summary-emoji-list"></div>
+
+        <h3 class="quest-summary-subheading">通ったルート</h3>
+        <p id="quest-summary-route" class="quest-summary-route"></p>
+
+        <div class="result-summary" id="quest-summary-stats">
+          <div class="result-stat">
+            <span class="result-stat-label">総正解数</span>
+            <span id="quest-summary-correct" class="result-stat-value">0問</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat-label">総ミス数</span>
+            <span id="quest-summary-incorrect" class="result-stat-value">0回</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat-label">ヒント使用数</span>
+            <span id="quest-summary-hints" class="result-stat-value">0回</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat-label">クリアした部屋数</span>
+            <span id="quest-summary-rooms" class="result-stat-value">0部屋</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat-label">選択した単元</span>
+            <span id="quest-summary-unit" class="result-stat-value">―</span>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <button type="button" id="quest-summary-to-title-button" class="primary-button">タイトルへ</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- クエストモード：リタイア確認モーダル -->
+  <div id="quest-retire-backdrop" class="hint-backdrop" hidden></div>
+  <div id="quest-retire-confirm-panel" class="hint-panel quest-retire-confirm-panel" hidden role="dialog" aria-label="リタイアの確認">
+    <p class="quest-retire-confirm-title">冒険をリタイアしますか？</p>
+    <p class="quest-retire-confirm-text">
+      ここまでに手に入れたアイテムは残ります。<br />
+      今回の冒険はクリアになりません。
+    </p>
+    <div class="pass-confirm-actions">
+      <button type="button" id="quest-retire-confirm-no" class="secondary-button">冒険を続ける</button>
+      <button type="button" id="quest-retire-confirm-yes" class="primary-button">リタイアする</button>
+    </div>
+  </div>
 
 </div>
 

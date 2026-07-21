@@ -161,3 +161,68 @@ export function playHighScoreSound() {
     { frequency: 1318.5, startOffset: 0.27, duration: 0.4, type: "square", peakGain: 0.24 }
   ]);
 }
+
+// ============================================================
+// クエストモード専用の効果音
+// ============================================================
+
+export function playQuestEnemyAppearSound() {
+  playSequence([
+    { frequency: 220, startOffset: 0, duration: 0.14, type: "sawtooth", peakGain: 0.16 },
+    { frequency: 174.61, startOffset: 0.12, duration: 0.2, type: "sawtooth", peakGain: 0.18 }
+  ]);
+}
+
+export function playQuestBossAppearSound() {
+  playSequence([
+    { frequency: 130.81, startOffset: 0, duration: 0.22, type: "sawtooth", peakGain: 0.22 },
+    { frequency: 146.83, startOffset: 0.18, duration: 0.22, type: "sawtooth", peakGain: 0.22 },
+    { frequency: 110, startOffset: 0.36, duration: 0.4, type: "sawtooth", peakGain: 0.24 }
+  ]);
+}
+
+export function playQuestEnemyDefeatSound() {
+  playSequence([
+    { frequency: 587.33, startOffset: 0, duration: 0.1, type: "square", peakGain: 0.2 },
+    { frequency: 739.99, startOffset: 0.08, duration: 0.1, type: "square", peakGain: 0.2 },
+    { frequency: 987.77, startOffset: 0.16, duration: 0.3, type: "square", peakGain: 0.24 }
+  ]);
+}
+
+export function playQuestTreasureFoundSound() {
+  playTone({ frequency: 523.25, duration: 0.2, type: "triangle", peakGain: 0.18 });
+}
+
+export function playQuestTreasureOpenSound() {
+  playSequence([
+    { frequency: 392, startOffset: 0, duration: 0.1, type: "triangle", peakGain: 0.16 },
+    { frequency: 523.25, startOffset: 0.08, duration: 0.1, type: "triangle", peakGain: 0.18 },
+    { frequency: 659.25, startOffset: 0.16, duration: 0.2, type: "triangle", peakGain: 0.2 }
+  ]);
+}
+
+export function playQuestItemGetSound() {
+  playSequence([
+    { frequency: 659.25, startOffset: 0, duration: 0.12, type: "sine", peakGain: 0.2 },
+    { frequency: 830.61, startOffset: 0.1, duration: 0.12, type: "sine", peakGain: 0.22 },
+    { frequency: 1046.5, startOffset: 0.2, duration: 0.35, type: "sine", peakGain: 0.24 }
+  ]);
+}
+
+export function playQuestRetreatSound() {
+  playSequence([
+    { frequency: 349.23, startOffset: 0, duration: 0.2, type: "sawtooth", peakGain: 0.18 },
+    { frequency: 261.63, startOffset: 0.16, duration: 0.2, type: "sawtooth", peakGain: 0.16 },
+    { frequency: 196, startOffset: 0.32, duration: 0.35, type: "sawtooth", peakGain: 0.16 }
+  ]);
+}
+
+export function playQuestClearSound() {
+  playSequence([
+    { frequency: 523.25, startOffset: 0, duration: 0.16, type: "triangle", peakGain: 0.22 },
+    { frequency: 659.25, startOffset: 0.14, duration: 0.16, type: "triangle", peakGain: 0.22 },
+    { frequency: 783.99, startOffset: 0.28, duration: 0.16, type: "triangle", peakGain: 0.24 },
+    { frequency: 1046.5, startOffset: 0.42, duration: 0.2, type: "triangle", peakGain: 0.24 },
+    { frequency: 1318.5, startOffset: 0.62, duration: 0.5, type: "triangle", peakGain: 0.26 }
+  ]);
+}
