@@ -104,15 +104,13 @@ export const numberSquareTemplates = [
   },
 
   {
-    templateId: "L3-02-square-field-side",
+    templateId: "L3-02-consecutive-squares-sum",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const p = randomInt(4, 20);
-      const q = -randomInt(1, p - 1);
-      const a = p + q;
-      const b = -p * q;
-      const canonicalInternal = `x^2=${a}*x+${b}`;
+      const x = randomInt(2, 15); // 小さい方の正の整数
+      const sum = x * x + (x + 1) * (x + 1);
+      const canonicalInternal = `x^2+(x+1)^2=${sum}`;
       const roots = computeQuadraticRoots(canonicalInternal);
 
       return {
@@ -124,25 +122,25 @@ export const numberSquareTemplates = [
         rankDifficulty: "NORMAL",
 
         prompt:
-          `1辺の長さがxcmの正方形があります。この正方形の面積は、1辺の長さの${a}倍に` +
-          `${b}を加えた値に等しくなりました。xの値を求める2次方程式を立てなさい。`,
-        variableDefinition: "正方形の1辺の長さ（cm）",
+          "連続する2つの正の整数があります。それぞれを2乗した数の和が" +
+          `${sum}になるとき、小さい方の整数をxとして、2次方程式を立てなさい。`,
+        variableDefinition: "小さい方の正の整数",
 
         canonicalEquation: {
           internal: canonicalInternal,
-          display: `x²＝${a}x＋${b}`,
-          relationName: "正方形の面積と1次式の関係"
+          display: `x²＋(x＋1)²＝${sum}`,
+          relationName: "連続する2整数のそれぞれの2乗の和"
         },
         expectedRoots: roots,
-        validXValues: [p],
-        solutionDisplay: `x＝${p}`,
+        validXValues: [x],
+        solutionDisplay: `x＝${x}`,
 
-        keypadNumbers: [String(a), String(b)],
+        keypadNumbers: [String(1), String(sum)],
         keypadSymbols: KEYPAD_SYMBOLS,
 
-        hint: "正方形の面積は「1辺×1辺」、つまりx²で表せます。",
-        hintKeypadParts: [],
-        explanation: "正方形の面積（x²）と、1辺の長さを使った1次式が等しくなる関係を式にします。",
+        hint: "小さい方がxなら、大きい方はx＋1です。それぞれを2乗した数の和を式に表しましょう。",
+        hintKeypadParts: [{ display: "（x＋1）", value: "(x+1)", ariaLabel: "xたす1" }],
+        explanation: "連続する2つの整数はx、x＋1と表せるので、それぞれの2乗の和が与えられた数に等しくなる関係を式にします。",
         diagram: null
       };
     }
