@@ -15,7 +15,9 @@ const KEYPAD_SYMBOLS = ["x", "x²", "square", "+", "-", "×", "(", ")", "="];
 
 function buildCrossRoadQuestion({ templateId, scenario, widthValue, heightValue }) {
   const minSide = Math.min(widthValue, heightValue);
-  const n = randomInt(1, minSide - 1);
+  // 道幅xは、縦・横に対して不自然に太くならないよう、1〜5mの範囲に収める
+  // （道幅が土地の縦・横を超えない＝(縦−x)・(横−x)が正になる範囲も併せて満たす）。
+  const n = randomInt(1, Math.min(5, minSide - 1));
   const remaining = (widthValue - n) * (heightValue - n);
   const canonicalInternal = `(${widthValue}-x)*(${heightValue}-x)=${remaining}`;
   const roots = computeQuadraticRoots(canonicalInternal);

@@ -12,6 +12,8 @@ const CATEGORY_ID = "L3-06";
 const CATEGORY_NAME = "容積・ふたのない箱";
 const UNIT = "quadratic";
 const KEYPAD_SYMBOLS = ["x", "x²", "square", "-", "×", "(", ")", "="];
+// 長方形パターンは「x＋widthDiff−2c」のように＋も使うため、専用の記号一覧を使う
+const RECTANGULAR_KEYPAD_SYMBOLS = ["x", "x²", "square", "+", "-", "×", "(", ")", "="];
 
 function buildOpenBoxQuestion({ templateId, scenario, cutSideValue }) {
   const doubledCut = cutSideValue * 2;
@@ -66,6 +68,77 @@ function buildOpenBoxQuestion({ templateId, scenario, cutSideValue }) {
   };
 }
 
+// 長方形（正方形ではない）の紙の四すみから正方形を切り取るパターン。
+// 縦をxとし、横は「縦よりwidthDiff cm長い」とする。
+// 底面は「x−2c」「x+widthDiff−2c」の長方形になり、容積はc×(x−2c)×(x+widthDiff−2c)。
+// widthDiff−2cの計算結果（simplifiedDiff）が正の小さな整数になるよう、
+// widthDiff = doubledCut + simplifiedDiff で決める（負の数がかっこの中に出てこないようにするため）。
+// 「c(x−2c)(x+widthDiff−2c)」「c(x−2c)(x+simplifiedDiff)」のどちらで立式しても正解になるよう、
+// 両方の式に必要な数値（c・2c・widthDiff・simplifiedDiff・容積）をすべてキーパッドへ用意する。
+function buildRectangularOpenBoxQuestion({ templateId, scenario, cutSideValue, simplifiedDiff }) {
+  const doubledCut = cutSideValue * 2;
+  const widthDiff = doubledCut + simplifiedDiff;
+  const n = randomInt(doubledCut + 3, doubledCut + 14); // 縦の長さ（x）
+  const baseHeight = n - doubledCut;
+  // 底面の横は「(x+widthDiff)−2c」＝「x+widthDiff−2c」＝「x+simplifiedDiff」
+  // （baseHeightに足すのではなく、xに直接simplifiedDiffを足す点に注意）
+  const baseWidth = n + simplifiedDiff;
+  const volume = cutSideValue * baseHeight * baseWidth;
+  const canonicalInternal = `${cutSideValue}*(x-${doubledCut})*(x+${widthDiff}-${doubledCut})=${volume}`;
+  const roots = computeQuadraticRoots(canonicalInternal);
+
+  return {
+    id: createUniqueId(templateId),
+    templateId,
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `横の長さが縦の長さより${widthDiff}cm長い長方形の${scenario}の4すみから、` +
+      `1辺${cutSideValue}cmの正方形を切り取って、ふたのない箱を作ると、容積が${volume}cm³になった。` +
+      `縦の長さをxcmとして、2次方程式を立てなさい。`,
+    variableDefinition: `もとの長方形の${scenario}の縦の長さ（cm）`,
+
+    canonicalEquation: {
+      internal: canonicalInternal,
+      display: `${cutSideValue}(x−${doubledCut})(x＋${widthDiff}−${doubledCut})＝${volume}`,
+      relationName: "箱の容積＝高さ×底面積"
+    },
+    expectedRoots: roots,
+    validXValues: [n],
+    solutionDisplay: `x＝${n}`,
+
+    keypadNumbers: [
+      String(cutSideValue),
+      String(doubledCut),
+      String(widthDiff),
+      String(simplifiedDiff),
+      String(volume)
+    ],
+    keypadSymbols: RECTANGULAR_KEYPAD_SYMBOLS,
+
+    hint:
+      `箱の底面は、縦が「x−${doubledCut}」cm、横が「x＋${widthDiff}−${doubledCut}」cm` +
+      `（＝「x＋${simplifiedDiff}」cm）の長方形になります。` +
+      "容積は「高さ×底面の縦×底面の横」で求められます。",
+    hintKeypadParts: [
+      { display: `（x−${doubledCut}）`, value: `(x-${doubledCut})`, ariaLabel: `xひく${doubledCut}` },
+      {
+        display: `（x＋${widthDiff}−${doubledCut}）`,
+        value: `(x+${widthDiff}-${doubledCut})`,
+        ariaLabel: `xたす${widthDiff}ひく${doubledCut}`
+      }
+    ],
+    explanation:
+      "箱の高さは切り取った正方形の1辺の長さと等しく、底面は縦・横それぞれ" +
+      "切り取った分だけ短くなった長方形になります。",
+
+    diagram: null
+  };
+}
+
 export const openBoxTemplates = [
   {
     templateId: "L3-06-craft-paper",
@@ -102,6 +175,20 @@ export const openBoxTemplates = [
         templateId: this.templateId,
         scenario: "段ボール紙",
         cutSideValue: randomInt(2, 6)
+      });
+    }
+  },
+
+  {
+    templateId: "L3-06-rectangular-paper",
+    categoryId: CATEGORY_ID,
+
+    generate() {
+      return buildRectangularOpenBoxQuestion({
+        templateId: this.templateId,
+        scenario: "紙",
+        cutSideValue: randomInt(2, 3),
+        simplifiedDiff: randomInt(1, 4)
       });
     }
   }
