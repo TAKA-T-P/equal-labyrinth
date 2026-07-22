@@ -26,53 +26,65 @@ function buildMoneyShortageNumbers() {
   return { expectedX, priceA, priceB, surplus, shortage };
 }
 
+function buildNotebookAllowanceQuestion({ expectedX, priceA, priceB, surplus, shortage }) {
+  return {
+    id: createUniqueId("L1-02-notebook-allowance"),
+    templateId: "L1-02-notebook-allowance",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `持っているお金でノートを買おうとしました。1冊${priceA}円のノートを` +
+      `買うと${surplus}円余り、1冊${priceB}円のノートを買うと${shortage}円` +
+      `足りません。買おうとした冊数をx冊として方程式を立てなさい。`,
+
+    variableDefinition: "買おうとした冊数",
+
+    expectedX,
+
+    canonicalEquation: `${priceA}*x+${surplus}=${priceB}*x-${shortage}`,
+    displayEquation: `${priceA}x＋${surplus}＝${priceB}x−${shortage}`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbers([priceA, surplus, priceB, shortage]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hintKeypadParts: [
+      {
+        display: `${priceA}x＋${surplus}`,
+        value: `${priceA}x+${surplus}`,
+        ariaLabel: `${priceA}xたす${surplus}`
+      }
+    ],
+
+    hint:
+      `持っているお金は「1冊${priceA}円×冊数＋${surplus}円」でも、` +
+      `「1冊${priceB}円×冊数－${shortage}円」でも表せます。`,
+
+    explanation:
+      "どちらの買い方でも、もとの所持金は変わらないことから方程式が立てられます。"
+  };
+}
+
 export const moneyShortageTemplates = [
   {
     templateId: "L1-02-notebook-allowance",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { expectedX, priceA, priceB, surplus, shortage } =
-        buildMoneyShortageNumbers();
+      return buildNotebookAllowanceQuestion(buildMoneyShortageNumbers());
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `持っているお金でノートを買おうとしました。1冊${priceA}円のノートを` +
-          `買うと${surplus}円余り、1冊${priceB}円のノートを買うと${shortage}円` +
-          `足りません。買おうとした冊数をx冊として方程式を立てなさい。`,
-
-        variableDefinition: "買おうとした冊数",
-
-        expectedX,
-
-        canonicalEquation: `${priceA}*x+${surplus}=${priceB}*x-${shortage}`,
-        displayEquation: `${priceA}x＋${surplus}＝${priceB}x−${shortage}`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers([priceA, surplus, priceB, shortage]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hintKeypadParts: [
-          {
-            display: `${priceA}x＋${surplus}`,
-            value: `${priceA}x+${surplus}`,
-            ariaLabel: `${priceA}xたす${surplus}`
-          }
-        ],
-
-        hint:
-          `持っているお金は「1冊${priceA}円×冊数＋${surplus}円」でも、` +
-          `「1冊${priceB}円×冊数－${shortage}円」でも表せます。`,
-
-        explanation:
-          "どちらの買い方でも、もとの所持金は変わらないことから方程式が立てられます。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildNotebookAllowanceQuestion({
+        expectedX: 3,
+        priceA: 100,
+        priceB: 150,
+        surplus: 100,
+        shortage: 50
+      });
     }
   },
 

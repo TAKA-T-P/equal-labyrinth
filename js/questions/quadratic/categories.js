@@ -41,46 +41,55 @@ export const QUADRATIC_CATEGORIES = [
   {
     id: "L3-01",
     name: "連続する整数の積",
-    difficulty: "NORMAL"
+    difficulty: "NORMAL",
+    exampleTemplateId: "L3-01-consecutive"
   },
   {
     id: "L3-02",
     name: "数とその平方",
-    difficulty: "NORMAL"
+    difficulty: "NORMAL",
+    exampleTemplateId: "L3-02-square-equals-linear"
   },
   {
     id: "L3-03",
     name: "長方形の面積",
-    difficulty: "NORMAL"
+    difficulty: "NORMAL",
+    exampleTemplateId: "L3-03-longer-side"
   },
   {
     id: "L3-04",
     name: "面積の増減",
-    difficulty: "NORMAL"
+    difficulty: "NORMAL",
+    exampleTemplateId: "L3-04-both-shorter"
   },
   {
     id: "L3-05",
     name: "面積・十字路",
-    difficulty: "NORMAL"
+    difficulty: "NORMAL",
+    exampleTemplateId: "L3-05-school-garden"
   },
   {
     id: "L3-06",
     name: "箱の容積",
-    difficulty: "NORMAL"
+    difficulty: "NORMAL",
+    exampleTemplateId: "L3-06-craft-paper"
   },
   {
     id: "L3-07",
     name: "動点",
-    difficulty: "HARD"
+    difficulty: "HARD",
+    exampleTemplateId: "L3-07-rectangle-q-toward-a"
   },
   {
     id: "L3-08",
     name: "価格と売上",
-    difficulty: "HARD"
+    difficulty: "HARD",
+    exampleTemplateId: "L3-08-price-up-qty-down"
   },
   {
     id: "L3-09",
     name: "利益と割引",
-    difficulty: "HARD"
+    difficulty: "HARD",
+    exampleTemplateId: "L3-09-clothing"
   }
 ];

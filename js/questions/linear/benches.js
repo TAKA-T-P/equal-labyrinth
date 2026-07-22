@@ -35,63 +35,77 @@ function buildBenchNumbers() {
   };
 }
 
+function buildGymStudentsQuestion({
+  expectedX,
+  perBenchA,
+  perBenchB,
+  lastBenchCount,
+  standingCount,
+  expandedConstant
+}) {
+  return {
+    id: createUniqueId("L1-04-gym-students"),
+    templateId: "L1-04-gym-students",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `体育館で、生徒が長いすに座ります。1脚に${perBenchA}人ずつ座ると` +
+      `${standingCount}人が座れず、1脚に${perBenchB}人ずつ座ると、` +
+      `最後の1脚には${lastBenchCount}人だけ座りました。長いすの数をx脚として` +
+      `方程式を立てなさい。`,
+
+    variableDefinition: "長いすの数",
+
+    expectedX,
+
+    canonicalEquation: `${perBenchA}*x+${standingCount}=${perBenchB}*(x-1)+${lastBenchCount}`,
+    displayEquation: `${perBenchA}x＋${standingCount}＝${perBenchB}(x−1)＋${lastBenchCount}`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbers([
+      perBenchA,
+      standingCount,
+      perBenchB,
+      lastBenchCount,
+      1,
+      expandedConstant
+    ]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hintKeypadParts: [
+      { display: "（x−1）", value: "(x-1)", ariaLabel: "xひく1" }
+    ],
+
+    hint:
+      `1脚に${perBenchB}人ずつ座ったとき、最後の1脚をのぞいた長いすの数は` +
+      `「x－1」脚と表せます。`,
+
+    explanation:
+      "座り方が変わっても、生徒の総数は変わらないことから方程式が立てられます。"
+  };
+}
+
 export const benchesTemplates = [
   {
     templateId: "L1-04-gym-students",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const {
-        expectedX,
-        perBenchA,
-        perBenchB,
-        lastBenchCount,
-        standingCount,
-        expandedConstant
-      } = buildBenchNumbers();
+      return buildGymStudentsQuestion(buildBenchNumbers());
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `体育館で、生徒が長いすに座ります。1脚に${perBenchA}人ずつ座ると` +
-          `${standingCount}人が座れず、1脚に${perBenchB}人ずつ座ると、` +
-          `最後の1脚には${lastBenchCount}人だけ座りました。長いすの数をx脚として` +
-          `方程式を立てなさい。`,
-
-        variableDefinition: "長いすの数",
-
-        expectedX,
-
-        canonicalEquation: `${perBenchA}*x+${standingCount}=${perBenchB}*(x-1)+${lastBenchCount}`,
-        displayEquation: `${perBenchA}x＋${standingCount}＝${perBenchB}(x−1)＋${lastBenchCount}`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers([
-          perBenchA,
-          standingCount,
-          perBenchB,
-          lastBenchCount,
-          1,
-          expandedConstant
-        ]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hintKeypadParts: [
-          { display: "（x−1）", value: "(x-1)", ariaLabel: "xひく1" }
-        ],
-
-        hint:
-          `1脚に${perBenchB}人ずつ座ったとき、最後の1脚をのぞいた長いすの数は` +
-          `「x－1」脚と表せます。`,
-
-        explanation:
-          "座り方が変わっても、生徒の総数は変わらないことから方程式が立てられます。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildGymStudentsQuestion({
+        expectedX: 14,
+        perBenchA: 5,
+        perBenchB: 6,
+        lastBenchCount: 2,
+        standingCount: 10,
+        expandedConstant: 4
+      });
     }
   },
 

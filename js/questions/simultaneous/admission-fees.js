@@ -59,52 +59,69 @@ function buildEquations(a1, b1, total1, a2, b2, total2) {
   ];
 }
 
+function buildAquariumQuestion({ adultPrice, childPrice, a1, b1, a2, b2 }) {
+  const total1 = a1 * adultPrice + b1 * childPrice;
+  const total2 = a2 * adultPrice + b2 * childPrice;
+  const [eq1, eq2] = buildEquations(a1, b1, total1, a2, b2, total2);
+
+  return {
+    id: createUniqueId("L2-02-aquarium"),
+    templateId: "L2-02-aquarium",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `ある水族館の入館料は、おとな${a1}人と中学生${b1}人で${total1}円、` +
+      `おとな${a2}人と中学生${b2}人で${total2}円です。おとな1人の料金をx円、` +
+      `中学生1人の料金をy円として連立方程式を立てなさい。`,
+
+    variableDefinitions: {
+      x: "おとな1人の料金",
+      y: "中学生1人の料金"
+    },
+
+    expectedSolution: { x: adultPrice, y: childPrice },
+
+    canonicalEquations: [
+      { ...eq1, relationName: `おとな${a1}人・中学生${b1}人の合計` },
+      { ...eq2, relationName: `おとな${a2}人・中学生${b2}人の合計` }
+    ],
+
+    solutionDisplay: `x＝${adultPrice}、y＝${childPrice}`,
+
+    keypadNumbers: buildKeypadNumbers([a1, b1, total1, a2, b2, total2]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: "2つの人数の組み合わせを、それぞれx・yを使った式にしましょう。",
+    hintKeypadParts: [],
+
+    explanation: "2通りの人数の組み合わせから、料金を表す2本の式を作ります。"
+  };
+}
+
 export const admissionFeesTemplates = [
   {
     templateId: "L2-02-aquarium",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { adultPrice, childPrice, a1, b1, total1, a2, b2, total2 } =
+      const { adultPrice, childPrice, a1, b1, a2, b2 } =
         buildTwoGroupNumbers([1200, 1500, 1800, 2000], [500, 600, 700, 800]);
+      return buildAquariumQuestion({ adultPrice, childPrice, a1, b1, a2, b2 });
+    },
 
-      const [eq1, eq2] = buildEquations(a1, b1, total1, a2, b2, total2);
-
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `ある水族館の入館料は、おとな${a1}人と中学生${b1}人で${total1}円、` +
-          `おとな${a2}人と中学生${b2}人で${total2}円です。おとな1人の料金をx円、` +
-          `中学生1人の料金をy円として連立方程式を立てなさい。`,
-
-        variableDefinitions: {
-          x: "おとな1人の料金",
-          y: "中学生1人の料金"
-        },
-
-        expectedSolution: { x: adultPrice, y: childPrice },
-
-        canonicalEquations: [
-          { ...eq1, relationName: `おとな${a1}人・中学生${b1}人の合計` },
-          { ...eq2, relationName: `おとな${a2}人・中学生${b2}人の合計` }
-        ],
-
-        solutionDisplay: `x＝${adultPrice}、y＝${childPrice}`,
-
-        keypadNumbers: buildKeypadNumbers([a1, b1, total1, a2, b2, total2]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: "2つの人数の組み合わせを、それぞれx・yを使った式にしましょう。",
-        hintKeypadParts: [],
-
-        explanation: "2通りの人数の組み合わせから、料金を表す2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildAquariumQuestion({
+        adultPrice: 1500,
+        childPrice: 700,
+        a1: 2,
+        b1: 3,
+        a2: 4,
+        b2: 1
+      });
     }
   },
 

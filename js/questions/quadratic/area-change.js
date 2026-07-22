@@ -12,6 +12,43 @@ const CATEGORY_NAME = "面積の増減";
 const UNIT = "quadratic";
 const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
+function buildBothShorterQuestion({ shortSide, longSide, n }) {
+  const newArea = (shortSide - n) * (longSide - n);
+  const canonicalInternal = `(${shortSide}-x)*(${longSide}-x)=${newArea}`;
+  const roots = computeQuadraticRoots(canonicalInternal);
+
+  return {
+    id: createUniqueId("L3-04-both-shorter"),
+    templateId: "L3-04-both-shorter",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `縦${shortSide}cm、横${longSide}cmの長方形の縦・横をそれぞれxcmずつ短くしたところ、` +
+      `面積が${newArea}cm²になりました。xの値を求める2次方程式を立てなさい。`,
+    variableDefinition: "縦・横をそれぞれ短くする長さ（cm）",
+
+    canonicalEquation: {
+      internal: canonicalInternal,
+      display: `(${shortSide}−x)(${longSide}−x)＝${newArea}`,
+      relationName: "短くした後の面積"
+    },
+    expectedRoots: roots,
+    validXValues: [n],
+    solutionDisplay: `x＝${n}`,
+
+    keypadNumbers: [String(shortSide), String(longSide), String(newArea)],
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: `短くした後の縦は「${shortSide}−x」、横は「${longSide}−x」と表せます。`,
+    hintKeypadParts: [{ display: `（${shortSide}−x）`, value: `(${shortSide}-x)`, ariaLabel: `${shortSide}ひくx` }],
+    explanation: "短くした後の縦と横の積が、変化後の面積になります。",
+    diagram: null
+  };
+}
+
 export const areaChangeTemplates = [
   {
     templateId: "L3-04-both-shorter",
@@ -21,40 +58,12 @@ export const areaChangeTemplates = [
       const shortSide = randomInt(8, 14);
       const longSide = shortSide + randomInt(2, 10);
       const n = randomInt(1, shortSide - 1); // 両辺が正のまま残るように
-      const newArea = (shortSide - n) * (longSide - n);
-      const canonicalInternal = `(${shortSide}-x)*(${longSide}-x)=${newArea}`;
-      const roots = computeQuadraticRoots(canonicalInternal);
+      return buildBothShorterQuestion({ shortSide, longSide, n });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `縦${shortSide}cm、横${longSide}cmの長方形の縦・横をそれぞれxcmずつ短くしたところ、` +
-          `面積が${newArea}cm²になりました。xの値を求める2次方程式を立てなさい。`,
-        variableDefinition: "縦・横をそれぞれ短くする長さ（cm）",
-
-        canonicalEquation: {
-          internal: canonicalInternal,
-          display: `(${shortSide}−x)(${longSide}−x)＝${newArea}`,
-          relationName: "短くした後の面積"
-        },
-        expectedRoots: roots,
-        validXValues: [n],
-        solutionDisplay: `x＝${n}`,
-
-        keypadNumbers: [String(shortSide), String(longSide), String(newArea)],
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: `短くした後の縦は「${shortSide}−x」、横は「${longSide}−x」と表せます。`,
-        hintKeypadParts: [{ display: `（${shortSide}−x）`, value: `(${shortSide}-x)`, ariaLabel: `${shortSide}ひくx` }],
-        explanation: "短くした後の縦と横の積が、変化後の面積になります。",
-        diagram: null
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildBothShorterQuestion({ shortSide: 12, longSide: 18, n: 5 });
     }
   },
 

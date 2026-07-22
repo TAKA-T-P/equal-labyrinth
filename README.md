@@ -71,8 +71,11 @@ equal-labyrinth/
 │   │   ├─ help-content.js         「このゲームの遊び方」の表示内容（データのみ）
 │   │   ├─ item-catalog.js         QUEST_ROOMSとquest-storage.jsから、アイテム図鑑の
 │   │   │                          一覧を動的に構築・結合する
-│   │   └─ data-reset.js           保存データ（`equalLabyrinth.`接頭辞のキー）の検出・
-│   │                              全消去処理
+│   │   ├─ data-reset.js           保存データ（`equalLabyrinth.`接頭辞のキー）の検出・
+│   │   │                          全消去処理
+│   │   ├─ example-catalog.js      例題確認：カテゴリと代表テンプレートの解決、
+│   │   │                          固定例題の生成・検証（validateAllCategoryExamples等）
+│   │   └─ example-ui.js           例題確認：単元・カテゴリ選択と例題カード表示のDOM操作
 │   │
 │   ├─ equation/
 │   │   ├─ tokenizer.js                    文字列 → トークン列（x・yの2変数、x²のPOWERトークンに対応）
@@ -278,9 +281,12 @@ equal-labyrinth/
 ### ヘルプ機能
 
 - タイトル画面左上の「？」ボタンから開く、独立したヘルプメニュー画面
-  （このゲームの遊び方／アイテム図鑑／データを消す／もどる。詳細は
+  （このゲームの遊び方／例題確認／アイテム図鑑／データを消す／もどる。詳細は
   「ヘルプメニュー・アイテム図鑑・データ消去」を参照）
 - 「このゲームの遊び方」（項目ごとに開閉できるアコーディオン形式、全13項目）
+- 例題確認（全32カテゴリ1問ずつの固定代表例題を閲覧できる、閲覧専用の立式見本集。
+  問題文・文字の意味・ヒント・模範式〈連立方程式は2本＋別解〉・図を表示。解答欄・キーボード・
+  正誤判定・スコア・履歴は表示せず、gameState・localStorageへ影響しない）
 - アイテム図鑑（`QUEST_ROOMS`の報酬から動的に一覧を構築し、保存済みインベントリと結合して表示。
   未獲得アイテムは内容を隠す。獲得種類数・収集率を表示し、初回／最終獲得日時は表示しない）
 - 全データ初期化（2段階の確認を経て、`equalLabyrinth.`接頭辞のキーだけを削除する）
@@ -370,13 +376,21 @@ equal-labyrinth/
 - **help/help-ui.js** ：ヘルプメニュー・このゲームの遊び方・アイテム図鑑・データ消去確認の
   DOM表示と画面遷移専任。既存の`ui.js`の`showScreen()`をそのまま利用し、`gameState`は
   一切変更しない。`game.js`からは`initGame()`内の`initHelpUI()`呼び出し1行だけで接続する
-  （`questMode.initQuestModeUI()`と同じ方針）。
+  （`questMode.initQuestModeUI()`と同じ方針）。「例題確認」ボタンのイベント登録・画面を開く
+  処理・ヘルプメニューへ戻る処理も、ここへ薄く追加している（実際の描画は`example-ui.js`）。
 - **help/help-content.js** ：「このゲームの遊び方」の表示文（データのみ）。
 - **help/item-catalog.js** ：`quest/quest-room-data.js`の`QUEST_ROOMS`と
   `quest/quest-storage.js`の保存済みインベントリから、アイテム図鑑の一覧を動的に構築・結合する。
   アイテム数を固定値として持たず、アイテム名・絵文字・部屋の対応をここへ二重登録しない。
 - **help/data-reset.js** ：`equalLabyrinth.`接頭辞のlocalStorageキーだけを検出・削除する。
   `localStorage.clear()`は使用しない。
+- **help/example-catalog.js** ：例題確認専用。`getCategoriesForUnit()` /
+  `getTemplatesForUnit()` / `validateQuestion()`（すべて既存の`questions/`配下を再利用）を
+  使って、カテゴリの`exampleTemplateId`から固定代表例題を解決・検証する
+  （`getExampleQuestionForCategory()` / `validateAllCategoryExamples()`）。DOM操作は行わない。
+- **help/example-ui.js** ：例題確認専用のDOM操作。単元・カテゴリ選択、問題文・文字の意味・
+  ヒント・模範式・別の立式例・図の表示/開閉を担当する。選択状態はこのファイル内のローカル
+  変数だけで持ち、`gameState`・localStorageには一切触れない。
 - **ui.js** ：DOM操作専用。ゲームルールや正誤判定は書かない。
 - **timer.js / audio.js / storage.js** ：それぞれ問題ごとの時間計測（ヒント・パス解禁）・
   効果音・保存を専任で担当する。段位認定モードの120秒タイマーは`rank-mode.js`が別途管理する
@@ -1084,10 +1098,13 @@ B🐗 → D🐍 → I👁️ → ?? → ??
 
 ## ヘルプメニュー・アイテム図鑑・データ消去
 
-第6段階として、タイトル画面から開く独立したヘルプ機能を追加した。問題画面・数式入力・
+第6段階として、タイトル画面から開く独立したヘルプ機能を追加した。第7段階では、そこへ
+「例題確認」（各カテゴリの代表例題を閲覧できる機能）を追加した。問題画面・数式入力・
 数式キーボード・結果画面・クエスト専用画面など、既存の画面のレイアウト・動作は一切変更していない。
-処理は`js/help/`配下の4ファイルへ分離しており、`game.js`が行うのは`initGame()`からの
-`initHelpUI()`呼び出し1回だけである（クエストモードの`questMode.initQuestModeUI()`と同じ方針）。
+処理は`js/help/`配下の6ファイル（`help-ui.js` / `help-content.js` / `item-catalog.js` /
+`data-reset.js` / `example-catalog.js` / `example-ui.js`）へ分離しており、`game.js`が行うのは
+`initGame()`からの`initHelpUI()` / `initExampleUI()`呼び出しだけである（クエストモードの
+`questMode.initQuestModeUI()`と同じ方針）。
 
 ### タイトル画面の「？」ボタン
 
@@ -1100,12 +1117,13 @@ B🐗 → D🐍 → I👁️ → ?? → ??
 
 「？」を押すと、`ui.showScreen("help-menu")`でタイトル画面から独立したヘルプメニュー画面
 （`#screen-help-menu`）へ切り替わる。画面遷移は既存の`elements.screens`のマップへ
-`help-menu` / `how-to-play` / `item-catalog`の3画面を追加しただけで、複数画面が同時に
-表示されない仕組みはこの既存の一元管理に完全に乗せている。
+`help-menu` / `how-to-play` / `item-catalog` / `example-catalog`の4画面を追加しただけで、
+複数画面が同時に表示されない仕組みはこの既存の一元管理に完全に乗せている。
 
 ```text
 ヘルプ
 ├─ このゲームの遊び方
+├─ 例題確認
 ├─ アイテム図鑑
 ├─ ⚠️ データを消す（他の項目と間隔を空けて配置。危険だが極端に大きくはしない）
 └─ もどる（→タイトル画面）
@@ -1125,6 +1143,96 @@ B🐗 → D🐍 → I👁️ → ?? → ??
 スクリーンリーダーに対応するため独自実装のアコーディオンは使用していない）。内容は
 このREADMEの仕様（ヒント解禁時間・パスの扱い・分数入力・x²/□²の入力・連立方程式の
 2入力欄など）と矛盾しないよう記述している。
+
+### 例題確認
+
+「このゲームの遊び方」と「アイテム図鑑」の間に配置した、現在収録されている全カテゴリ
+（1次方程式11・連立方程式12・2次方程式9＝合計32）について、各カテゴリ1問の固定された
+代表例題を閲覧できる機能。トレーニング・段位認定・クエストで実際に出題される問題テンプレート・
+カテゴリ定義をそのまま再利用しており、問題文・ヒント・模範式を例題確認用に別ファイルへ
+二重登録することはしていない。**閲覧専用**で、解答欄・数式キーボード・正誤判定・タイマー・
+スコア・段位・問題履歴は一切表示せず、`gameState`・localStorageへも影響しない。
+
+- **単元・カテゴリ選択**：`js/help/example-ui.js`が持つローカル状態
+  （`exampleViewState = { unit, categoryId, question }`）だけで管理し、`gameState`は
+  変更しない。単元は横並び3ボタン（`role="tab"`）、カテゴリはスマートフォンではネイティブの
+  `<select>`（768px未満）、768px以上では左カラムのボタン一覧に切り替わる
+  （`.help-example-category-select-row` / `.help-example-category-list`をCSSの
+  `@media (min-width: 768px)`で出し分け）。開いた直後・再度開いたときは、必ず
+  「1次方程式・先頭カテゴリ」へ戻る（`resetExampleCatalogView()`）。
+- **代表テンプレートの指定**：各カテゴリ定義（`categories.js`の`LINEAR_CATEGORIES`等）へ
+  `exampleTemplateId`を1つ追加した（例：`{ id: "L1-01", name: "個数・代金", ...,
+  exampleTemplateId: "L1-01-apple-box" }`）。カテゴリ名の表示は常に`category.name`を使い、
+  例題確認画面のHTML・JSにカテゴリ名を直接書き並べてはいない。
+- **固定例題の生成**：代表テンプレート側に、通常出題用の`generate()`とは別に
+  `generateExample()`を追加した。両者は数値の組み立てだけを担う`buildQuestion(parameters)`
+  （テンプレートごとに`buildXxxQuestion`という名前）を共有しており、`generate()`は
+  ランダムな`parameters`を、`generateExample()`は固定の`parameters`を渡すだけの違いしかない
+  （模範式・ヒント・図のデータ構造が両者で食い違うことがない）。
+  ```javascript
+  function buildAppleBoxQuestion({ unitPrice, boxFee, expectedX }) { /* 共通の組み立て処理 */ }
+
+  export const priceBasicTemplates = [{
+    templateId: "L1-01-apple-box",
+    generate() {
+      return buildAppleBoxQuestion({ unitPrice: randomChoice([...]), boxFee: randomChoice([...]), expectedX: randomInt(3, 12) });
+    },
+    generateExample() {
+      return buildAppleBoxQuestion({ unitPrice: 150, boxFee: 100, expectedX: 4 }); // 固定値
+    }
+  }];
+  ```
+  `generateExample()`は`Math.random()`を使用しないため、呼び出すたびに`prompt` /
+  `variableDefinition(s)` / `canonicalEquation(s)` / `hint` / `diagram`が必ず同じ値になる。
+- **データの解決・検証（`js/help/example-catalog.js`）**：
+  `getExampleQuestionForCategory(unit, categoryId)`が、`getCategoriesForUnit(unit)`から
+  カテゴリを引き、`exampleTemplateId`に対応するテンプレートを`getTemplatesForUnit(unit)`から
+  探し、`generateExample()`を呼んで、通常出題と同じ`validateQuestion()`で検証する。
+  カテゴリ未設定・テンプレートが見つからない・`generateExample()`がない・検証失敗の
+  いずれでも、コンソールへ警告を出しつつ「このカテゴリの例題は準備中です。」という
+  プレースホルダーを返すだけにとどめ、アプリ全体は止めない。`normalizeVariableDefinitions(question)`
+  が、1次・2次方程式の`variableDefinition`（文字列）と連立方程式の`variableDefinitions`
+  （`{x, y}`オブジェクト）の違いを吸収し、`[{symbol, description}, ...]`の共通形式へ変換する。
+  起動時に一度`validateAllCategoryExamples()`を呼び、全32カテゴリの
+  `exampleTemplateId`・対応テンプレート・`generateExample()`の有無・生成結果の安定性・
+  `validateQuestion()`をまとめて検証する（問題があってもコンソール警告のみ）。収録数
+  （画面上部の「全32カテゴリの例題を収録」）は`getTotalCategoryCount()`が
+  `getCategoriesForUnit(unit).length`の合計から動的に計算しており、コード内に`32`という
+  数値をハードコードしていない。
+- **例題カードの表示順**：カテゴリ名→【問題】（`question.prompt`をテキストとして安全に設定、
+  `innerHTML`は使わない）→【文字の意味】→「図を見る」（`diagram`があるときだけ）→
+  「ヒントを見る」→「模範式を見る」。ヒント・模範式は初期状態で非表示、開閉ボタンを押すと
+  `aria-expanded`を切り替えて表示・非表示する。カテゴリを切り替えるたびに両方とも閉じた
+  状態へ戻す。
+- **模範式の描画**：`equation-formatter.js`の`renderFormattedEquation()`を再利用し、
+  `canonicalEquation`（1次・2次）または`canonicalEquations`（連立、`internal`を描画元にする）を、
+  通常の正解表示・履歴と同じ上下型分数・x²の上付き・数学用フォントで表示する。連立方程式は
+  「式①」「式②」とし、`relationName`が設定されていれば併記する。`alternateEquations`が
+  登録されているカテゴリ（割合の増減・人数／割合の増減・代金）では、模範式の下に
+  「別の立式例」として、対応する式番号・`relationName`とともに表示する。方程式の解・
+  文章題の最終的な答え（`expectedRoots` / `validXValues` / `solutionDisplay`）は、立式の
+  確認に集中するため今回は表示しない。
+- **図の表示**：面積・十字路／箱の容積／動点の3カテゴリでは「図を見る」ボタンが表示され、
+  押すと`renderQuadraticDiagram()`（ゲーム画面と共通）で描画した図を、例題確認専用の
+  ダイアログ（`#example-diagram-panel`、ゲーム画面の図パネルとは別要素）に表示する。
+  通常の問題画面と異なり、カテゴリを選んだだけでは図を自動表示せず、ボタンを押したときだけ
+  開く。動点カテゴリでは、閉じるボタンの上に「点P：秒速1cm、点Q：秒速2cm」のような
+  速度の注記を表示する。Escapeキー・背景タップ・「閉じる」ボタンのいずれでも閉じ、
+  閉じたあとは「図を見る」ボタンへフォーカスを戻す。
+
+#### 新しいカテゴリへ例題を追加する方法
+
+1. 対象単元の`categories.js`へカテゴリを追加する（`name` / `difficulty`など、既存と同じ形式）
+2. そのカテゴリへ`exampleTemplateId`を設定する（代表にしたいテンプレートの`templateId`）
+3. 代表にする問題テンプレートへ`generateExample()`を追加する（固定値を渡すだけでよい）
+4. `generateExample()`では、通常の`generate()`と共通の`buildQuestion()`（テンプレートごとの
+   `buildXxxQuestion()`）を使い、`Math.random()`を直接使わない
+5. ブラウザのコンソールで`validateAllCategoryExamples()`の警告が出ていないことを確認する
+   （起動時に自動実行される）
+
+例題確認画面のHTML・`example-ui.js`は変更する必要がない。カテゴリ名を変更した場合も、
+`categories.js`の`name`を直接書き換えるだけで、トレーニングのカテゴリ選択・クエストの
+カテゴリ表示・例題確認のカテゴリ一覧・例題カードの見出しすべてに自動的に反映される。
 
 ### アイテム図鑑
 

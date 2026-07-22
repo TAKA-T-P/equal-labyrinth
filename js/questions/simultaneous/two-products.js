@@ -10,6 +10,50 @@ const UNIT = "simultaneous";
 const KEYPAD_SYMBOLS_SUM = ["x", "y", "+", "="];
 const KEYPAD_SYMBOLS_DIFF = ["x", "y", "+", "-", "="];
 
+function buildBreadQuestion({ totalCount, priceA, priceB, x, y }) {
+  const total = priceA * x + priceB * y;
+
+  return {
+    id: createUniqueId("L2-01-bread"),
+    templateId: "L2-01-bread",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `1個${priceA}円のパンと1個${priceB}円のパンを合わせて${totalCount}個買うと、` +
+      `代金は${total}円でした。${priceA}円のパンをx個、${priceB}円のパンをy個として、` +
+      `連立方程式を立てなさい。`,
+
+    variableDefinitions: {
+      x: `${priceA}円のパンの個数`,
+      y: `${priceB}円のパンの個数`
+    },
+
+    expectedSolution: { x, y },
+
+    canonicalEquations: [
+      { internal: `x+y=${totalCount}`, display: `x＋y＝${totalCount}`, relationName: "個数の合計" },
+      {
+        internal: `${priceA}*x+${priceB}*y=${total}`,
+        display: `${priceA}x＋${priceB}y＝${total}`,
+        relationName: "代金の合計"
+      }
+    ],
+
+    solutionDisplay: `x＝${x}、y＝${y}`,
+
+    keypadNumbers: buildKeypadNumbers([priceA, priceB, totalCount, total]),
+    keypadSymbols: KEYPAD_SYMBOLS_SUM,
+
+    hint: "1本目は個数の合計、2本目は代金の合計を式にしましょう。",
+    hintKeypadParts: [],
+
+    explanation: "2種類のパンの個数の合計と、代金の合計から2本の式を作ります。"
+  };
+}
+
 export const twoProductsTemplates = [
   {
     templateId: "L2-01-bread",
@@ -24,47 +68,12 @@ export const twoProductsTemplates = [
       }
       const x = randomInt(2, totalCount - 2);
       const y = totalCount - x;
-      const total = priceA * x + priceB * y;
+      return buildBreadQuestion({ totalCount, priceA, priceB, x, y });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `1個${priceA}円のパンと1個${priceB}円のパンを合わせて${totalCount}個買うと、` +
-          `代金は${total}円でした。${priceA}円のパンをx個、${priceB}円のパンをy個として、` +
-          `連立方程式を立てなさい。`,
-
-        variableDefinitions: {
-          x: `${priceA}円のパンの個数`,
-          y: `${priceB}円のパンの個数`
-        },
-
-        expectedSolution: { x, y },
-
-        canonicalEquations: [
-          { internal: `x+y=${totalCount}`, display: `x＋y＝${totalCount}`, relationName: "個数の合計" },
-          {
-            internal: `${priceA}*x+${priceB}*y=${total}`,
-            display: `${priceA}x＋${priceB}y＝${total}`,
-            relationName: "代金の合計"
-          }
-        ],
-
-        solutionDisplay: `x＝${x}、y＝${y}`,
-
-        keypadNumbers: buildKeypadNumbers([priceA, priceB, totalCount, total]),
-        keypadSymbols: KEYPAD_SYMBOLS_SUM,
-
-        hint: "1本目は個数の合計、2本目は代金の合計を式にしましょう。",
-        hintKeypadParts: [],
-
-        explanation: "2種類のパンの個数の合計と、代金の合計から2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildBreadQuestion({ totalCount: 10, priceA: 100, priceB: 150, x: 6, y: 4 });
     }
   },
 

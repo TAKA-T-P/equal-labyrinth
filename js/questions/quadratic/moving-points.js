@@ -25,10 +25,11 @@ const ROOT_EPSILON = 1e-9;
  * 正方形（heightValue＝widthValue）では、この関係だけで解の範囲（0＜x＜L／qSpeed）が
  * 決まるため、テンプレート①もこの関数を共用する。
  */
-function buildQTowardAQuestion({ templateId, isSquare, heightValue, widthValue, qSpeed }) {
+function buildQTowardAQuestion({ templateId, isSquare, heightValue, widthValue, qSpeed, x: fixedX }) {
   const lengthAD = widthValue;
   const maxX = Math.min(heightValue - 1, Math.floor((lengthAD - 1) / qSpeed));
-  const x = randomInt(1, maxX);
+  // fixedXは例題確認（ヘルプメニュー）専用：指定時はランダム抽選せず固定値を使う。
+  const x = fixedX ?? randomInt(1, maxX);
   const raw = x * (lengthAD - qSpeed * x); // 面積の2倍
   if (raw % 2 !== 0) {
     throw new Error("動点（Qが辺の途中でAに近づく形）の面積が整数になりません。");
@@ -198,6 +199,18 @@ export const movingPointsTemplates = [
         heightValue,
         widthValue,
         qSpeed: 2
+      });
+    },
+
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildQTowardAQuestion({
+        templateId: this.templateId,
+        isSquare: false,
+        heightValue: 6,
+        widthValue: 16,
+        qSpeed: 2,
+        x: 2
       });
     }
   },

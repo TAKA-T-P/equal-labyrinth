@@ -10,48 +10,56 @@ const CATEGORY_NAME = "整数";
 // 使用する記号も問題によらず一定になる。
 const KEYPAD_SYMBOLS = ["x", "+", "(", ")", "="];
 
+function buildThreeConsecutiveQuestion({ expectedX }) {
+  const sum = expectedX + (expectedX + 1) + (expectedX + 2);
+
+  return {
+    id: createUniqueId("L1-06-three-consecutive"),
+    templateId: "L1-06-three-consecutive",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `連続する3つの整数の和が${sum}です。最も小さい整数をxとして` +
+      `方程式を立てなさい。`,
+
+    variableDefinition: "最も小さい整数",
+
+    expectedX,
+
+    canonicalEquation: `x+(x+1)+(x+2)=${sum}`,
+    displayEquation: `x＋(x＋1)＋(x＋2)＝${sum}`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbers(["1", "2", sum]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hintKeypadParts: [
+      { display: "（x＋1）", value: "(x+1)", ariaLabel: "xたす1" }
+    ],
+
+    hint:
+      `連続する整数は、1ずつ大きくなります。真ん中の整数は「x＋1」、` +
+      `一番大きい整数は「x＋2」と表せます。`,
+
+    explanation:
+      "3つの整数を、すべてxを使って表してから足し合わせます。"
+  };
+}
+
 export const integersTemplates = [
   {
     templateId: "L1-06-three-consecutive",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const expectedX = randomInt(5, 50);
-      const sum = expectedX + (expectedX + 1) + (expectedX + 2);
+      return buildThreeConsecutiveQuestion({ expectedX: randomInt(5, 50) });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `連続する3つの整数の和が${sum}です。最も小さい整数をxとして` +
-          `方程式を立てなさい。`,
-
-        variableDefinition: "最も小さい整数",
-
-        expectedX,
-
-        canonicalEquation: `x+(x+1)+(x+2)=${sum}`,
-        displayEquation: `x＋(x＋1)＋(x＋2)＝${sum}`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers(["1", "2", sum]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hintKeypadParts: [
-          { display: "（x＋1）", value: "(x+1)", ariaLabel: "xたす1" }
-        ],
-
-        hint:
-          `連続する整数は、1ずつ大きくなります。真ん中の整数は「x＋1」、` +
-          `一番大きい整数は「x＋2」と表せます。`,
-
-        explanation:
-          "3つの整数を、すべてxを使って表してから足し合わせます。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildThreeConsecutiveQuestion({ expectedX: 23 });
     }
   },
 

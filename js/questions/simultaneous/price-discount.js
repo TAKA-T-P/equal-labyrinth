@@ -51,83 +51,88 @@ function buildDiscountNumbers() {
   };
 }
 
+function buildShirtPantsQuestion({ x, y, discountA, discountB }) {
+  const decimalA = (100 - discountA) / 100;
+  const decimalB = (100 - discountB) / 100;
+  const ratioA = discountA / 100;
+  const ratioB = discountB / 100;
+
+  const priceTotal = x + y;
+  const discountedTotal = decimalA * x + decimalB * y;
+  const discountAmount = priceTotal - discountedTotal;
+
+  return {
+    id: createUniqueId("L2-11-shirt-pants"),
+    templateId: "L2-11-shirt-pants",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `定価の合計が${priceTotal}円のシャツとズボンを、シャツは${discountA}％引き、` +
+      `ズボンは${discountB}％引きで購入したところ、代金は${discountedTotal}円でした。シャツの定価を` +
+      `x円、ズボンの定価をy円として連立方程式を立てなさい。`,
+
+    variableDefinitions: {
+      x: "シャツの定価",
+      y: "ズボンの定価"
+    },
+
+    expectedSolution: { x, y },
+
+    canonicalEquations: [
+      { internal: `x+y=${priceTotal}`, display: `x＋y＝${priceTotal}`, relationName: "定価の合計" },
+      {
+        internal: `${decimalA}*x+${decimalB}*y=${discountedTotal}`,
+        display: `${decimalA}x＋${decimalB}y＝${discountedTotal}`,
+        relationName: "割引後の代金の合計"
+      }
+    ],
+
+    // 「割引後の代金の合計」ではなく「値引き額の合計」に着目した式も別解として認める
+    alternateEquations: [
+      {
+        index: 1,
+        internal: `${ratioA}*x+${ratioB}*y=${discountAmount}`,
+        display: `${ratioA}x＋${ratioB}y＝${discountAmount}`,
+        relationName: "値引き額の合計の関係"
+      }
+    ],
+
+    solutionDisplay: `x＝${x}、y＝${y}`,
+
+    keypadNumbers: buildKeypadNumbers([
+      priceTotal,
+      decimalA,
+      decimalB,
+      discountedTotal,
+      ratioA,
+      ratioB,
+      discountAmount
+    ]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: `割引後のシャツの代金は「${decimalA}×x」、ズボンの代金は「${decimalB}×y」と表せます。`,
+    hintKeypadParts: [],
+
+    explanation: "定価の合計と、割引後の代金の合計から2本の式を作ります。"
+  };
+}
+
 export const priceDiscountTemplates = [
   {
     templateId: "L2-11-shirt-pants",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const {
-        x,
-        y,
-        discountA,
-        discountB,
-        decimalA,
-        decimalB,
-        ratioA,
-        ratioB,
-        priceTotal,
-        discountedTotal,
-        discountAmount
-      } = buildDiscountNumbers();
+      const { x, y, discountA, discountB } = buildDiscountNumbers();
+      return buildShirtPantsQuestion({ x, y, discountA, discountB });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `定価の合計が${priceTotal}円のシャツとズボンを、シャツは${discountA}％引き、` +
-          `ズボンは${discountB}％引きで購入したところ、代金は${discountedTotal}円でした。シャツの定価を` +
-          `x円、ズボンの定価をy円として連立方程式を立てなさい。`,
-
-        variableDefinitions: {
-          x: "シャツの定価",
-          y: "ズボンの定価"
-        },
-
-        expectedSolution: { x, y },
-
-        canonicalEquations: [
-          { internal: `x+y=${priceTotal}`, display: `x＋y＝${priceTotal}`, relationName: "定価の合計" },
-          {
-            internal: `${decimalA}*x+${decimalB}*y=${discountedTotal}`,
-            display: `${decimalA}x＋${decimalB}y＝${discountedTotal}`,
-            relationName: "割引後の代金の合計"
-          }
-        ],
-
-        // 「割引後の代金の合計」ではなく「値引き額の合計」に着目した式も別解として認める
-        alternateEquations: [
-          {
-            index: 1,
-            internal: `${ratioA}*x+${ratioB}*y=${discountAmount}`,
-            display: `${ratioA}x＋${ratioB}y＝${discountAmount}`,
-            relationName: "値引き額の合計の関係"
-          }
-        ],
-
-        solutionDisplay: `x＝${x}、y＝${y}`,
-
-        keypadNumbers: buildKeypadNumbers([
-          priceTotal,
-          decimalA,
-          decimalB,
-          discountedTotal,
-          ratioA,
-          ratioB,
-          discountAmount
-        ]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: `割引後のシャツの代金は「${decimalA}×x」、ズボンの代金は「${decimalB}×y」と表せます。`,
-        hintKeypadParts: [],
-
-        explanation: "定価の合計と、割引後の代金の合計から2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildShirtPantsQuestion({ x: 3000, y: 2000, discountA: 20, discountB: 10 });
     }
   },
 

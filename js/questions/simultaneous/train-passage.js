@@ -36,63 +36,74 @@ function buildTrainNumbers(speedChoices, lengthRangeA, lengthRangeB) {
   return { x, y, obj1Length, obj2Length, time1, time2 };
 }
 
+function buildBridgeTunnelQuestion({ x, y, obj1Length, obj2Length }) {
+  const time1 = (x + obj1Length) / y;
+  const time2 = (x + obj2Length) / y;
+
+  return {
+    id: createUniqueId("L2-07-bridge-tunnel"),
+    templateId: "L2-07-bridge-tunnel",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `ある電車が${obj1Length}mの鉄橋を渡り始めてから渡り終わるまでに${time1}秒かかりました。` +
+      `また、${obj2Length}mのトンネルに入り始めてから出るまでに${time2}秒かかりました。` +
+      `電車の長さをxm、電車の速さを毎秒ymとして連立方程式を立てなさい。`,
+
+    variableDefinitions: {
+      x: "電車の長さ（m）",
+      y: "電車の速さ（毎秒m）"
+    },
+
+    expectedSolution: { x, y },
+
+    canonicalEquations: [
+      {
+        internal: `x+${obj1Length}=${time1}*y`,
+        display: `x＋${obj1Length}＝${time1}y`,
+        relationName: "鉄橋を渡る関係"
+      },
+      {
+        internal: `x+${obj2Length}=${time2}*y`,
+        display: `x＋${obj2Length}＝${time2}y`,
+        relationName: "トンネルを通る関係"
+      }
+    ],
+
+    solutionDisplay: `x＝${x}、y＝${y}`,
+
+    keypadNumbers: buildKeypadNumbers([obj1Length, time1, obj2Length, time2]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: "電車が渡り始めてから渡り終わるまでに進む道のりは「電車の長さ＋鉄橋の長さ」です。",
+    hintKeypadParts: [
+      { display: `x＋${obj1Length}`, value: `x+${obj1Length}`, ariaLabel: `xたす${obj1Length}` }
+    ],
+
+    explanation: "鉄橋・トンネルそれぞれについて、進んだ道のりと速さ×時間の関係から2本の式を作ります。"
+  };
+}
+
 export const trainPassageTemplates = [
   {
     templateId: "L2-07-bridge-tunnel",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { x, y, obj1Length, obj2Length, time1, time2 } = buildTrainNumbers(
+      const { x, y, obj1Length, obj2Length } = buildTrainNumbers(
         [15, 20, 25],
         [80, 200],
         [150, 300]
       );
+      return buildBridgeTunnelQuestion({ x, y, obj1Length, obj2Length });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `ある電車が${obj1Length}mの鉄橋を渡り始めてから渡り終わるまでに${time1}秒かかりました。` +
-          `また、${obj2Length}mのトンネルに入り始めてから出るまでに${time2}秒かかりました。` +
-          `電車の長さをxm、電車の速さを毎秒ymとして連立方程式を立てなさい。`,
-
-        variableDefinitions: {
-          x: "電車の長さ（m）",
-          y: "電車の速さ（毎秒m）"
-        },
-
-        expectedSolution: { x, y },
-
-        canonicalEquations: [
-          {
-            internal: `x+${obj1Length}=${time1}*y`,
-            display: `x＋${obj1Length}＝${time1}y`,
-            relationName: "鉄橋を渡る関係"
-          },
-          {
-            internal: `x+${obj2Length}=${time2}*y`,
-            display: `x＋${obj2Length}＝${time2}y`,
-            relationName: "トンネルを通る関係"
-          }
-        ],
-
-        solutionDisplay: `x＝${x}、y＝${y}`,
-
-        keypadNumbers: buildKeypadNumbers([obj1Length, time1, obj2Length, time2]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: "電車が渡り始めてから渡り終わるまでに進む道のりは「電車の長さ＋鉄橋の長さ」です。",
-        hintKeypadParts: [
-          { display: `x＋${obj1Length}`, value: `x+${obj1Length}`, ariaLabel: `xたす${obj1Length}` }
-        ],
-
-        explanation: "鉄橋・トンネルそれぞれについて、進んだ道のりと速さ×時間の関係から2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildBridgeTunnelQuestion({ x: 150, y: 20, obj1Length: 150, obj2Length: 250 });
     }
   },
 

@@ -37,53 +37,63 @@ function buildAverageNumbers() {
   return { avgLow, avgHigh, avgOverall, x, y, total };
 }
 
+function buildTestScoreQuestion({ avgLow, avgHigh, avgOverall, x, y }) {
+  const total = x + y;
+
+  return {
+    id: createUniqueId("L2-12-test-score"),
+    templateId: "L2-12-test-score",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `男子と女子を合わせて${total}人のテストの平均点は${avgOverall}点でした。男子の平均点は` +
+      `${avgLow}点、女子の平均点は${avgHigh}点です。男子の人数をx人、女子の人数をy人として` +
+      `連立方程式を立てなさい。`,
+
+    variableDefinitions: {
+      x: "男子の人数",
+      y: "女子の人数"
+    },
+
+    expectedSolution: { x, y },
+
+    canonicalEquations: [
+      { internal: `x+y=${total}`, display: `x＋y＝${total}`, relationName: "人数の合計" },
+      {
+        internal: `${avgLow}*x+${avgHigh}*y=${avgOverall}*${total}`,
+        display: `${avgLow}x＋${avgHigh}y＝${avgOverall}×${total}`,
+        relationName: "合計点の関係"
+      }
+    ],
+
+    solutionDisplay: `x＝${x}、y＝${y}`,
+
+    keypadNumbers: buildKeypadNumbers([total, avgLow, avgHigh, avgOverall]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: `全体の合計点は「${avgOverall}×${total}」、男女それぞれの合計点の和と等しくなります。`,
+    hintKeypadParts: [],
+
+    explanation: "人数の合計と、合計点の関係から2本の式を作ります。"
+  };
+}
+
 export const averagesTemplates = [
   {
     templateId: "L2-12-test-score",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { avgLow, avgHigh, avgOverall, x, y, total } = buildAverageNumbers();
+      const { avgLow, avgHigh, avgOverall, x, y } = buildAverageNumbers();
+      return buildTestScoreQuestion({ avgLow, avgHigh, avgOverall, x, y });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `男子と女子を合わせて${total}人のテストの平均点は${avgOverall}点でした。男子の平均点は` +
-          `${avgLow}点、女子の平均点は${avgHigh}点です。男子の人数をx人、女子の人数をy人として` +
-          `連立方程式を立てなさい。`,
-
-        variableDefinitions: {
-          x: "男子の人数",
-          y: "女子の人数"
-        },
-
-        expectedSolution: { x, y },
-
-        canonicalEquations: [
-          { internal: `x+y=${total}`, display: `x＋y＝${total}`, relationName: "人数の合計" },
-          {
-            internal: `${avgLow}*x+${avgHigh}*y=${avgOverall}*${total}`,
-            display: `${avgLow}x＋${avgHigh}y＝${avgOverall}×${total}`,
-            relationName: "合計点の関係"
-          }
-        ],
-
-        solutionDisplay: `x＝${x}、y＝${y}`,
-
-        keypadNumbers: buildKeypadNumbers([total, avgLow, avgHigh, avgOverall]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: `全体の合計点は「${avgOverall}×${total}」、男女それぞれの合計点の和と等しくなります。`,
-        hintKeypadParts: [],
-
-        explanation: "人数の合計と、合計点の関係から2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildTestScoreQuestion({ avgLow: 60, avgHigh: 80, avgOverall: 68, x: 12, y: 8 });
     }
   },
 

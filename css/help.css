@@ -316,3 +316,218 @@
   color: var(--color-text-muted);
   margin-bottom: 14px;
 }
+
+/* ---------------- 例題確認 ---------------- */
+
+.help-example-intro {
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  margin: 0 0 6px;
+}
+
+.help-example-count {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin: 0 0 10px;
+}
+
+/* 単元選択（1次方程式・連立方程式・2次方程式）は常に横並び3ボタン */
+.help-example-unit-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.help-example-unit-button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 4px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-panel-border);
+  background: transparent;
+  color: var(--color-text-main);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.help-example-unit-button.is-selected {
+  background: linear-gradient(135deg, var(--color-button-purple), var(--color-button-blue));
+  border-color: var(--color-correct-gold);
+}
+
+/* スマートフォン：カテゴリはネイティブselect＋その下に例題カードの1カラム。
+   広い画面（768px以上）：カテゴリ一覧を左カラムに出し、selectは隠す。 */
+.help-example-category-select-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.help-example-category-label {
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.help-example-category-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-panel-border);
+  background: var(--color-panel);
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+}
+
+.help-example-category-list {
+  display: none;
+}
+
+.help-example-category-button {
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-panel-border);
+  background: var(--color-panel);
+  color: var(--color-text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.help-example-category-button.is-selected {
+  border-color: var(--color-correct-gold);
+  background: rgba(255, 214, 92, 0.12);
+}
+
+.help-example-card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-panel-border);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.help-example-category-heading {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-correct-gold);
+  margin: 0 0 10px;
+}
+
+.help-example-block {
+  margin-bottom: 12px;
+}
+
+.help-example-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin: 0 0 4px;
+}
+
+.help-example-problem {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  white-space: pre-line;
+  margin: 0;
+}
+
+.help-example-variable-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.help-example-placeholder {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  padding: 20px 0;
+}
+
+.help-example-toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.help-example-toggle-button {
+  flex: 1 1 auto;
+  min-width: 120px;
+  min-height: 44px;
+}
+
+.help-example-hint,
+.help-example-equations {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-panel-border);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.help-example-hint-text {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.help-example-equation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.help-example-equation-row {
+  overflow-x: auto;
+}
+
+.help-example-equation-label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin: 0 0 2px;
+}
+
+.help-example-equation-value {
+  font-size: 1.05rem;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.help-example-alternate {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-panel-border);
+}
+
+@media (min-width: 768px) {
+  .help-example-category-select-row {
+    display: none;
+  }
+
+  .help-example-layout {
+    display: grid;
+    grid-template-columns: minmax(160px, 220px) 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .help-example-category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+}

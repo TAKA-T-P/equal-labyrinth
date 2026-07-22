@@ -42,58 +42,68 @@ function buildTrackNumbers() {
   return { meetTime, catchUpTime, lapLength, x, y };
 }
 
+function buildPondQuestion({ meetTime, catchUpTime, x, y }) {
+  const lapLength = meetTime * (x + y);
+
+  return {
+    id: createUniqueId("L2-08-pond"),
+    templateId: "L2-08-pond",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `1周${lapLength}mの池のまわりを、AさんとB君が同じ地点から同時に出発しました。` +
+      `反対方向に走ると${meetTime}分後に初めて出会い、同じ方向に走ると${catchUpTime}分後に` +
+      `AさんがB君に追いつきました。Aさんの速さを毎分xm、B君の速さを毎分ymとして` +
+      `連立方程式を立てなさい。`,
+
+    variableDefinitions: {
+      x: "Aさんの速さ（毎分m）",
+      y: "B君の速さ（毎分m）"
+    },
+
+    expectedSolution: { x, y },
+
+    canonicalEquations: [
+      {
+        internal: `${meetTime}*x+${meetTime}*y=${lapLength}`,
+        display: `${meetTime}x＋${meetTime}y＝${lapLength}`,
+        relationName: "反対方向に進んで出会う関係"
+      },
+      {
+        internal: `${catchUpTime}*x-${catchUpTime}*y=${lapLength}`,
+        display: `${catchUpTime}x−${catchUpTime}y＝${lapLength}`,
+        relationName: "同じ方向に進んで追いつく関係"
+      }
+    ],
+
+    solutionDisplay: `x＝${x}、y＝${y}`,
+
+    keypadNumbers: buildKeypadNumbers([meetTime, lapLength, catchUpTime]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: "反対方向では2人の道のりの和が1周分、同じ方向では2人の道のりの差が1周分になります。",
+    hintKeypadParts: [],
+
+    explanation: "出会う関係と追いつく関係から、2人の速さについての2本の式を作ります。"
+  };
+}
+
 export const circularTrackTemplates = [
   {
     templateId: "L2-08-pond",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { meetTime, catchUpTime, lapLength, x, y } = buildTrackNumbers();
+      const { meetTime, catchUpTime, x, y } = buildTrackNumbers();
+      return buildPondQuestion({ meetTime, catchUpTime, x, y });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `1周${lapLength}mの池のまわりを、AさんとB君が同じ地点から同時に出発しました。` +
-          `反対方向に走ると${meetTime}分後に初めて出会い、同じ方向に走ると${catchUpTime}分後に` +
-          `AさんがB君に追いつきました。Aさんの速さを毎分xm、B君の速さを毎分ymとして` +
-          `連立方程式を立てなさい。`,
-
-        variableDefinitions: {
-          x: "Aさんの速さ（毎分m）",
-          y: "B君の速さ（毎分m）"
-        },
-
-        expectedSolution: { x, y },
-
-        canonicalEquations: [
-          {
-            internal: `${meetTime}*x+${meetTime}*y=${lapLength}`,
-            display: `${meetTime}x＋${meetTime}y＝${lapLength}`,
-            relationName: "反対方向に進んで出会う関係"
-          },
-          {
-            internal: `${catchUpTime}*x-${catchUpTime}*y=${lapLength}`,
-            display: `${catchUpTime}x−${catchUpTime}y＝${lapLength}`,
-            relationName: "同じ方向に進んで追いつく関係"
-          }
-        ],
-
-        solutionDisplay: `x＝${x}、y＝${y}`,
-
-        keypadNumbers: buildKeypadNumbers([meetTime, lapLength, catchUpTime]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: "反対方向では2人の道のりの和が1周分、同じ方向では2人の道のりの差が1周分になります。",
-        hintKeypadParts: [],
-
-        explanation: "出会う関係と追いつく関係から、2人の速さについての2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildPondQuestion({ meetTime: 5, catchUpTime: 20, x: 50, y: 30 });
     }
   },
 

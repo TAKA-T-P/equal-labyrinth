@@ -36,57 +36,73 @@ function buildMixtureNumbers() {
   return { concentrationLow, concentrationHigh, concentrationMixed, x, y, total };
 }
 
+function buildSaltWaterQuestion({ concentrationLow, concentrationHigh, concentrationMixed, x, y }) {
+  const total = x + y;
+  const decimalLow = concentrationLow / 100;
+  const decimalHigh = concentrationHigh / 100;
+  const decimalMixed = concentrationMixed / 100;
+
+  return {
+    id: createUniqueId("L2-09-salt-water"),
+    templateId: "L2-09-salt-water",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `${concentrationLow}％の食塩水と${concentrationHigh}％の食塩水を混ぜて、` +
+      `${concentrationMixed}％の食塩水を${total}g作ります。${concentrationLow}％の食塩水を` +
+      `xg、${concentrationHigh}％の食塩水をygとして連立方程式を立てなさい。`,
+
+    variableDefinitions: {
+      x: `${concentrationLow}％の食塩水の重さ（g）`,
+      y: `${concentrationHigh}％の食塩水の重さ（g）`
+    },
+
+    expectedSolution: { x, y },
+
+    canonicalEquations: [
+      { internal: `x+y=${total}`, display: `x＋y＝${total}`, relationName: "食塩水の重さの合計" },
+      {
+        internal: `${decimalLow}*x+${decimalHigh}*y=${decimalMixed}*${total}`,
+        display: `${decimalLow}x＋${decimalHigh}y＝${decimalMixed}×${total}`,
+        relationName: "食塩の重さの合計"
+      }
+    ],
+
+    solutionDisplay: `x＝${x}、y＝${y}`,
+
+    keypadNumbers: buildKeypadNumbers([total, decimalLow, decimalHigh, decimalMixed]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: `含まれる食塩の重さは「濃度×食塩水の重さ」で表せます。全体では「${decimalMixed}×${total}」です。`,
+    hintKeypadParts: [],
+
+    explanation: "食塩水の重さの合計と、含まれる食塩の重さの合計から2本の式を作ります。"
+  };
+}
+
 export const mixtureTemplates = [
   {
     templateId: "L2-09-salt-water",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { concentrationLow, concentrationHigh, concentrationMixed, x, y, total } =
+      const { concentrationLow, concentrationHigh, concentrationMixed, x, y } =
         buildMixtureNumbers();
-      const decimalLow = concentrationLow / 100;
-      const decimalHigh = concentrationHigh / 100;
-      const decimalMixed = concentrationMixed / 100;
+      return buildSaltWaterQuestion({ concentrationLow, concentrationHigh, concentrationMixed, x, y });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `${concentrationLow}％の食塩水と${concentrationHigh}％の食塩水を混ぜて、` +
-          `${concentrationMixed}％の食塩水を${total}g作ります。${concentrationLow}％の食塩水を` +
-          `xg、${concentrationHigh}％の食塩水をygとして連立方程式を立てなさい。`,
-
-        variableDefinitions: {
-          x: `${concentrationLow}％の食塩水の重さ（g）`,
-          y: `${concentrationHigh}％の食塩水の重さ（g）`
-        },
-
-        expectedSolution: { x, y },
-
-        canonicalEquations: [
-          { internal: `x+y=${total}`, display: `x＋y＝${total}`, relationName: "食塩水の重さの合計" },
-          {
-            internal: `${decimalLow}*x+${decimalHigh}*y=${decimalMixed}*${total}`,
-            display: `${decimalLow}x＋${decimalHigh}y＝${decimalMixed}×${total}`,
-            relationName: "食塩の重さの合計"
-          }
-        ],
-
-        solutionDisplay: `x＝${x}、y＝${y}`,
-
-        keypadNumbers: buildKeypadNumbers([total, decimalLow, decimalHigh, decimalMixed]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: `含まれる食塩の重さは「濃度×食塩水の重さ」で表せます。全体では「${decimalMixed}×${total}」です。`,
-        hintKeypadParts: [],
-
-        explanation: "食塩水の重さの合計と、含まれる食塩の重さの合計から2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildSaltWaterQuestion({
+        concentrationLow: 5,
+        concentrationHigh: 15,
+        concentrationMixed: 10,
+        x: 100,
+        y: 100
+      });
     }
   },
 

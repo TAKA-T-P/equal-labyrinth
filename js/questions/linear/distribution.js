@@ -26,59 +26,71 @@ function buildDistributionNumbers() {
   return { expectedX, perPersonA, perPersonB, surplus, shortage };
 }
 
+function buildCandyChildrenQuestion({ expectedX, perPersonA, perPersonB, surplus, shortage }) {
+  return {
+    id: createUniqueId("L1-03-candy-children"),
+    templateId: "L1-03-candy-children",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `あめを何人かの子どもに配ります。1人${perPersonA}個ずつ配ると` +
+      `${surplus}個余り、1人${perPersonB}個ずつ配ると${shortage}個` +
+      `足りません。子どもの人数をx人として方程式を立てなさい。`,
+
+    variableDefinition: "子どもの人数",
+
+    expectedX,
+
+    canonicalEquation: `${perPersonA}*x+${surplus}=${perPersonB}*x-${shortage}`,
+    displayEquation: `${perPersonA}x＋${surplus}＝${perPersonB}x−${shortage}`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbers([
+      perPersonA,
+      surplus,
+      perPersonB,
+      shortage
+    ]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    // 「1人分×人数＋余り」という1つの数量表現だけを補助する
+    hintKeypadParts: [
+      {
+        display: `${perPersonA}x＋${surplus}`,
+        value: `${perPersonA}x+${surplus}`,
+        ariaLabel: `${perPersonA}xたす${surplus}`
+      }
+    ],
+
+    hint:
+      `あめの個数は「1人${perPersonA}個×人数＋${surplus}個」でも、` +
+      `「1人${perPersonB}個×人数－${shortage}個」でも表せます。`,
+
+    explanation:
+      "配り方が変わっても、あめの総数は変わらないことから方程式が立てられます。"
+  };
+}
+
 export const distributionTemplates = [
   {
     templateId: "L1-03-candy-children",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { expectedX, perPersonA, perPersonB, surplus, shortage } =
-        buildDistributionNumbers();
+      return buildCandyChildrenQuestion(buildDistributionNumbers());
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `あめを何人かの子どもに配ります。1人${perPersonA}個ずつ配ると` +
-          `${surplus}個余り、1人${perPersonB}個ずつ配ると${shortage}個` +
-          `足りません。子どもの人数をx人として方程式を立てなさい。`,
-
-        variableDefinition: "子どもの人数",
-
-        expectedX,
-
-        canonicalEquation: `${perPersonA}*x+${surplus}=${perPersonB}*x-${shortage}`,
-        displayEquation: `${perPersonA}x＋${surplus}＝${perPersonB}x−${shortage}`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers([
-          perPersonA,
-          surplus,
-          perPersonB,
-          shortage
-        ]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        // 「1人分×人数＋余り」という1つの数量表現だけを補助する
-        hintKeypadParts: [
-          {
-            display: `${perPersonA}x＋${surplus}`,
-            value: `${perPersonA}x+${surplus}`,
-            ariaLabel: `${perPersonA}xたす${surplus}`
-          }
-        ],
-
-        hint:
-          `あめの個数は「1人${perPersonA}個×人数＋${surplus}個」でも、` +
-          `「1人${perPersonB}個×人数－${shortage}個」でも表せます。`,
-
-        explanation:
-          "配り方が変わっても、あめの総数は変わらないことから方程式が立てられます。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildCandyChildrenQuestion({
+        expectedX: 6,
+        perPersonA: 5,
+        perPersonB: 7,
+        surplus: 3,
+        shortage: 9
+      });
     }
   },
 

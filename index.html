@@ -494,6 +494,9 @@
         <button type="button" id="open-how-to-play-button" class="help-menu-button">
           このゲームの遊び方
         </button>
+        <button type="button" id="open-example-catalog-button" class="help-menu-button">
+          例題確認
+        </button>
         <button type="button" id="open-item-catalog-button" class="help-menu-button">
           アイテム図鑑
         </button>
@@ -552,6 +555,122 @@
       </button>
     </div>
   </section>
+
+  <!-- 例題確認 -->
+  <section id="screen-example-catalog" class="screen" data-screen="example-catalog" hidden>
+    <div class="screen-inner help-screen">
+      <div class="help-topbar">
+        <h1 class="help-heading">例題確認</h1>
+        <button
+          type="button"
+          id="example-catalog-back-button-top"
+          class="icon-button help-topbar-back-button"
+          aria-label="ヘルプメニューにもどる"
+        >
+          もどる
+        </button>
+      </div>
+      <p class="help-example-intro">
+        各カテゴリの代表的な問題と、<br />
+        方程式の立て方を確認できます。
+      </p>
+      <p id="example-catalog-count" class="help-example-count" aria-live="polite"></p>
+
+      <div class="help-example-unit-tabs" role="tablist" aria-label="単元を選ぶ">
+        <button type="button" id="example-unit-linear" class="help-example-unit-button" data-unit="linear" role="tab" aria-selected="true">1次方程式</button>
+        <button type="button" id="example-unit-simultaneous" class="help-example-unit-button" data-unit="simultaneous" role="tab" aria-selected="false">連立方程式</button>
+        <button type="button" id="example-unit-quadratic" class="help-example-unit-button" data-unit="quadratic" role="tab" aria-selected="false">2次方程式</button>
+      </div>
+
+      <div class="help-example-layout">
+        <div class="help-example-category-select-row">
+          <label for="example-category-select" class="help-example-category-label">カテゴリ</label>
+          <select id="example-category-select" class="help-example-category-select" aria-label="カテゴリを選ぶ"></select>
+        </div>
+
+        <div id="example-category-list" class="help-example-category-list" role="listbox" aria-label="カテゴリ一覧"></div>
+
+        <div id="example-card" class="help-example-card">
+          <h2 id="example-category-heading" class="help-example-category-heading"></h2>
+
+          <div class="help-example-block">
+            <p class="help-example-label">【問題】</p>
+            <p id="example-prompt" class="help-example-problem"></p>
+          </div>
+
+          <div id="example-variable-block" class="help-example-block">
+            <p class="help-example-label">【文字の意味】</p>
+            <ul id="example-variable-list" class="help-example-variable-list"></ul>
+          </div>
+
+          <p id="example-placeholder-text" class="help-example-placeholder" hidden>
+            このカテゴリの例題は準備中です。
+          </p>
+
+          <div class="help-example-toggle-row">
+            <button
+              type="button"
+              id="example-diagram-open-button"
+              class="secondary-button help-example-toggle-button"
+              hidden
+            >
+              図を見る
+            </button>
+            <button
+              type="button"
+              id="example-hint-toggle-button"
+              class="secondary-button help-example-toggle-button"
+              aria-expanded="false"
+              aria-controls="example-hint-body"
+            >
+              ヒントを見る
+            </button>
+            <button
+              type="button"
+              id="example-equation-toggle-button"
+              class="secondary-button help-example-toggle-button"
+              aria-expanded="false"
+              aria-controls="example-equation-body"
+            >
+              模範式を見る
+            </button>
+          </div>
+
+          <div id="example-hint-body" class="help-example-hint" hidden>
+            <p class="help-example-label">【ヒント】</p>
+            <p id="example-hint-text" class="help-example-hint-text"></p>
+          </div>
+
+          <div id="example-equation-body" class="help-example-equations" hidden>
+            <p class="help-example-label">【模範式】</p>
+            <div id="example-equation-list" class="help-example-equation-list"></div>
+            <div id="example-alternate-block" class="help-example-alternate" hidden>
+              <p class="help-example-label">【別の立式例】</p>
+              <div id="example-alternate-list" class="help-example-equation-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" id="example-catalog-back-button" class="secondary-button help-back-button">
+        ← ヘルプメニューにもどる
+      </button>
+    </div>
+  </section>
+
+  <!-- 例題確認：図の表示ダイアログ（ゲーム画面用の図パネルとは独立） -->
+  <div id="example-diagram-backdrop" class="hint-backdrop" hidden></div>
+  <div
+    id="example-diagram-panel"
+    class="hint-panel quadratic-diagram-panel"
+    hidden
+    role="dialog"
+    aria-label="図"
+  >
+    <div id="example-diagram-container" class="quadratic-diagram-container"></div>
+    <p id="example-diagram-note" class="quadratic-diagram-note" hidden></p>
+    <button type="button" id="example-diagram-close-button" class="secondary-button quadratic-diagram-close-button">閉じる</button>
+  </div>
 
   <!-- データ消去：第1・第2確認モーダル -->
   <div id="reset-confirm-backdrop" class="hint-backdrop" hidden></div>

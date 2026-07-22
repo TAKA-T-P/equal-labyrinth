@@ -12,6 +12,44 @@ const CATEGORY_NAME = "数とその平方";
 const UNIT = "quadratic";
 const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
+function buildSquareEqualsLinearQuestion({ p, q }) {
+  const a = p + q;
+  const b = -p * q;
+  const canonicalInternal = `x^2=${a}*x+${b}`;
+  const roots = computeQuadraticRoots(canonicalInternal);
+
+  return {
+    id: createUniqueId("L3-02-square-equals-linear"),
+    templateId: "L3-02-square-equals-linear",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `ある正の整数を2乗すると、その数の${a}倍に${b}を加えた数に等しくなりました。` +
+      `この正の整数をxとして、2次方程式を立てなさい。`,
+    variableDefinition: "ある正の整数",
+
+    canonicalEquation: {
+      internal: canonicalInternal,
+      display: `x²＝${a}x＋${b}`,
+      relationName: "2乗と1次式の関係"
+    },
+    expectedRoots: roots,
+    validXValues: [p],
+    solutionDisplay: `x＝${p}`,
+
+    keypadNumbers: [String(a), String(b)],
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: "「2乗した数」はx²、「その数のa倍にbを加えた数」は右辺で表せます。",
+    hintKeypadParts: [],
+    explanation: "ある数の2乗と、その数を使った1次式が等しくなる関係を式にします。",
+    diagram: null
+  };
+}
+
 export const numberSquareTemplates = [
   {
     templateId: "L3-02-square-equals-linear",
@@ -20,41 +58,12 @@ export const numberSquareTemplates = [
     generate() {
       const p = randomInt(5, 20);
       const q = -randomInt(1, p - 2); // p+q >= 2 になるよう調整（a＝1の不自然な文を避ける）
-      const a = p + q;
-      const b = -p * q;
-      const canonicalInternal = `x^2=${a}*x+${b}`;
-      const roots = computeQuadraticRoots(canonicalInternal);
+      return buildSquareEqualsLinearQuestion({ p, q });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `ある正の整数を2乗すると、その数の${a}倍に${b}を加えた数に等しくなりました。` +
-          `この正の整数をxとして、2次方程式を立てなさい。`,
-        variableDefinition: "ある正の整数",
-
-        canonicalEquation: {
-          internal: canonicalInternal,
-          display: `x²＝${a}x＋${b}`,
-          relationName: "2乗と1次式の関係"
-        },
-        expectedRoots: roots,
-        validXValues: [p],
-        solutionDisplay: `x＝${p}`,
-
-        keypadNumbers: [String(a), String(b)],
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: "「2乗した数」はx²、「その数のa倍にbを加えた数」は右辺で表せます。",
-        hintKeypadParts: [],
-        explanation: "ある数の2乗と、その数を使った1次式が等しくなる関係を式にします。",
-        diagram: null
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildSquareEqualsLinearQuestion({ p: 8, q: -3 });
     }
   },
 

@@ -15,50 +15,60 @@ const CATEGORY_NAME = "個数・代金";
 // 使用する記号も問題によらず一定になる。
 const KEYPAD_SYMBOLS = ["x", "+", "="];
 
+function buildAppleBoxQuestion({ unitPrice, boxFee, expectedX }) {
+  const total = unitPrice * expectedX + boxFee;
+
+  return {
+    id: createUniqueId("L1-01-apple-box"),
+    templateId: "L1-01-apple-box",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `1個${unitPrice}円のりんごを何個か買い、箱代${boxFee}円を` +
+      `別に払ったところ、代金の合計が${total}円になりました。` +
+      `りんごの個数をx個として方程式を立てなさい。`,
+
+    variableDefinition: "りんごの個数",
+
+    expectedX,
+
+    canonicalEquation: `${unitPrice}*x+${boxFee}=${total}`,
+    displayEquation: `${unitPrice}x＋${boxFee}＝${total}`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbers([unitPrice, boxFee, total]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    // xだけで表せる基本問題のため、式パーツは不要
+    hintKeypadParts: [],
+
+    hint:
+      `りんごの代金は「1個${unitPrice}円×個数」で表せます。` +
+      `そこに箱代${boxFee}円を足すと合計になります。`,
+
+    explanation:
+      "りんごの代金と箱代を合わせた金額が、代金の合計と等しくなります。"
+  };
+}
+
 export const priceBasicTemplates = [
   {
     templateId: "L1-01-apple-box",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const unitPrice = randomChoice([80, 100, 120, 150, 180]);
-      const boxFee = randomChoice([50, 80, 100, 150]);
-      const expectedX = randomInt(3, 12);
-      const total = unitPrice * expectedX + boxFee;
+      return buildAppleBoxQuestion({
+        unitPrice: randomChoice([80, 100, 120, 150, 180]),
+        boxFee: randomChoice([50, 80, 100, 150]),
+        expectedX: randomInt(3, 12)
+      });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `1個${unitPrice}円のりんごを何個か買い、箱代${boxFee}円を` +
-          `別に払ったところ、代金の合計が${total}円になりました。` +
-          `りんごの個数をx個として方程式を立てなさい。`,
-
-        variableDefinition: "りんごの個数",
-
-        expectedX,
-
-        canonicalEquation: `${unitPrice}*x+${boxFee}=${total}`,
-        displayEquation: `${unitPrice}x＋${boxFee}＝${total}`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers([unitPrice, boxFee, total]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        // xだけで表せる基本問題のため、式パーツは不要
-        hintKeypadParts: [],
-
-        hint:
-          `りんごの代金は「1個${unitPrice}円×個数」で表せます。` +
-          `そこに箱代${boxFee}円を足すと合計になります。`,
-
-        explanation:
-          "りんごの代金と箱代を合わせた金額が、代金の合計と等しくなります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildAppleBoxQuestion({ unitPrice: 150, boxFee: 100, expectedX: 4 });
     }
   },
 

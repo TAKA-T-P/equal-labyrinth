@@ -55,57 +55,68 @@ function buildYearsUntilRatioNumbers() {
   return { expectedX, currentAgeA, currentAgeB, futureMultiplier };
 }
 
+function buildFatherSonQuestion({ expectedX, currentMultiplier, futureMultiplier, yearsLater }) {
+  return {
+    id: createUniqueId("L1-05-father-son"),
+    templateId: "L1-05-father-son",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `現在、父の年齢は息子の年齢の${currentMultiplier}倍です。` +
+      `${yearsLater}年後には、父の年齢が息子の年齢の${futureMultiplier}倍に` +
+      `なります。息子の現在の年齢をx歳として方程式を立てなさい。`,
+
+    variableDefinition: "息子の現在の年齢",
+
+    expectedX,
+
+    canonicalEquation: `${currentMultiplier}*x+${yearsLater}=${futureMultiplier}*(x+${yearsLater})`,
+    displayEquation: `${currentMultiplier}x＋${yearsLater}＝${futureMultiplier}(x＋${yearsLater})`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbers([
+      currentMultiplier,
+      yearsLater,
+      futureMultiplier
+    ]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hintKeypadParts: [
+      {
+        display: `（x＋${yearsLater}）`,
+        value: `(x+${yearsLater})`,
+        ariaLabel: `xたす${yearsLater}`
+      }
+    ],
+
+    hint:
+      `${yearsLater}年後の息子の年齢は「x＋${yearsLater}」歳と表せます。` +
+      `父の年齢も同じように${yearsLater}を足して表しましょう。`,
+
+    explanation:
+      `${yearsLater}年後の父の年齢と、息子の年齢の${futureMultiplier}倍が等しくなります。`
+  };
+}
+
 export const agesTemplates = [
   {
     templateId: "L1-05-father-son",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { expectedX, currentMultiplier, futureMultiplier, yearsLater } =
-        buildAgeNumbers();
+      return buildFatherSonQuestion(buildAgeNumbers());
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `現在、父の年齢は息子の年齢の${currentMultiplier}倍です。` +
-          `${yearsLater}年後には、父の年齢が息子の年齢の${futureMultiplier}倍に` +
-          `なります。息子の現在の年齢をx歳として方程式を立てなさい。`,
-
-        variableDefinition: "息子の現在の年齢",
-
-        expectedX,
-
-        canonicalEquation: `${currentMultiplier}*x+${yearsLater}=${futureMultiplier}*(x+${yearsLater})`,
-        displayEquation: `${currentMultiplier}x＋${yearsLater}＝${futureMultiplier}(x＋${yearsLater})`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers([
-          currentMultiplier,
-          yearsLater,
-          futureMultiplier
-        ]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hintKeypadParts: [
-          {
-            display: `（x＋${yearsLater}）`,
-            value: `(x+${yearsLater})`,
-            ariaLabel: `xたす${yearsLater}`
-          }
-        ],
-
-        hint:
-          `${yearsLater}年後の息子の年齢は「x＋${yearsLater}」歳と表せます。` +
-          `父の年齢も同じように${yearsLater}を足して表しましょう。`,
-
-        explanation:
-          `${yearsLater}年後の父の年齢と、息子の年齢の${futureMultiplier}倍が等しくなります。`
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildFatherSonQuestion({
+        expectedX: 6,
+        currentMultiplier: 3,
+        futureMultiplier: 2,
+        yearsLater: 6
+      });
     }
   },
 

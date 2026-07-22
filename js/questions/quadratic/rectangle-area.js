@@ -12,48 +12,55 @@ const CATEGORY_NAME = "長方形の面積";
 const UNIT = "quadratic";
 const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
+function buildLongerSideQuestion({ n, d }) {
+  const area = n * (n + d);
+  const canonicalInternal = `x*(x+${d})=${area}`;
+  const roots = computeQuadraticRoots(canonicalInternal);
+
+  return {
+    id: createUniqueId("L3-03-longer-side"),
+    templateId: "L3-03-longer-side",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `横の長さが縦の長さより${d}cm長い長方形があります。この長方形の面積が${area}cm²のとき、` +
+      `縦の長さをxcmとして、2次方程式を立てなさい。`,
+    variableDefinition: "長方形の縦の長さ（cm）",
+
+    canonicalEquation: {
+      internal: canonicalInternal,
+      display: `x(x＋${d})＝${area}`,
+      relationName: "縦×横＝面積"
+    },
+    expectedRoots: roots,
+    validXValues: [n],
+    solutionDisplay: `x＝${n}（縦${n}cm、横${n + d}cm）`,
+
+    keypadNumbers: [String(d), String(area)],
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: `横の長さは、縦の長さより${d}cm長いので「x＋${d}」と表せます。`,
+    hintKeypadParts: [{ display: `（x＋${d}）`, value: `(x+${d})`, ariaLabel: `xたす${d}` }],
+    explanation: "縦の長さと横の長さの積が、長方形の面積になります。",
+    diagram: null
+  };
+}
+
 export const rectangleAreaTemplates = [
   {
     templateId: "L3-03-longer-side",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const n = randomInt(3, 20);
-      const d = randomInt(2, 8);
-      const area = n * (n + d);
-      const canonicalInternal = `x*(x+${d})=${area}`;
-      const roots = computeQuadraticRoots(canonicalInternal);
+      return buildLongerSideQuestion({ n: randomInt(3, 20), d: randomInt(2, 8) });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `横の長さが縦の長さより${d}cm長い長方形があります。この長方形の面積が${area}cm²のとき、` +
-          `縦の長さをxcmとして、2次方程式を立てなさい。`,
-        variableDefinition: "長方形の縦の長さ（cm）",
-
-        canonicalEquation: {
-          internal: canonicalInternal,
-          display: `x(x＋${d})＝${area}`,
-          relationName: "縦×横＝面積"
-        },
-        expectedRoots: roots,
-        validXValues: [n],
-        solutionDisplay: `x＝${n}（縦${n}cm、横${n + d}cm）`,
-
-        keypadNumbers: [String(d), String(area)],
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: `横の長さは、縦の長さより${d}cm長いので「x＋${d}」と表せます。`,
-        hintKeypadParts: [{ display: `（x＋${d}）`, value: `(x+${d})`, ariaLabel: `xたす${d}` }],
-        explanation: "縦の長さと横の長さの積が、長方形の面積になります。",
-        diagram: null
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildLongerSideQuestion({ n: 10, d: 4 });
     }
   },
 

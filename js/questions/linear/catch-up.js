@@ -25,58 +25,69 @@ function buildCatchUpNumbers() {
   return { expectedX, speedSlow, speedFast, headStartMinutes };
 }
 
+function buildBrotherChaseQuestion({ expectedX, speedSlow, speedFast, headStartMinutes }) {
+  return {
+    id: createUniqueId("L1-08-brother-chase"),
+    templateId: "L1-08-brother-chase",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `弟が分速${speedSlow}mで家を出発しました。その${headStartMinutes}分後に、` +
+      `兄が分速${speedFast}mで同じ道を追いかけました。兄が出発してから` +
+      `追いつくまでの時間をx分として方程式を立てなさい。`,
+
+    variableDefinition: "兄が出発してから追いつくまでの時間（分）",
+
+    expectedX,
+
+    canonicalEquation: `${speedSlow}*(x+${headStartMinutes})=${speedFast}*x`,
+    displayEquation: `${speedSlow}(x＋${headStartMinutes})＝${speedFast}x`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbers([
+      speedSlow,
+      headStartMinutes,
+      speedFast
+    ]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    // 「遅い人が進んだ時間はx＋head分」という1つの数量表現だけを補助する
+    hintKeypadParts: [
+      {
+        display: `（x＋${headStartMinutes}）`,
+        value: `(x+${headStartMinutes})`,
+        ariaLabel: `xたす${headStartMinutes}`
+      }
+    ],
+
+    hint:
+      `弟が進んだ時間は、兄が出発してからの時間に` +
+      `${headStartMinutes}分を足した時間になります。`,
+
+    explanation:
+      "追いついたとき、2人が進んだ道のりは等しくなります。"
+  };
+}
+
 export const catchUpTemplates = [
   {
     templateId: "L1-08-brother-chase",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { expectedX, speedSlow, speedFast, headStartMinutes } =
-        buildCatchUpNumbers();
+      return buildBrotherChaseQuestion(buildCatchUpNumbers());
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `弟が分速${speedSlow}mで家を出発しました。その${headStartMinutes}分後に、` +
-          `兄が分速${speedFast}mで同じ道を追いかけました。兄が出発してから` +
-          `追いつくまでの時間をx分として方程式を立てなさい。`,
-
-        variableDefinition: "兄が出発してから追いつくまでの時間（分）",
-
-        expectedX,
-
-        canonicalEquation: `${speedSlow}*(x+${headStartMinutes})=${speedFast}*x`,
-        displayEquation: `${speedSlow}(x＋${headStartMinutes})＝${speedFast}x`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers([
-          speedSlow,
-          headStartMinutes,
-          speedFast
-        ]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        // 「遅い人が進んだ時間はx＋head分」という1つの数量表現だけを補助する
-        hintKeypadParts: [
-          {
-            display: `（x＋${headStartMinutes}）`,
-            value: `(x+${headStartMinutes})`,
-            ariaLabel: `xたす${headStartMinutes}`
-          }
-        ],
-
-        hint:
-          `弟が進んだ時間は、兄が出発してからの時間に` +
-          `${headStartMinutes}分を足した時間になります。`,
-
-        explanation:
-          "追いついたとき、2人が進んだ道のりは等しくなります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildBrotherChaseQuestion({
+        expectedX: 4,
+        speedSlow: 40,
+        speedFast: 70,
+        headStartMinutes: 3
+      });
     }
   },
 

@@ -28,66 +28,77 @@ function buildSpeedTimeNumbers(speedA, speedB) {
   return { x, y, totalDistance, totalTime };
 }
 
+function buildRunWalkQuestion({ x, y }) {
+  const speedA = 10;
+  const speedB = 4;
+  const totalDistance = x + y;
+  const totalTime = x / speedA + y / speedB;
+
+  return {
+    id: createUniqueId("L2-06-run-walk"),
+    templateId: "L2-06-run-walk",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `A地点から${totalDistance}km離れたB地点へ行くのに、はじめは時速${speedA}kmで走り、` +
+      `途中から時速${speedB}kmで歩いたところ、${totalTime}時間かかりました。走った道のりを` +
+      `xkm、歩いた道のりをykmとして連立方程式を立てなさい。`,
+
+    variableDefinitions: {
+      x: "走った道のり（km）",
+      y: "歩いた道のり（km）"
+    },
+
+    expectedSolution: { x, y },
+
+    canonicalEquations: [
+      { internal: `x+y=${totalDistance}`, display: `x＋y＝${totalDistance}`, relationName: "道のりの合計" },
+      {
+        internal: `x/${speedA}+y/${speedB}=${totalTime}`,
+        display: `x÷${speedA}＋y÷${speedB}＝${totalTime}`,
+        relationName: "かかった時間の合計"
+      }
+    ],
+
+    solutionDisplay: `x＝${x}、y＝${y}`,
+
+    keypadNumbers: buildKeypadNumbers([totalDistance, speedA, speedB, totalTime]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint:
+      "かかった時間は「道のり÷速さ」で表します。走った時間は、走った道のりを" +
+      `速さ${speedA}で割って表します。`,
+    hintKeypadParts: [
+      {
+        type: "fraction",
+        display: `x/${speedA}`,
+        value: `x/${speedA}`,
+        numerator: "x",
+        denominator: String(speedA),
+        ariaLabel: `${speedA}分のx`
+      }
+    ],
+
+    explanation: "道のりの合計と、かかった時間の合計から2本の式を作ります。"
+  };
+}
+
 export const speedDistanceTemplates = [
   {
     templateId: "L2-06-run-walk",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const speedA = 10;
-      const speedB = 4;
-      const { x, y, totalDistance, totalTime } = buildSpeedTimeNumbers(speedA, speedB);
+      const { x, y } = buildSpeedTimeNumbers(10, 4);
+      return buildRunWalkQuestion({ x, y });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `A地点から${totalDistance}km離れたB地点へ行くのに、はじめは時速${speedA}kmで走り、` +
-          `途中から時速${speedB}kmで歩いたところ、${totalTime}時間かかりました。走った道のりを` +
-          `xkm、歩いた道のりをykmとして連立方程式を立てなさい。`,
-
-        variableDefinitions: {
-          x: "走った道のり（km）",
-          y: "歩いた道のり（km）"
-        },
-
-        expectedSolution: { x, y },
-
-        canonicalEquations: [
-          { internal: `x+y=${totalDistance}`, display: `x＋y＝${totalDistance}`, relationName: "道のりの合計" },
-          {
-            internal: `x/${speedA}+y/${speedB}=${totalTime}`,
-            display: `x÷${speedA}＋y÷${speedB}＝${totalTime}`,
-            relationName: "かかった時間の合計"
-          }
-        ],
-
-        solutionDisplay: `x＝${x}、y＝${y}`,
-
-        keypadNumbers: buildKeypadNumbers([totalDistance, speedA, speedB, totalTime]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint:
-          "かかった時間は「道のり÷速さ」で表します。走った時間は、走った道のりを" +
-          `速さ${speedA}で割って表します。`,
-        hintKeypadParts: [
-          {
-            type: "fraction",
-            display: `x/${speedA}`,
-            value: `x/${speedA}`,
-            numerator: "x",
-            denominator: String(speedA),
-            ariaLabel: `${speedA}分のx`
-          }
-        ],
-
-        explanation: "道のりの合計と、かかった時間の合計から2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildRunWalkQuestion({ x: 20, y: 4 });
     }
   },
 

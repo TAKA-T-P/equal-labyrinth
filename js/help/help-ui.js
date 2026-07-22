@@ -9,6 +9,7 @@ import { showScreen, appendStyledVariableParts } from "../ui.js";
 import { HOW_TO_PLAY_SECTIONS } from "./help-content.js";
 import { buildItemCatalog } from "./item-catalog.js";
 import { resetAllEqualLabyrinthData } from "./data-reset.js";
+import { resetExampleCatalogView } from "./example-ui.js";
 
 // 第2確認を開いた直後、短時間だけ「はい」を無効にする猶予（誤操作防止）
 const RESET_STEP2_INITIAL_DISABLE_MS = 500;
@@ -19,12 +20,16 @@ const elements = {
   openHelpMenuButton: document.getElementById("open-help-menu-button"),
   helpMenuBackButton: document.getElementById("help-menu-back-button"),
   openHowToPlayButton: document.getElementById("open-how-to-play-button"),
+  openExampleCatalogButton: document.getElementById("open-example-catalog-button"),
   openItemCatalogButton: document.getElementById("open-item-catalog-button"),
   openDataResetButton: document.getElementById("open-data-reset-button"),
 
   howToPlayContent: document.getElementById("how-to-play-content"),
   howToPlayBackButton: document.getElementById("how-to-play-back-button"),
   howToPlayBackButtonTop: document.getElementById("how-to-play-back-button-top"),
+
+  exampleCatalogBackButton: document.getElementById("example-catalog-back-button"),
+  exampleCatalogBackButtonTop: document.getElementById("example-catalog-back-button-top"),
 
   itemCatalogSummary: document.getElementById("item-catalog-summary"),
   itemCatalogGrid: document.getElementById("item-catalog-grid"),
@@ -75,6 +80,15 @@ function openHowToPlay() {
 }
 
 function backToHelpMenuFromHowToPlay() {
+  showScreen("help-menu");
+}
+
+function openExampleCatalog() {
+  resetExampleCatalogView();
+  showScreen("example-catalog");
+}
+
+function backToHelpMenuFromExampleCatalog() {
   showScreen("help-menu");
 }
 
@@ -442,6 +456,7 @@ export function initHelpUI() {
   elements.openHelpMenuButton.addEventListener("click", openHelpMenu);
   elements.helpMenuBackButton.addEventListener("click", backToTitle);
   elements.openHowToPlayButton.addEventListener("click", openHowToPlay);
+  elements.openExampleCatalogButton?.addEventListener("click", openExampleCatalog);
   elements.openItemCatalogButton.addEventListener("click", openItemCatalog);
   elements.openDataResetButton.addEventListener("click", openResetStep1);
 
@@ -449,6 +464,8 @@ export function initHelpUI() {
   elements.itemCatalogBackButton.addEventListener("click", backToHelpMenuFromCatalog);
   elements.howToPlayBackButtonTop?.addEventListener("click", backToHelpMenuFromHowToPlay);
   elements.itemCatalogBackButtonTop?.addEventListener("click", backToHelpMenuFromCatalog);
+  elements.exampleCatalogBackButton?.addEventListener("click", backToHelpMenuFromExampleCatalog);
+  elements.exampleCatalogBackButtonTop?.addEventListener("click", backToHelpMenuFromExampleCatalog);
 
   elements.resetStep1No.addEventListener("click", () => closeResetConfirm({ restoreFocus: true }));
   elements.resetStep1Yes.addEventListener("click", openResetStep2);

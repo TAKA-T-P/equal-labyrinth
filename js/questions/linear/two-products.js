@@ -28,58 +28,72 @@ function buildTwoProductNumbers(priceChoicesA, priceChoicesB) {
   return { totalCount, priceA, priceB, expectedX, totalPrice };
 }
 
+function buildFruitAppleOrangeQuestion({ totalCount, priceA, priceB, expectedX, totalPrice }) {
+  return {
+    id: createUniqueId("L1-10-fruit-apple-orange"),
+    templateId: "L1-10-fruit-apple-orange",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `1個${priceA}円のりんごと1個${priceB}円のみかんを合わせて` +
+      `${totalCount}個買うと、代金の合計が${totalPrice}円になりました。` +
+      `りんごの個数をx個として方程式を立てなさい。`,
+
+    variableDefinition: "りんごの個数",
+
+    expectedX,
+
+    canonicalEquation: `${priceA}*x+${priceB}*(${totalCount}-x)=${totalPrice}`,
+    displayEquation: `${priceA}x＋${priceB}(${totalCount}−x)＝${totalPrice}`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbers([
+      priceA,
+      priceB,
+      totalCount,
+      totalPrice
+    ]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    // 「全体からxを引く」という1つの数量表現だけを補助する
+    hintKeypadParts: [
+      {
+        display: `（${totalCount}−x）`,
+        value: `(${totalCount}-x)`,
+        ariaLabel: `${totalCount}ひくx`
+      }
+    ],
+
+    hint:
+      `りんごがx個なら、みかんは${totalCount}－x個と表せます。`,
+
+    explanation:
+      "りんごの代金とみかんの代金の合計が、全体の代金になります。"
+  };
+}
+
 export const twoProductsTemplates = [
   {
     templateId: "L1-10-fruit-apple-orange",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { totalCount, priceA, priceB, expectedX, totalPrice } =
-        buildTwoProductNumbers([120, 150, 180], [60, 80, 100]);
+      return buildFruitAppleOrangeQuestion(
+        buildTwoProductNumbers([120, 150, 180], [60, 80, 100])
+      );
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `1個${priceA}円のりんごと1個${priceB}円のみかんを合わせて` +
-          `${totalCount}個買うと、代金の合計が${totalPrice}円になりました。` +
-          `りんごの個数をx個として方程式を立てなさい。`,
-
-        variableDefinition: "りんごの個数",
-
-        expectedX,
-
-        canonicalEquation: `${priceA}*x+${priceB}*(${totalCount}-x)=${totalPrice}`,
-        displayEquation: `${priceA}x＋${priceB}(${totalCount}−x)＝${totalPrice}`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers([
-          priceA,
-          priceB,
-          totalCount,
-          totalPrice
-        ]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        // 「全体からxを引く」という1つの数量表現だけを補助する
-        hintKeypadParts: [
-          {
-            display: `（${totalCount}−x）`,
-            value: `(${totalCount}-x)`,
-            ariaLabel: `${totalCount}ひくx`
-          }
-        ],
-
-        hint:
-          `りんごがx個なら、みかんは${totalCount}－x個と表せます。`,
-
-        explanation:
-          "りんごの代金とみかんの代金の合計が、全体の代金になります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildFruitAppleOrangeQuestion({
+        totalCount: 10,
+        priceA: 150,
+        priceB: 80,
+        expectedX: 4,
+        totalPrice: 1080
+      });
     }
   },
 

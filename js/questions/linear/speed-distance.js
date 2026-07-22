@@ -25,53 +25,64 @@ function buildSpeedNumbers() {
   return { expectedX, speedSlow, speedFast, extraMinutes };
 }
 
+function buildLibraryWalkRunQuestion({ expectedX, speedSlow, speedFast, extraMinutes }) {
+  return {
+    id: createUniqueId("L1-07-library-walk-run"),
+    templateId: "L1-07-library-walk-run",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `家から図書館まで、毎分${speedSlow}mで歩くと、毎分${speedFast}mで` +
+      `歩く場合より${extraMinutes}分多くかかります。毎分${speedFast}mで` +
+      `歩くときにかかる時間をx分として方程式を立てなさい。`,
+
+    variableDefinition: `毎分${speedFast}mで歩くときにかかる時間（分）`,
+
+    expectedX,
+
+    canonicalEquation: `${speedSlow}*(x+${extraMinutes})=${speedFast}*x`,
+    displayEquation: `${speedSlow}(x＋${extraMinutes})＝${speedFast}x`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbers([speedSlow, speedFast, extraMinutes]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hintKeypadParts: [
+      {
+        display: `（x＋${extraMinutes}）`,
+        value: `(x+${extraMinutes})`,
+        ariaLabel: `xたす${extraMinutes}`
+      }
+    ],
+
+    hint:
+      `毎分${speedSlow}mで歩くときにかかる時間は、毎分${speedFast}mで歩く` +
+      `ときの時間より${extraMinutes}分長いので「x＋${extraMinutes}」と表せます。`,
+
+    explanation:
+      "どちらの速さで歩いても、進む道のりは変わらないことから方程式が立てられます。"
+  };
+}
+
 export const speedDistanceTemplates = [
   {
     templateId: "L1-07-library-walk-run",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { expectedX, speedSlow, speedFast, extraMinutes } =
-        buildSpeedNumbers();
+      return buildLibraryWalkRunQuestion(buildSpeedNumbers());
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `家から図書館まで、毎分${speedSlow}mで歩くと、毎分${speedFast}mで` +
-          `歩く場合より${extraMinutes}分多くかかります。毎分${speedFast}mで` +
-          `歩くときにかかる時間をx分として方程式を立てなさい。`,
-
-        variableDefinition: `毎分${speedFast}mで歩くときにかかる時間（分）`,
-
-        expectedX,
-
-        canonicalEquation: `${speedSlow}*(x+${extraMinutes})=${speedFast}*x`,
-        displayEquation: `${speedSlow}(x＋${extraMinutes})＝${speedFast}x`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers([speedSlow, speedFast, extraMinutes]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hintKeypadParts: [
-          {
-            display: `（x＋${extraMinutes}）`,
-            value: `(x+${extraMinutes})`,
-            ariaLabel: `xたす${extraMinutes}`
-          }
-        ],
-
-        hint:
-          `毎分${speedSlow}mで歩くときにかかる時間は、毎分${speedFast}mで歩く` +
-          `ときの時間より${extraMinutes}分長いので「x＋${extraMinutes}」と表せます。`,
-
-        explanation:
-          "どちらの速さで歩いても、進む道のりは変わらないことから方程式が立てられます。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildLibraryWalkRunQuestion({
+        expectedX: 15,
+        speedSlow: 60,
+        speedFast: 80,
+        extraMinutes: 5
+      });
     }
   },
 

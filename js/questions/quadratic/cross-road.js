@@ -13,11 +13,12 @@ const CATEGORY_NAME = "面積・十字路";
 const UNIT = "quadratic";
 const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
-function buildCrossRoadQuestion({ templateId, scenario, widthValue, heightValue }) {
+function buildCrossRoadQuestion({ templateId, scenario, widthValue, heightValue, n: fixedN }) {
   const minSide = Math.min(widthValue, heightValue);
   // 道幅xは、縦・横に対して不自然に太くならないよう、1〜5mの範囲に収める
   // （道幅が土地の縦・横を超えない＝(縦−x)・(横−x)が正になる範囲も併せて満たす）。
-  const n = randomInt(1, Math.min(5, minSide - 1));
+  // fixedNは例題確認（ヘルプメニュー）専用：指定時はランダム抽選せず固定値を使う。
+  const n = fixedN ?? randomInt(1, Math.min(5, minSide - 1));
   const remaining = (widthValue - n) * (heightValue - n);
   const canonicalInternal = `(${widthValue}-x)*(${heightValue}-x)=${remaining}`;
   const roots = computeQuadraticRoots(canonicalInternal);
@@ -80,6 +81,17 @@ export const crossRoadTemplates = [
         scenario: "花だん",
         widthValue,
         heightValue
+      });
+    },
+
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildCrossRoadQuestion({
+        templateId: this.templateId,
+        scenario: "花だん",
+        widthValue: 14,
+        heightValue: 10,
+        n: 3
       });
     }
   },

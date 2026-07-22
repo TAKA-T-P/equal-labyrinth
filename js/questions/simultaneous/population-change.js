@@ -46,83 +46,88 @@ function buildPopulationNumbers() {
   };
 }
 
+function buildClassesQuestion({ x, y, increasePercent, decreasePercent }) {
+  const decimalIncrease = (100 + increasePercent) / 100;
+  const decimalDecrease = (100 - decreasePercent) / 100;
+  const increaseRatio = increasePercent / 100;
+  const decreaseRatio = decreasePercent / 100;
+
+  const lastYearTotal = x + y;
+  const newTotal = decimalIncrease * x + decimalDecrease * y;
+  const changeAmount = newTotal - lastYearTotal;
+
+  return {
+    id: createUniqueId("L2-10-classes"),
+    templateId: "L2-10-classes",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `昨年、A組とB組の生徒は合わせて${lastYearTotal}人でした。今年はA組が${increasePercent}％増え、` +
+      `B組が${decreasePercent}％減った結果、合わせて${newTotal}人になりました。昨年のA組の人数を` +
+      `x人、B組の人数をy人として連立方程式を立てなさい。`,
+
+    variableDefinitions: {
+      x: "昨年のA組の人数",
+      y: "昨年のB組の人数"
+    },
+
+    expectedSolution: { x, y },
+
+    canonicalEquations: [
+      { internal: `x+y=${lastYearTotal}`, display: `x＋y＝${lastYearTotal}`, relationName: "昨年の人数の合計" },
+      {
+        internal: `${decimalIncrease}*x+${decimalDecrease}*y=${newTotal}`,
+        display: `${decimalIncrease}x＋${decimalDecrease}y＝${newTotal}`,
+        relationName: "今年の人数の合計"
+      }
+    ],
+
+    // 「増減後の合計」ではなく「人数の変化量」に着目した式も別解として認める
+    alternateEquations: [
+      {
+        index: 1,
+        internal: `${increaseRatio}*x-${decreaseRatio}*y=${changeAmount}`,
+        display: `${increaseRatio}x－${decreaseRatio}y＝${changeAmount}`,
+        relationName: "人数の変化量の関係"
+      }
+    ],
+
+    solutionDisplay: `x＝${x}、y＝${y}`,
+
+    keypadNumbers: buildKeypadNumbers([
+      lastYearTotal,
+      decimalIncrease,
+      decimalDecrease,
+      newTotal,
+      increaseRatio,
+      decreaseRatio,
+      Math.abs(changeAmount)
+    ]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: `今年のA組の人数は「${decimalIncrease}×x」、B組の人数は「${decimalDecrease}×y」と表せます。`,
+    hintKeypadParts: [],
+
+    explanation: "昨年の人数の合計と、今年の人数の合計から2本の式を作ります。"
+  };
+}
+
 export const populationChangeTemplates = [
   {
     templateId: "L2-10-classes",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const {
-        x,
-        y,
-        increasePercent,
-        decreasePercent,
-        decimalIncrease,
-        decimalDecrease,
-        increaseRatio,
-        decreaseRatio,
-        lastYearTotal,
-        newTotal,
-        changeAmount
-      } = buildPopulationNumbers();
+      const { x, y, increasePercent, decreasePercent } = buildPopulationNumbers();
+      return buildClassesQuestion({ x, y, increasePercent, decreasePercent });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `昨年、A組とB組の生徒は合わせて${lastYearTotal}人でした。今年はA組が${increasePercent}％増え、` +
-          `B組が${decreasePercent}％減った結果、合わせて${newTotal}人になりました。昨年のA組の人数を` +
-          `x人、B組の人数をy人として連立方程式を立てなさい。`,
-
-        variableDefinitions: {
-          x: "昨年のA組の人数",
-          y: "昨年のB組の人数"
-        },
-
-        expectedSolution: { x, y },
-
-        canonicalEquations: [
-          { internal: `x+y=${lastYearTotal}`, display: `x＋y＝${lastYearTotal}`, relationName: "昨年の人数の合計" },
-          {
-            internal: `${decimalIncrease}*x+${decimalDecrease}*y=${newTotal}`,
-            display: `${decimalIncrease}x＋${decimalDecrease}y＝${newTotal}`,
-            relationName: "今年の人数の合計"
-          }
-        ],
-
-        // 「増減後の合計」ではなく「人数の変化量」に着目した式も別解として認める
-        alternateEquations: [
-          {
-            index: 1,
-            internal: `${increaseRatio}*x-${decreaseRatio}*y=${changeAmount}`,
-            display: `${increaseRatio}x－${decreaseRatio}y＝${changeAmount}`,
-            relationName: "人数の変化量の関係"
-          }
-        ],
-
-        solutionDisplay: `x＝${x}、y＝${y}`,
-
-        keypadNumbers: buildKeypadNumbers([
-          lastYearTotal,
-          decimalIncrease,
-          decimalDecrease,
-          newTotal,
-          increaseRatio,
-          decreaseRatio,
-          Math.abs(changeAmount)
-        ]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: `今年のA組の人数は「${decimalIncrease}×x」、B組の人数は「${decimalDecrease}×y」と表せます。`,
-        hintKeypadParts: [],
-
-        explanation: "昨年の人数の合計と、今年の人数の合計から2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildClassesQuestion({ x: 200, y: 200, increasePercent: 10, decreasePercent: 5 });
     }
   },
 

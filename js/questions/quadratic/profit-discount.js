@@ -16,8 +16,9 @@ const CATEGORY_NAME = "利益と割引";
 const UNIT = "quadratic";
 const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
-function buildProfitDiscountQuestion({ templateId, itemName, basePrice }) {
-  const n = randomInt(1, 9); // x割（1〜9割）
+function buildProfitDiscountQuestion({ templateId, itemName, basePrice, n: fixedN }) {
+  // fixedNは例題確認（ヘルプメニュー）専用：指定時はランダム抽選せず固定値を使う。
+  const n = fixedN ?? randomInt(1, 9); // x割（1〜9割）
   const decreaseAmount = Math.round((basePrice * n * n) / 100);
   const finalPrice = basePrice - decreaseAmount;
   const canonicalInternal = `${basePrice}*(1+x/10)*(1-x/10)=${finalPrice}`;
@@ -67,6 +68,16 @@ export const profitDiscountTemplates = [
         templateId: this.templateId,
         itemName: "洋服",
         basePrice: randomInt(20, 60) * 100
+      });
+    },
+
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildProfitDiscountQuestion({
+        templateId: this.templateId,
+        itemName: "洋服",
+        basePrice: 2400,
+        n: 3
       });
     }
   },

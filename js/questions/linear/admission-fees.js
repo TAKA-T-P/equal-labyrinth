@@ -28,58 +28,72 @@ function buildAdmissionNumbers(adultChoices, childChoices) {
   return { totalPeople, adultFee, childFee, expectedX, totalFee };
 }
 
+function buildAquariumQuestion({ totalPeople, adultFee, childFee, expectedX, totalFee }) {
+  return {
+    id: createUniqueId("L1-11-aquarium"),
+    templateId: "L1-11-aquarium",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `水族館の入館料は、大人1人${adultFee}円、子ども1人${childFee}円です。` +
+      `大人と子どもを合わせて${totalPeople}人が入館し、入館料の合計が` +
+      `${totalFee}円になりました。大人の人数をx人として方程式を立てなさい。`,
+
+    variableDefinition: "大人の人数",
+
+    expectedX,
+
+    canonicalEquation: `${adultFee}*x+${childFee}*(${totalPeople}-x)=${totalFee}`,
+    displayEquation: `${adultFee}x＋${childFee}(${totalPeople}−x)＝${totalFee}`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbers([
+      adultFee,
+      childFee,
+      totalPeople,
+      totalFee
+    ]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    // 「全体からxを引く」という1つの数量表現だけを補助する
+    hintKeypadParts: [
+      {
+        display: `（${totalPeople}−x）`,
+        value: `(${totalPeople}-x)`,
+        ariaLabel: `${totalPeople}ひくx`
+      }
+    ],
+
+    hint:
+      `大人がx人なら、子どもは${totalPeople}－x人と表せます。`,
+
+    explanation:
+      "大人の入館料と子どもの入館料の合計が、入館料の合計になります。"
+  };
+}
+
 export const admissionFeeTemplates = [
   {
     templateId: "L1-11-aquarium",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const { totalPeople, adultFee, childFee, expectedX, totalFee } =
-        buildAdmissionNumbers([1200, 1500, 1800], [600, 700, 800]);
+      return buildAquariumQuestion(
+        buildAdmissionNumbers([1200, 1500, 1800], [600, 700, 800])
+      );
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `水族館の入館料は、大人1人${adultFee}円、子ども1人${childFee}円です。` +
-          `大人と子どもを合わせて${totalPeople}人が入館し、入館料の合計が` +
-          `${totalFee}円になりました。大人の人数をx人として方程式を立てなさい。`,
-
-        variableDefinition: "大人の人数",
-
-        expectedX,
-
-        canonicalEquation: `${adultFee}*x+${childFee}*(${totalPeople}-x)=${totalFee}`,
-        displayEquation: `${adultFee}x＋${childFee}(${totalPeople}−x)＝${totalFee}`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbers([
-          adultFee,
-          childFee,
-          totalPeople,
-          totalFee
-        ]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        // 「全体からxを引く」という1つの数量表現だけを補助する
-        hintKeypadParts: [
-          {
-            display: `（${totalPeople}−x）`,
-            value: `(${totalPeople}-x)`,
-            ariaLabel: `${totalPeople}ひくx`
-          }
-        ],
-
-        hint:
-          `大人がx人なら、子どもは${totalPeople}－x人と表せます。`,
-
-        explanation:
-          "大人の入館料と子どもの入館料の合計が、入館料の合計になります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildAquariumQuestion({
+        totalPeople: 10,
+        adultFee: 1500,
+        childFee: 700,
+        expectedX: 6,
+        totalFee: 11800
+      });
     }
   },
 

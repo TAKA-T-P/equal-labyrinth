@@ -23,54 +23,64 @@ function buildCoinNumbers(totalCountRange, unitA, unitB) {
   return { totalCount, x, y, total };
 }
 
+function build50100CoinsQuestion({ totalCount, x, y }) {
+  const unitA = 50;
+  const unitB = 100;
+  const total = unitA * x + unitB * y;
+
+  return {
+    id: createUniqueId("L2-03-50-100"),
+    templateId: "L2-03-50-100",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `${unitA}円硬貨と${unitB}円硬貨が合わせて${totalCount}枚あり、合計金額は${total}円です。` +
+      `${unitA}円硬貨をx枚、${unitB}円硬貨をy枚として連立方程式を立てなさい。`,
+
+    variableDefinitions: {
+      x: `${unitA}円硬貨の枚数`,
+      y: `${unitB}円硬貨の枚数`
+    },
+
+    expectedSolution: { x, y },
+
+    canonicalEquations: [
+      { internal: `x+y=${totalCount}`, display: `x＋y＝${totalCount}`, relationName: "枚数の合計" },
+      {
+        internal: `${unitA}*x+${unitB}*y=${total}`,
+        display: `${unitA}x＋${unitB}y＝${total}`,
+        relationName: "合計金額"
+      }
+    ],
+
+    solutionDisplay: `x＝${x}、y＝${y}`,
+
+    keypadNumbers: buildKeypadNumbers([totalCount, unitA, unitB, total]),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: "1本目は枚数の合計、2本目は合計金額を式にしましょう。",
+    hintKeypadParts: [],
+
+    explanation: "硬貨の枚数の合計と、合計金額から2本の式を作ります。"
+  };
+}
+
 export const coinsTemplates = [
   {
     templateId: "L2-03-50-100",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const unitA = 50;
-      const unitB = 100;
-      const { totalCount, x, y, total } = buildCoinNumbers([15, 40], unitA, unitB);
+      const { totalCount, x, y } = buildCoinNumbers([15, 40], 50, 100);
+      return build50100CoinsQuestion({ totalCount, x, y });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `${unitA}円硬貨と${unitB}円硬貨が合わせて${totalCount}枚あり、合計金額は${total}円です。` +
-          `${unitA}円硬貨をx枚、${unitB}円硬貨をy枚として連立方程式を立てなさい。`,
-
-        variableDefinitions: {
-          x: `${unitA}円硬貨の枚数`,
-          y: `${unitB}円硬貨の枚数`
-        },
-
-        expectedSolution: { x, y },
-
-        canonicalEquations: [
-          { internal: `x+y=${totalCount}`, display: `x＋y＝${totalCount}`, relationName: "枚数の合計" },
-          {
-            internal: `${unitA}*x+${unitB}*y=${total}`,
-            display: `${unitA}x＋${unitB}y＝${total}`,
-            relationName: "合計金額"
-          }
-        ],
-
-        solutionDisplay: `x＝${x}、y＝${y}`,
-
-        keypadNumbers: buildKeypadNumbers([totalCount, unitA, unitB, total]),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: "1本目は枚数の合計、2本目は合計金額を式にしましょう。",
-        hintKeypadParts: [],
-
-        explanation: "硬貨の枚数の合計と、合計金額から2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return build50100CoinsQuestion({ totalCount: 20, x: 12, y: 8 });
     }
   },
 

@@ -16,7 +16,8 @@ const elements = {
     quest: document.getElementById("screen-quest"),
     "help-menu": document.getElementById("screen-help-menu"),
     "how-to-play": document.getElementById("screen-how-to-play"),
-    "item-catalog": document.getElementById("screen-item-catalog")
+    "item-catalog": document.getElementById("screen-item-catalog"),
+    "example-catalog": document.getElementById("screen-example-catalog")
   },
 
   // タイトル画面

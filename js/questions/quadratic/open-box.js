@@ -15,9 +15,10 @@ const KEYPAD_SYMBOLS = ["x", "square", "-", "(", ")", "="];
 // 長方形パターンは「x＋widthDiff−2c」のように＋も使うため、専用の記号一覧を使う
 const RECTANGULAR_KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
-function buildOpenBoxQuestion({ templateId, scenario, cutSideValue }) {
+function buildOpenBoxQuestion({ templateId, scenario, cutSideValue, n: fixedN }) {
   const doubledCut = cutSideValue * 2;
-  const n = randomInt(doubledCut + 3, doubledCut + 20); // 底面の1辺が正になるように
+  // fixedNは例題確認（ヘルプメニュー）専用：指定時はランダム抽選せず固定値を使う。
+  const n = fixedN ?? randomInt(doubledCut + 3, doubledCut + 20); // 底面の1辺が正になるように
   const baseSide = n - doubledCut;
   const volume = cutSideValue * baseSide * baseSide;
   const canonicalInternal = `${cutSideValue}*(x-${doubledCut})^2=${volume}`;
@@ -176,6 +177,16 @@ export const openBoxTemplates = [
         templateId: this.templateId,
         scenario: "工作用紙",
         cutSideValue: randomInt(2, 4)
+      });
+    },
+
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildOpenBoxQuestion({
+        templateId: this.templateId,
+        scenario: "工作用紙",
+        cutSideValue: 2,
+        n: 10
       });
     }
   },

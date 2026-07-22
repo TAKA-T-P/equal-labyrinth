@@ -12,6 +12,57 @@ const CATEGORY_NAME = "価格と売上";
 const UNIT = "quadratic";
 const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
+function buildPriceUpQtyDownQuestion({ basePrice, baseQty, priceStep, qtyStep, n }) {
+  const revenue = (basePrice + priceStep * n) * (baseQty - qtyStep * n);
+  const canonicalInternal =
+    `(${basePrice}+${priceStep}*x)*(${baseQty}-${qtyStep}*x)=${revenue}`;
+  const roots = computeQuadraticRoots(canonicalInternal);
+
+  const physicallyValidRoots = roots.filter(
+    (root) => root > 0 && root < baseQty / qtyStep
+  );
+  if (physicallyValidRoots.length !== 1) {
+    throw new Error("価格と売上（値上げ）の解が一意に定まりません。");
+  }
+
+  return {
+    id: createUniqueId("L3-08-price-up-qty-down"),
+    templateId: "L3-08-price-up-qty-down",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `ある商品は、1個${basePrice}円のとき1日に${baseQty}個売れます。この商品を${priceStep}円` +
+      `値上げするごとに、1日の販売個数が${qtyStep}個ずつ減ることがわかっています。` +
+      `${priceStep}円の値上げをx回行ったときの1日の売上金額が${revenue}円になるとき、` +
+      `2次方程式を立てなさい。`,
+    variableDefinition: `${priceStep}円の値上げを行った回数`,
+
+    canonicalEquation: {
+      internal: canonicalInternal,
+      display: `(${basePrice}＋${priceStep}x)(${baseQty}−${qtyStep}x)＝${revenue}`,
+      relationName: "売上金額＝価格×販売個数"
+    },
+    expectedRoots: roots,
+    validXValues: [n],
+    solutionDisplay: `x＝${n}`,
+
+    keypadNumbers: [String(basePrice), String(priceStep), String(baseQty), String(qtyStep), String(revenue)],
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint:
+      `x回値上げした後の価格は「${basePrice}＋${priceStep}x」円、販売個数は` +
+      `「${baseQty}−${qtyStep}x」個と表せます。`,
+    hintKeypadParts: [
+      { display: `（${baseQty}−${qtyStep}x）`, value: `(${baseQty}-${qtyStep}*x)`, ariaLabel: `${baseQty}ひく${qtyStep}x` }
+    ],
+    explanation: "値上げ後の価格と販売個数の積が、売上金額になります。",
+    diagram: null
+  };
+}
+
 export const priceSalesTemplates = [
   {
     templateId: "L3-08-price-up-qty-down",
@@ -23,54 +74,18 @@ export const priceSalesTemplates = [
       const priceStep = randomInt(5, 15);
       const qtyStep = randomInt(1, 3);
       const n = randomInt(2, Math.floor((baseQty - 10) / qtyStep));
-      const revenue = (basePrice + priceStep * n) * (baseQty - qtyStep * n);
-      const canonicalInternal =
-        `(${basePrice}+${priceStep}*x)*(${baseQty}-${qtyStep}*x)=${revenue}`;
-      const roots = computeQuadraticRoots(canonicalInternal);
+      return buildPriceUpQtyDownQuestion({ basePrice, baseQty, priceStep, qtyStep, n });
+    },
 
-      const physicallyValidRoots = roots.filter(
-        (root) => root > 0 && root < baseQty / qtyStep
-      );
-      if (physicallyValidRoots.length !== 1) {
-        throw new Error("価格と売上（値上げ）の解が一意に定まりません。");
-      }
-
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `ある商品は、1個${basePrice}円のとき1日に${baseQty}個売れます。この商品を${priceStep}円` +
-          `値上げするごとに、1日の販売個数が${qtyStep}個ずつ減ることがわかっています。` +
-          `${priceStep}円の値上げをx回行ったときの1日の売上金額が${revenue}円になるとき、` +
-          `2次方程式を立てなさい。`,
-        variableDefinition: `${priceStep}円の値上げを行った回数`,
-
-        canonicalEquation: {
-          internal: canonicalInternal,
-          display: `(${basePrice}＋${priceStep}x)(${baseQty}−${qtyStep}x)＝${revenue}`,
-          relationName: "売上金額＝価格×販売個数"
-        },
-        expectedRoots: roots,
-        validXValues: [n],
-        solutionDisplay: `x＝${n}`,
-
-        keypadNumbers: [String(basePrice), String(priceStep), String(baseQty), String(qtyStep), String(revenue)],
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint:
-          `x回値上げした後の価格は「${basePrice}＋${priceStep}x」円、販売個数は` +
-          `「${baseQty}−${qtyStep}x」個と表せます。`,
-        hintKeypadParts: [
-          { display: `（${baseQty}−${qtyStep}x）`, value: `(${baseQty}-${qtyStep}*x)`, ariaLabel: `${baseQty}ひく${qtyStep}x` }
-        ],
-        explanation: "値上げ後の価格と販売個数の積が、売上金額になります。",
-        diagram: null
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildPriceUpQtyDownQuestion({
+        basePrice: 500,
+        baseQty: 100,
+        priceStep: 10,
+        qtyStep: 2,
+        n: 5
+      });
     }
   },
 

@@ -24,51 +24,61 @@ function buildKeypadNumbersWithDummy(realNumbers, dummy) {
   return buildKeypadNumbers(values);
 }
 
+function buildDiscountPriceQuestion({ discountPercent, expectedX }) {
+  const decimal = (100 - discountPercent) / 100;
+  // 「割引率そのもの（％を100で割った値）」をダミーの選択肢として混ぜ、
+  // 数字カードが2枚だけにならないようにする。
+  const dummyDecimal = discountPercent / 100;
+  const finalPrice = Math.round(decimal * expectedX);
+
+  return {
+    id: createUniqueId("L1-09-discount-price"),
+    templateId: "L1-09-discount-price",
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "HARD",
+
+    prompt:
+      `ある品物を定価の${discountPercent}％引きで買うと${finalPrice}円` +
+      `でした。定価をx円として方程式を立てなさい。`,
+
+    variableDefinition: "定価",
+
+    expectedX,
+
+    canonicalEquation: `${decimal}*x=${finalPrice}`,
+    displayEquation: `${decimal}x＝${finalPrice}`,
+    solutionDisplay: `x＝${expectedX}`,
+
+    keypadNumbers: buildKeypadNumbersWithDummy([decimal, finalPrice], dummyDecimal),
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hintKeypadParts: [],
+
+    hint:
+      `定価の${discountPercent}％引きは、定価の(100－${discountPercent})÷100倍、` +
+      `つまり定価×${decimal}で表せます。`,
+
+    explanation:
+      "割引後の値段は、定価に割引後の割合（小数）をかけた金額になります。"
+  };
+}
+
 export const percentageTemplates = [
   {
     templateId: "L1-09-discount-price",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const discountPercent = randomChoice(DISCOUNT_PERCENT_CHOICES);
-      const decimal = (100 - discountPercent) / 100;
-      // 「割引率そのもの（％を100で割った値）」をダミーの選択肢として混ぜ、
-      // 数字カードが2枚だけにならないようにする。
-      const dummyDecimal = discountPercent / 100;
-      const expectedX = randomInt(50, 300) * 10;
-      const finalPrice = Math.round(decimal * expectedX);
+      return buildDiscountPriceQuestion({
+        discountPercent: randomChoice(DISCOUNT_PERCENT_CHOICES),
+        expectedX: randomInt(50, 300) * 10
+      });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "HARD",
-
-        prompt:
-          `ある品物を定価の${discountPercent}％引きで買うと${finalPrice}円` +
-          `でした。定価をx円として方程式を立てなさい。`,
-
-        variableDefinition: "定価",
-
-        expectedX,
-
-        canonicalEquation: `${decimal}*x=${finalPrice}`,
-        displayEquation: `${decimal}x＝${finalPrice}`,
-        solutionDisplay: `x＝${expectedX}`,
-
-        keypadNumbers: buildKeypadNumbersWithDummy([decimal, finalPrice], dummyDecimal),
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hintKeypadParts: [],
-
-        hint:
-          `定価の${discountPercent}％引きは、定価の(100－${discountPercent})÷100倍、` +
-          `つまり定価×${decimal}で表せます。`,
-
-        explanation:
-          "割引後の値段は、定価に割引後の割合（小数）をかけた金額になります。"
-      };
+    // 例題確認(ヘルプメニュー)専用:固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildDiscountPriceQuestion({ discountPercent: 20, expectedX: 1000 });
     }
   },
 

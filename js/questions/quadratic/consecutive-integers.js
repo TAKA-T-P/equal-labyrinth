@@ -12,45 +12,53 @@ const CATEGORY_NAME = "連続する整数の積";
 const UNIT = "quadratic";
 const KEYPAD_SYMBOLS = ["x", "square", "+", "(", ")", "="];
 
+function buildConsecutiveQuestion({ n }) {
+  const product = n * (n + 1);
+  const canonicalInternal = `x*(x+1)=${product}`;
+  const roots = computeQuadraticRoots(canonicalInternal);
+
+  return {
+    id: createUniqueId("L3-01-consecutive"),
+    templateId: "L3-01-consecutive",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt: `連続する2つの正の整数の積が${product}です。小さい方の整数をxとして、2次方程式を立てなさい。`,
+    variableDefinition: "小さい方の正の整数",
+
+    canonicalEquation: {
+      internal: canonicalInternal,
+      display: `x(x＋1)＝${product}`,
+      relationName: "連続する2整数の積"
+    },
+    expectedRoots: roots,
+    validXValues: [n],
+    solutionDisplay: `x＝${n}（2つの整数は${n}と${n + 1}）`,
+
+    keypadNumbers: ["1", String(product)],
+    keypadSymbols: KEYPAD_SYMBOLS,
+
+    hint: "小さい方がxなら、大きい方はx＋1です。2つの整数の積を表しましょう。",
+    hintKeypadParts: [{ display: "（x＋1）", value: "(x+1)", ariaLabel: "xたす1" }],
+    explanation: "連続する2つの整数はx、x＋1と表せるので、積が与えられた値になる関係を式にします。",
+    diagram: null
+  };
+}
+
 export const consecutiveIntegersTemplates = [
   {
     templateId: "L3-01-consecutive",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const n = randomInt(3, 30);
-      const product = n * (n + 1);
-      const canonicalInternal = `x*(x+1)=${product}`;
-      const roots = computeQuadraticRoots(canonicalInternal);
+      return buildConsecutiveQuestion({ n: randomInt(3, 30) });
+    },
 
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt: `連続する2つの正の整数の積が${product}です。小さい方の整数をxとして、2次方程式を立てなさい。`,
-        variableDefinition: "小さい方の正の整数",
-
-        canonicalEquation: {
-          internal: canonicalInternal,
-          display: `x(x＋1)＝${product}`,
-          relationName: "連続する2整数の積"
-        },
-        expectedRoots: roots,
-        validXValues: [n],
-        solutionDisplay: `x＝${n}（2つの整数は${n}と${n + 1}）`,
-
-        keypadNumbers: ["1", String(product)],
-        keypadSymbols: KEYPAD_SYMBOLS,
-
-        hint: "小さい方がxなら、大きい方はx＋1です。2つの整数の積を表しましょう。",
-        hintKeypadParts: [{ display: "（x＋1）", value: "(x+1)", ariaLabel: "xたす1" }],
-        explanation: "連続する2つの整数はx、x＋1と表せるので、積が与えられた値になる関係を式にします。",
-        diagram: null
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildConsecutiveQuestion({ n: 12 });
     }
   },
 

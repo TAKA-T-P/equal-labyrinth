@@ -10,62 +10,71 @@ const UNIT = "simultaneous";
 const KEYPAD_SYMBOLS_MULT = ["x", "y", "+", "-", "(", ")", "="];
 const KEYPAD_SYMBOLS_SUM = ["x", "y", "+", "-", "="];
 
+function buildMotherChildPastQuestion({ childPastAge, multiplier, yearsAgo }) {
+  const motherPastAge = multiplier * childPastAge;
+  const y = childPastAge + yearsAgo; // 子の現在の年齢
+  const x = motherPastAge + yearsAgo; // 母の現在の年齢
+  const sum = x + y;
+
+  return {
+    id: createUniqueId("L2-05-mother-child-past"),
+    templateId: "L2-05-mother-child-past",
+    unit: UNIT,
+    categoryId: CATEGORY_ID,
+    categoryName: CATEGORY_NAME,
+    rankDifficulty: "NORMAL",
+
+    prompt:
+      `現在、母と子の年齢の和は${sum}歳です。${yearsAgo}年前、母の年齢は子どもの年齢の` +
+      `${multiplier}倍でした。現在の母の年齢をx歳、子どもの年齢をy歳として連立方程式を` +
+      `立てなさい。`,
+
+    variableDefinitions: {
+      x: "母の現在の年齢",
+      y: "子どもの現在の年齢"
+    },
+
+    expectedSolution: { x, y },
+
+    canonicalEquations: [
+      { internal: `x+y=${sum}`, display: `x＋y＝${sum}`, relationName: "現在の年齢の和" },
+      {
+        internal: `x-${yearsAgo}=${multiplier}*(y-${yearsAgo})`,
+        display: `x−${yearsAgo}＝${multiplier}(y−${yearsAgo})`,
+        relationName: `${yearsAgo}年前の年齢の関係`
+      }
+    ],
+
+    solutionDisplay: `x＝${x}、y＝${y}`,
+
+    keypadNumbers: buildKeypadNumbers([sum, yearsAgo, multiplier]),
+    keypadSymbols: KEYPAD_SYMBOLS_MULT,
+
+    hint: `${yearsAgo}年前の年齢は「x−${yearsAgo}」「y−${yearsAgo}」と表せます。`,
+    hintKeypadParts: [
+      { display: `（y−${yearsAgo}）`, value: `(y-${yearsAgo})`, ariaLabel: `yひく${yearsAgo}` }
+    ],
+
+    explanation: "現在の年齢の和と、過去の年齢の倍率の関係から2本の式を作ります。"
+  };
+}
+
 export const agesTemplates = [
   {
     templateId: "L2-05-mother-child-past",
     categoryId: CATEGORY_ID,
 
     generate() {
-      const childPastAge = randomInt(2, 15);
-      const multiplier = randomInt(2, 5);
-      const motherPastAge = multiplier * childPastAge;
-      const yearsAgo = randomInt(3, 10);
+      return buildMotherChildPastQuestion({
+        childPastAge: randomInt(2, 15),
+        multiplier: randomInt(2, 5),
+        yearsAgo: randomInt(3, 10)
+      });
+    },
 
-      const y = childPastAge + yearsAgo; // 子の現在の年齢
-      const x = motherPastAge + yearsAgo; // 母の現在の年齢
-      const sum = x + y;
-
-      return {
-        id: createUniqueId(this.templateId),
-        templateId: this.templateId,
-        unit: UNIT,
-        categoryId: CATEGORY_ID,
-        categoryName: CATEGORY_NAME,
-        rankDifficulty: "NORMAL",
-
-        prompt:
-          `現在、母と子の年齢の和は${sum}歳です。${yearsAgo}年前、母の年齢は子どもの年齢の` +
-          `${multiplier}倍でした。現在の母の年齢をx歳、子どもの年齢をy歳として連立方程式を` +
-          `立てなさい。`,
-
-        variableDefinitions: {
-          x: "母の現在の年齢",
-          y: "子どもの現在の年齢"
-        },
-
-        expectedSolution: { x, y },
-
-        canonicalEquations: [
-          { internal: `x+y=${sum}`, display: `x＋y＝${sum}`, relationName: "現在の年齢の和" },
-          {
-            internal: `x-${yearsAgo}=${multiplier}*(y-${yearsAgo})`,
-            display: `x−${yearsAgo}＝${multiplier}(y−${yearsAgo})`,
-            relationName: `${yearsAgo}年前の年齢の関係`
-          }
-        ],
-
-        solutionDisplay: `x＝${x}、y＝${y}`,
-
-        keypadNumbers: buildKeypadNumbers([sum, yearsAgo, multiplier]),
-        keypadSymbols: KEYPAD_SYMBOLS_MULT,
-
-        hint: `${yearsAgo}年前の年齢は「x−${yearsAgo}」「y−${yearsAgo}」と表せます。`,
-        hintKeypadParts: [
-          { display: `（y−${yearsAgo}）`, value: `(y-${yearsAgo})`, ariaLabel: `yひく${yearsAgo}` }
-        ],
-
-        explanation: "現在の年齢の和と、過去の年齢の倍率の関係から2本の式を作ります。"
-      };
+    // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
+    generateExample() {
+      return buildMotherChildPastQuestion({ childPastAge: 8, multiplier: 3, yearsAgo: 5 });
     }
   },
 
