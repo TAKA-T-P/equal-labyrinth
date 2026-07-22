@@ -29,7 +29,8 @@ equal-labyrinth/
 │   ├─ layout.css        画面全体の配置・レスポンシブ
 │   ├─ components.css    ボタン・カード・入力欄・キーボードなど
 │   ├─ animations.css    演出アニメーション
-│   └─ quest.css         クエストモード専用スタイル（`.quest-`接頭辞のクラスのみ）
+│   ├─ quest.css         クエストモード専用スタイル（`.quest-`接頭辞のクラスのみ）
+│   └─ help.css          ヘルプ関連画面専用スタイル（`.help-`接頭辞のクラスのみ）
 │
 ├─ js/
 │   ├─ main.js            起点。初期化とモジュール接続
@@ -63,6 +64,15 @@ equal-labyrinth/
 │   │   ├─ score-manager.js        スコア計算（DOM非依存の純粋関数）
 │   │   ├─ combo-manager.js        コンボ・コンボ継続ゲージの計算（基準時間は単元ごとに指定）
 │   │   └─ rank-calculator.js      段位計算（基準時間は呼び出し側から指定）
+│   │
+│   ├─ help/
+│   │   ├─ help-ui.js              ヘルプ関連画面（ヘルプメニュー・遊び方・アイテム図鑑・
+│   │   │                          データ消去確認）のDOM表示・画面遷移
+│   │   ├─ help-content.js         「このゲームの遊び方」の表示内容（データのみ）
+│   │   ├─ item-catalog.js         QUEST_ROOMSとquest-storage.jsから、アイテム図鑑の
+│   │   │                          一覧を動的に構築・結合する
+│   │   └─ data-reset.js           保存データ（`equalLabyrinth.`接頭辞のキー）の検出・
+│   │                              全消去処理
 │   │
 │   ├─ equation/
 │   │   ├─ tokenizer.js                    文字列 → トークン列（x・yの2変数、x²のPOWERトークンに対応）
@@ -265,12 +275,25 @@ equal-labyrinth/
   正解数などの冒険の記録を表示。たどったルートは画面上部の簡易マップで確認できるため、
   結果画面には重複して表示しない）
 
+### ヘルプ機能
+
+- タイトル画面左上の「？」ボタンから開く、独立したヘルプメニュー画面
+  （このゲームの遊び方／アイテム図鑑／データを消す／もどる。詳細は
+  「ヘルプメニュー・アイテム図鑑・データ消去」を参照）
+- 「このゲームの遊び方」（項目ごとに開閉できるアコーディオン形式、全13項目）
+- アイテム図鑑（`QUEST_ROOMS`の報酬から動的に一覧を構築し、保存済みインベントリと結合して表示。
+  未獲得アイテムは内容を隠す。獲得種類数・収集率を表示し、初回／最終獲得日時は表示しない）
+- 全データ初期化（2段階の確認を経て、`equalLabyrinth.`接頭辞のキーだけを削除する）
+
 ## 実装していない機能
 
 - 複数項をまとめて分子・分母にする分数の手入力（`(x+y)/2`など）
 - 動点問題のアニメーション表示（静止画の図で方向を示すのみ）
 - 3次以上の方程式
 - オンラインランキング・ユーザーアカウント・サーバーへの記録保存
+- 敵図鑑（アイテム図鑑のみ実装済み。詳細は「ヘルプメニュー・アイテム図鑑・データ消去」を参照）
+- アイテムのゲーム上の効果・装備・使用・売却・初回/最終獲得日時の表示・並べ替え・検索
+- 保存データのエクスポート・インポート、消去したデータの復元
 
 ---
 
@@ -344,6 +367,16 @@ equal-labyrinth/
   DOM・タイマーを持たない純粋な計算モジュール。スコア加減点、コンボとコンボゲージの状態遷移、
   段位係数・段位名の計算だけを担当し、単体でテストできる。基準時間（timeB）は呼び出し側
   （`rank-mode.js`）が単元ごとに`UNIT_CONFIG`から取得して渡す。
+- **help/help-ui.js** ：ヘルプメニュー・このゲームの遊び方・アイテム図鑑・データ消去確認の
+  DOM表示と画面遷移専任。既存の`ui.js`の`showScreen()`をそのまま利用し、`gameState`は
+  一切変更しない。`game.js`からは`initGame()`内の`initHelpUI()`呼び出し1行だけで接続する
+  （`questMode.initQuestModeUI()`と同じ方針）。
+- **help/help-content.js** ：「このゲームの遊び方」の表示文（データのみ）。
+- **help/item-catalog.js** ：`quest/quest-room-data.js`の`QUEST_ROOMS`と
+  `quest/quest-storage.js`の保存済みインベントリから、アイテム図鑑の一覧を動的に構築・結合する。
+  アイテム数を固定値として持たず、アイテム名・絵文字・部屋の対応をここへ二重登録しない。
+- **help/data-reset.js** ：`equalLabyrinth.`接頭辞のlocalStorageキーだけを検出・削除する。
+  `localStorage.clear()`は使用しない。
 - **ui.js** ：DOM操作専用。ゲームルールや正誤判定は書かない。
 - **timer.js / audio.js / storage.js** ：それぞれ問題ごとの時間計測（ヒント・パス解禁）・
   効果音・保存を専任で担当する。段位認定モードの120秒タイマーは`rank-mode.js`が別途管理する
@@ -612,9 +645,10 @@ diagram: {
 - 問題データには数値・記号などのプレーンなデータのみを保存し、生のHTML/SVG文字列は保存しない。
   実際のSVG要素は`renderQuadraticDiagram(container, diagram)`が`document.createElementNS()`のみで
   組み立てる。
-- 図を持つ問題では、問題文カードの右下に「図を表示」ボタン（`#show-diagram-button`）が表示される。
-  押すと、ヒントカード・パス確認カードと同じ仕組み（不透明な前面カード＋背景バックドロップ、
-  `ui.js`の`showDiagramPanel()` / `hideDiagramPanel()`）で図のカードが開く。
+- 図を持つ問題では、出題と同時に図のカードが自動的に開く（`ui.js`の`renderDiagram()`が、
+  描画に成功した場合に`showDiagramPanel()`を呼び出す）。あわせて、問題文カードの右下に
+  「図を表示」ボタン（`#show-diagram-button`）も表示され、カードを閉じたあとも同じボタンで
+  いつでも再び開ける。
 - 図のカードは、カード内の「閉じる」ボタン（`#quadratic-diagram-close-button`）を押すか、
   カードの外側（バックドロップ）をタップ・クリックすると閉じる。
 - `diagram`が`null`の問題（十字路・ふたのない箱・動点以外の6カテゴリ、および「容積・ふたのない箱」の
@@ -1019,6 +1053,169 @@ B🐗 → D🐍 → I👁️ → ?? → ??
 アイテム・正解数・不正解数・ヒント使用回数・クリアした部屋数・単元）を
 共有の画面（`quest-view-summary`）で表示する。たどったルートは画面上部の簡易マップに
 表示済みのため、結果画面では重複して表示しない。
+
+---
+
+## ヘルプメニュー・アイテム図鑑・データ消去
+
+第6段階として、タイトル画面から開く独立したヘルプ機能を追加した。問題画面・数式入力・
+数式キーボード・結果画面・クエスト専用画面など、既存の画面のレイアウト・動作は一切変更していない。
+処理は`js/help/`配下の4ファイルへ分離しており、`game.js`が行うのは`initGame()`からの
+`initHelpUI()`呼び出し1回だけである（クエストモードの`questMode.initQuestModeUI()`と同じ方針）。
+
+### タイトル画面の「？」ボタン
+
+タイトル画面左上に、丸い「？」ボタン（`#open-help-menu-button`、44px×44px以上、
+`aria-label="ヘルプメニューを開く"`）を配置した。`#screen-title`の中の要素のため、
+既存の`ui.showScreen()`の仕組みでタイトル画面が隠れるとこのボタンも自動的に隠れる
+（タイトル画面以外では表示されない）。
+
+### ヘルプメニュー
+
+「？」を押すと、`ui.showScreen("help-menu")`でタイトル画面から独立したヘルプメニュー画面
+（`#screen-help-menu`）へ切り替わる。画面遷移は既存の`elements.screens`のマップへ
+`help-menu` / `how-to-play` / `item-catalog`の3画面を追加しただけで、複数画面が同時に
+表示されない仕組みはこの既存の一元管理に完全に乗せている。
+
+```text
+ヘルプ
+├─ このゲームの遊び方
+├─ アイテム図鑑
+├─ ⚠️ データを消す（他の項目と間隔を空けて配置。危険だが極端に大きくはしない）
+└─ もどる（→タイトル画面）
+```
+
+ヘルプ画面はいずれも`gameState`を一切変更しないため、タイトル画面へ戻ったときは、
+消去操作を行っていない限り、選択中のモード・単元・問題数・カテゴリ・難易度・効果音設定は
+すべて直前の状態のまま保たれる。
+
+### 「このゲームの遊び方」
+
+`js/help/help-content.js`が持つ`HOW_TO_PLAY_SECTIONS`（13項目：このゲームについて／
+3つのゲームモード／方程式の入力方法／連立方程式の入力／分数の入力／x²・□²の入力／
+ヒントと式パーツ／パスとリタイア／図の表示／段位認定モード／クエストモード／
+アイテムについて／データの保存について）を、`js/help/help-ui.js`がネイティブの
+`<details><summary>`で1項目ずつ開閉できるアコーディオンとして描画する（キーボード操作・
+スクリーンリーダーに対応するため独自実装のアコーディオンは使用していない）。内容は
+このREADMEの仕様（ヒント解禁時間・パスの扱い・分数入力・x²/□²の入力・連立方程式の
+2入力欄など）と矛盾しないよう記述している。
+
+### アイテム図鑑
+
+`js/help/item-catalog.js`が、部屋データ（`js/quest/quest-room-data.js`の`QUEST_ROOMS`）と
+保存済みインベントリ（`js/quest/quest-storage.js`の`equalLabyrinth.quest.inventory`）から、
+アイテム名・絵文字・部屋の対応をどこにも二重管理せずに図鑑を構築する。
+
+- `buildItemMasterList(rooms)`が、各部屋の`reward`（`{itemId, emoji, name}`）と
+  `roomId` / `stage`からアイテムのマスター一覧を作る。同じ`itemId`が複数の部屋に
+  登録されていた場合は最初の1件だけを採用し、コンソールへ`console.warn`する。
+  並び順はステージの小さい順→同じステージでは部屋ID順。**アイテム数を26などの固定値として
+  コードに持たず**、`QUEST_ROOMS`の件数がそのまま反映されるため、将来部屋・報酬が増えても
+  このファイルやHTMLを変更する必要はない。
+- `buildItemCatalog()`が、マスター一覧と`listInventoryItems()`（保存済みインベントリ）を
+  `itemId`で結合する。図鑑を開くたび（`help-ui.js`の`openItemCatalog()`）に呼び直すため、
+  常に最新のインベントリが反映される。所持数は
+  `Number.isFinite(savedCount) && savedCount > 0 ? Math.floor(savedCount) : 0`で
+  安全に補正する。
+- 保存済みインベントリにはあるが、現在の`QUEST_ROOMS`には存在しないアイテム（将来、
+  部屋データの変更で発生しうる）は、マスター一覧の末尾へ追加し、保存済みの`emoji` / `name`を
+  そのまま使う（`isOrphan: true`）。データそのものは削除しない。部屋の記録がない場合は
+  「入手場所：記録なし」と表示する。
+- 獲得済みアイテムのカードには絵文字・名前・所持数・入手した部屋を表示する。
+  **初回獲得日時・最終獲得日時は、保存されていても図鑑には一切表示しない。**
+- 未獲得アイテムのカードは、絵文字・名前・部屋・説明を隠し、「❓」「？？？」「未獲得」
+  「入手場所：？」とだけ表示する（未探索ルートのネタバレ防止）。
+- 図鑑上部に「獲得種類　n / 総数」「収集率　n%」を表示する。
+  `collectionRate = Math.floor(obtainedUniqueCount / totalItemCount * 100)`
+  （総数が0件のときは0%として扱う）。
+- マスター一覧が0件、またはインベントリの読み込みに失敗した場合も、コンソール警告のみで
+  アプリを止めず、「現在、図鑑に登録されているアイテムはありません。」
+  「アイテム情報を読み込めませんでした。もう一度画面を開き直してください。」のいずれかを表示する
+  （`buildItemCatalog()`の`loadFailed`フラグで判定する）。
+
+### 全データ初期化
+
+「⚠️ データを消す」は、押しても即座には消去せず、必ず2段階の確認を経る
+（`js/help/help-ui.js`が`resetConfirmStep`（0＝閉じている／1＝第1確認／2＝第2確認）で管理）。
+
+1. **第1確認**：「ハイスコアやアイテムの情報をすべて消去します。よろしいですか？」
+   「いいえ」を先に配置し、開いた直後のフォーカスも「いいえ」に置く。「いいえ」・背景クリック・
+   Escapeのいずれでもデータは変更されず、ヘルプメニューへ戻る。
+2. **第2確認**：「本当に後悔しませんね？　この操作は取り消せません。」第1確認・第2確認は
+   別々のDOM要素・別々のクリックリスナーを持つ完全に独立したダイアログのため、第1確認の
+   「はい」クリックが第2確認の「はい」へ伝播することは構造上起こらない。第2確認を開いた直後は
+   「はい」を約500ミリ秒だけ無効化し、フォーカスも「いいえ」へ置くことで、Enterキー連打や
+   直前のクリックの余韻による誤確定を防ぐ。
+
+「はい」を押すと`js/help/data-reset.js`の`resetAllEqualLabyrinthData()`を呼ぶ。
+`localStorage.clear()`は使用せず、`STORAGE_PREFIX`（`equalLabyrinth.`）で始まるキーだけを
+`Object.keys(localStorage).filter(...)`で検出して`removeItem()`する。現在保存している
+キーはすべてこの接頭辞形式に統一されているため（旧形式のキーは存在しない）、接頭辞の検出だけで
+漏れなく初期化できる。
+
+```javascript
+// resetAllEqualLabyrinthData()の返り値の例
+{
+  success: true,
+  removedKeys: ["equalLabyrinth.rank.linear.NORMAL", "equalLabyrinth.quest.inventory", /* ... */],
+  errors: []
+}
+```
+
+削除対象は次のとおり（`equalLabyrinth.`接頭辞以外のキー、例えば他アプリの
+`otherApplication.test`のようなキーには一切触れない）。
+
+```text
+equalLabyrinth.soundEnabled
+equalLabyrinth.totalQuestions
+equalLabyrinth.selectedMode
+equalLabyrinth.selectedUnit
+equalLabyrinth.training.{linear|simultaneous|quadratic}.categories
+equalLabyrinth.rank.{linear|simultaneous|quadratic}.{NORMAL|HARD}
+equalLabyrinth.quest.inventory
+```
+
+処理中・多重クリック対策として、`data-reset.js`側にモジュールレベルの実行中フラグを持たせつつ、
+`help-ui.js`側でも「はい」ボタンをクリック直後に無効化する（二重の防御）。消去に成功すると、
+「データを消去しました。ゲームを最初の状態に戻します。」を約1.5秒間表示したのち
+`window.location.reload()`で再読み込みし、メモリ上の選択状態・ハイスコア表示・インベントリ・
+効果音設定などのキャッシュもすべて確実に初期状態へ戻す。localStorageへのアクセス・削除に
+失敗した場合は成功と表示せず、「データを消去できませんでした。ブラウザの保存設定を確認して、
+もう一度お試しください。」を表示し、失敗したキーはコンソールへ警告する（アプリは停止しない）。
+
+### 保存データの一覧
+
+`js/storage.js` / `js/quest/quest-storage.js` / `js/help/data-reset.js`が使用する
+localStorageキーは、上記「全データ初期化」の削除対象リストがすべてであり、
+`APP_CONFIG.storageKeyPrefix`（`equalLabyrinth`）から組み立てている。
+
+### アイテム図鑑の追加方法
+
+新しいアイテムを追加するには、`js/quest/quest-room-data.js`の`QUEST_ROOMS`へ部屋（または
+既存部屋の`reward`）を追加するだけでよい。`item-catalog.js`のコードやHTML
+（`#screen-item-catalog`）を変更する必要はない。`itemId`は既存のどれとも重複しない文字列にする
+こと（重複するとコンソール警告が出て、後から追加した側は無視される）。
+
+### ヘルプ内容の修正方法
+
+「このゲームの遊び方」の文章は、`js/help/help-content.js`の`HOW_TO_PLAY_SECTIONS`配列
+（`{title, paragraphs}`の13要素）を編集するだけでよい。`paragraphs`内の`\n`はそのまま
+改行として表示される（CSSの`white-space: pre-line`）。項目の追加・削除・並べ替えも、
+この配列を変更するだけで`help-ui.js`側の描画に自動的に反映される。
+
+### データ消去機能のテスト方法
+
+`js/help/data-reset.js`の`getEqualLabyrinthStorageKeys()` / `resetAllEqualLabyrinthData()`は
+DOM非依存（`window.localStorage`のみに依存）のため、Node.js上でも
+`window = { localStorage: /* 簡易実装 */ }`を用意すれば直接importしてテストできる。
+実際の動作確認は、ブラウザで次の手順を行う。
+
+1. トレーニング・段位認定・クエストをひととおり遊び、ハイスコア・アイテム・カテゴリ選択などの
+   テストデータを作る（`otherApplication.test`のような無関係なキーも別途`localStorage`へ
+   セットしておく）
+2. タイトル画面「？」→「⚠️ データを消す」→第1確認「はい」→第2確認「はい」（約500ミリ秒待つ）
+3. 再読み込み後、ハイスコア・段位・アイテム・カテゴリ選択・効果音がすべて初期値に戻り、
+   アイテム図鑑が0/収集率0%になっていること、`otherApplication.test`は残っていることを確認する
 
 ---
 

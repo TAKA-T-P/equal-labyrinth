@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="./css/components.css" />
 <link rel="stylesheet" href="./css/animations.css" />
 <link rel="stylesheet" href="./css/quest.css" />
+<link rel="stylesheet" href="./css/help.css" />
 </head>
 <body>
 <div id="app">
@@ -16,6 +17,15 @@
   <!-- タイトル・設定画面 -->
   <section id="screen-title" class="screen" data-screen="title">
     <div class="screen-inner title-screen">
+      <button
+        type="button"
+        id="open-help-menu-button"
+        class="title-help-button"
+        aria-label="ヘルプメニューを開く"
+      >
+        ?
+      </button>
+
       <button
         type="button"
         id="sound-toggle-button"
@@ -470,6 +480,90 @@
     <div class="pass-confirm-actions">
       <button type="button" id="quest-retire-confirm-no" class="secondary-button">冒険を続ける</button>
       <button type="button" id="quest-retire-confirm-yes" class="primary-button">リタイアする</button>
+    </div>
+  </div>
+
+  <!-- ヘルプメニュー -->
+  <section id="screen-help-menu" class="screen" data-screen="help-menu" hidden>
+    <div class="screen-inner help-screen">
+      <h1 class="help-heading">ヘルプ</h1>
+
+      <nav class="help-menu" aria-label="ヘルプメニュー">
+        <button type="button" id="open-how-to-play-button" class="help-menu-button">
+          このゲームの遊び方
+        </button>
+        <button type="button" id="open-item-catalog-button" class="help-menu-button">
+          アイテム図鑑
+        </button>
+        <button type="button" id="open-data-reset-button" class="help-menu-button help-menu-button--danger">
+          ⚠️ データを消す
+        </button>
+      </nav>
+
+      <button type="button" id="help-menu-back-button" class="secondary-button help-back-button">
+        もどる
+      </button>
+
+      <p id="reset-result-message" class="help-reset-result" hidden aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- このゲームの遊び方 -->
+  <section id="screen-how-to-play" class="screen" data-screen="how-to-play" hidden>
+    <div class="screen-inner help-screen">
+      <h1 class="help-heading">このゲームの遊び方</h1>
+      <div id="how-to-play-content" class="help-accordion"></div>
+      <button type="button" id="how-to-play-back-button" class="secondary-button help-back-button">
+        ← ヘルプメニューにもどる
+      </button>
+    </div>
+  </section>
+
+  <!-- アイテム図鑑 -->
+  <section id="screen-item-catalog" class="screen" data-screen="item-catalog" hidden>
+    <div class="screen-inner help-screen">
+      <h1 class="help-heading">アイテム図鑑</h1>
+      <p id="item-catalog-summary" class="help-catalog-summary" aria-live="polite"></p>
+      <div id="item-catalog-grid" class="help-item-grid"></div>
+      <button type="button" id="item-catalog-back-button" class="secondary-button help-back-button">
+        ← ヘルプメニューにもどる
+      </button>
+    </div>
+  </section>
+
+  <!-- データ消去：第1・第2確認モーダル -->
+  <div id="reset-confirm-backdrop" class="hint-backdrop" hidden></div>
+  <div
+    id="reset-confirm-step1"
+    class="hint-panel help-confirm-dialog"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-label="データ消去の確認"
+  >
+    <p class="help-confirm-text">
+      ハイスコアやアイテムの情報を<br />
+      すべて消去します。
+    </p>
+    <p class="help-confirm-text">よろしいですか？</p>
+    <div class="pass-confirm-actions">
+      <button type="button" id="reset-confirm-step1-no" class="secondary-button">いいえ</button>
+      <button type="button" id="reset-confirm-step1-yes" class="primary-button">はい</button>
+    </div>
+  </div>
+  <div
+    id="reset-confirm-step2"
+    class="hint-panel help-confirm-dialog help-confirm-dialog--danger"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-label="最終確認"
+  >
+    <p class="help-confirm-text help-confirm-text--strong">本当に後悔しませんね？</p>
+    <p class="help-confirm-caption">この操作は取り消せません。</p>
+    <div class="pass-confirm-actions">
+      <button type="button" id="reset-confirm-step2-no" class="secondary-button">いいえ</button>
+      <button type="button" id="reset-confirm-step2-yes" class="primary-button">はい</button>
     </div>
   </div>
 

@@ -42,6 +42,7 @@ import { validateCurrentAnswer } from "./equation/answer-validator.js";
 import { tokenize, TokenType } from "./equation/tokenizer.js";
 import * as rankMode from "./modes/rank-mode.js";
 import * as questMode from "./modes/quest-mode.js";
+import { initHelpUI } from "./help/help-ui.js";
 
 let questionQueue = [];
 
@@ -220,6 +221,7 @@ export function initGame() {
   });
 
   questMode.initQuestModeUI({ onBackToTitle: handleBackToTitle });
+  initHelpUI();
 
   ui.renderQuestionCountLabel(gameState.totalQuestions);
   ui.renderCategoryCheckboxes(

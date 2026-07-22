@@ -13,7 +13,10 @@ const elements = {
     game: document.getElementById("screen-game"),
     result: document.getElementById("screen-result"),
     "rank-result": document.getElementById("screen-rank-result"),
-    quest: document.getElementById("screen-quest")
+    quest: document.getElementById("screen-quest"),
+    "help-menu": document.getElementById("screen-help-menu"),
+    "how-to-play": document.getElementById("screen-how-to-play"),
+    "item-catalog": document.getElementById("screen-item-catalog")
   },
 
   // タイトル画面
