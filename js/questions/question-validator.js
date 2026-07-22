@@ -74,9 +74,10 @@ const ALLOWED_KEYPAD_SYMBOLS = new Set([
 ]);
 
 const NUMBER_TEXT_PATTERN = /^\d+(\.\d+)?$/;
-// 「1/2」のような単純な分数表記も、数字の選択肢カードとして許可する
-// （動点カテゴリの三角形の面積の公式などで使う）。
-const FRACTION_TEXT_PATTERN = /^\d+\/\d+$/;
+// 「1/2」「x/10」のような単純な分数表記も、数字の選択肢カードとして許可する
+// （動点カテゴリの三角形の面積の公式、割合の応用・利益と割引カテゴリのx/10などで使う）。
+// 分子は数値のほか"x"・"y"も許可する。
+const FRACTION_TEXT_PATTERN = /^([xy]|\d+)\/\d+$/;
 
 /**
  * keypadNumbersに「1/2」のような分数表記のカードが含まれるかどうか。
@@ -138,10 +139,11 @@ function validateKeypadCoversEquation(canonicalEquation, keypadNumbers) {
   }
 
   const keypadNumberSet = new Set(keypadNumbers.map(String));
-  // 「1/2」のような分数カードは、ボタン1つで分子・分母どちらの数値も
-  // 入力できたことになるため、両方の数値をカバー済みとして扱う。
+  // 「1/2」「x/10」のような分数カードは、ボタン1つで分子・分母どちらの数値も
+  // 入力できたことになるため、両方の数値をカバー済みとして扱う
+  // （分子が"x"のように数値でない場合は、そのぶんは単に無視される）。
   keypadNumbers.forEach((value) => {
-    const fractionMatch = String(value).match(/^(\d+)\/(\d+)$/);
+    const fractionMatch = String(value).match(/^([xy]|\d+)\/(\d+)$/);
     if (fractionMatch) {
       keypadNumberSet.add(fractionMatch[1]);
       keypadNumberSet.add(fractionMatch[2]);

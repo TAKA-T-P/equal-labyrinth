@@ -304,9 +304,10 @@ input[type="range"] {
 }
 
 .category-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 12px;
+  row-gap: 0;
 }
 
 .category-item {

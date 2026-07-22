@@ -740,6 +740,28 @@ x
 分母入力待ちの間は、入力欄付近に「分母を選んでください。」という案内
 （`#input-guidance`、`aria-live="polite"`）が表示される。
 
+### 完成した分数を1回で入力する数字カード
+
+問題によっては、模範式に決まった分数（`1/2`・`x/10`など）が繰り返し登場する。この場合、
+`keypadNumbers`へ`"1/2"`や`"x/10"`のような文字列を含めると、「分数ボタン→分母」の2打ではなく、
+最初から上下型の完成した分数として1回で入力できる専用の数字カードが表示される
+（動点カテゴリの`1/2`、割合の応用・利益と割引カテゴリの`x/10`で使用）。
+
+- `ui.js`の`renderNumberKeys()`が、`keypadNumbers`の各値を`NUMBER_FRACTION_PATTERN`
+  （分子は数値または`x`・`y`、分母は数値）と照合し、一致したものだけ
+  `createFractionNumberButton()`で上下型のカードとして描画する。
+- カードを押すと、`{type:"fraction", numeratorTokens, denominatorTokens, isComplete:true,
+  source:"keypad-number"}`という完成済みの分数トークンが1回でカーソル位置へ挿入される
+  （`game.js`の`handleInsertNumberFraction()`）。ヒント式パーツの分数（`source:"hint-part"`）と
+  同じトークン形状・同じ描画（`.math-fraction`）を使うが、**ヒントの使用回数・使用済み履歴は
+  一切更新しない**（あくまで通常の数字ボタンの一種であり、ヒントを開かなくても最初から
+  使えるカードのため）。
+- `question-validator.js`の`validateKeypadCoversEquation()` /
+  「割り算にはfractionボタンが必要」チェックは、`"1/2"`・`"x/10"`のようなカードが
+  `keypadNumbers`にあれば、それ自体で割り算（分子・分母）を入力できるとみなし、
+  分子・分母の数値をカバー済みとして扱う（分母ボタン専用の`"fraction"`記号を
+  別途`keypadSymbols`へ用意する必要はない）。
+
 ### 内部表現と画面表示の分離
 
 - 画面表示：`js/equation/equation-formatter.js`の`renderFormattedEquation()`が、
@@ -1234,30 +1256,32 @@ DOM非依存（`window.localStorage`のみに依存）のため、Node.js上で�
 中3「2次方程式」は`js/questions/quadratic/categories.js`の`QUADRATIC_CATEGORIES`で、
 カテゴリごとに`difficulty: "NORMAL"`または`"HARD"`を設定している。
 
+段位認定モードでNORMALを選ぶと、`difficulty: "NORMAL"`のカテゴリだけから出題される。
+HARDを選ぶと、**HARD専用カテゴリだけでなくNORMALのカテゴリも含めた、その単元の全カテゴリ**
+から出題される（`question-manager.js`の`getTemplatesByDifficulty()`。HARD専用カテゴリだけでは
+出題の幅が狭いため）。トレーニングモードでは、難易度に関わらず、選んだ単元の全カテゴリを
+選択できる。
+
 ### 中1「1次方程式」
 
 | 難易度 | 出題されるカテゴリ |
 | --- | --- |
 | NORMAL | 個数・代金／分配・過不足／年齢／追いつき・出会い／2種類の品物と代金／大人・子どもの人数と料金 |
-| HARD | 所持金・過不足／長いす・過不足／整数／速さ・時間・道のり／割合・増減 |
+| HARD | 全11カテゴリ（NORMALの6カテゴリ＋所持金・過不足／長いす・過不足／整数／速さ・時間・道のり／割合・増減） |
 
 ### 中2「連立方程式」
 
 | 難易度 | 出題されるカテゴリ |
 | --- | --- |
 | NORMAL | 2種類の品物と代金／人数と料金／硬貨・紙幣／年齢／速さ・道のり／食塩水の混合 |
-| HARD | 2けたの自然数／電車の通過／池・トラックの周回／割合の増減・人数／割合の増減・代金／平均 |
+| HARD | 全12カテゴリ（NORMALの6カテゴリ＋2けたの自然数／電車の通過／池・トラックの周回／割合の増減・人数／割合の増減・代金／平均） |
 
 ### 中3「2次方程式」
 
 | 難易度 | 出題されるカテゴリ |
 | --- | --- |
 | NORMAL | 連続する整数の積／数とその平方／長方形の面積／面積の増減／面積・十字路／容積・ふたのない箱 |
-| HARD | 動点／価格と売上／割合の応用・利益と割引 |
-
-段位認定モードでは、選んだ単元・難易度に属するカテゴリだけから出題される
-（`question-manager.js`の`getNextRankQuestion(unit, difficulty, ...)`）。トレーニングモードでは、
-難易度に関わらず、選んだ単元の全カテゴリを選択できる。
+| HARD | 全9カテゴリ（NORMALの6カテゴリ＋動点／価格と売上／割合の応用・利益と割引） |
 
 ## スコア計算（`js/rank/score-manager.js`）
 

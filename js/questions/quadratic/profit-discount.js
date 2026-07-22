@@ -1,6 +1,9 @@
 // カテゴリ：割合の応用・利益と割引（L3-09）
 // 基本式：定価に対してx割増しにした後、x割引きすると、結果的に定価より安くなる関係
-// 2400*(1+x/10)*(1-x/10)=2184 のように、上下型分数（x/10）を使う（既存の分数UIをそのまま利用）
+// 2400*(1+x/10)*(1-x/10)=2184 のように、上下型分数（x/10）を使う。
+// このカテゴリだけは、「分数」ボタン→「10」の2打ではなく、「x/10」の完成した分数を
+// 1回で入力できる専用の数字カードを用意する（keypadNumbersに"x/10"を含めると、
+// ui.jsのcreateFractionNumberButton()が自動的にこのカードを描画する）。
 
 import {
   createUniqueId,
@@ -11,7 +14,7 @@ import {
 const CATEGORY_ID = "L3-09";
 const CATEGORY_NAME = "割合の応用・利益と割引";
 const UNIT = "quadratic";
-const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "fraction", "(", ")", "="];
+const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 
 function buildProfitDiscountQuestion({ templateId, itemName, basePrice }) {
   const n = randomInt(1, 9); // x割（1〜9割）
@@ -42,7 +45,7 @@ function buildProfitDiscountQuestion({ templateId, itemName, basePrice }) {
     validXValues: [n],
     solutionDisplay: `x＝${n}`,
 
-    keypadNumbers: [String(basePrice), "1", "10", String(finalPrice)],
+    keypadNumbers: [String(basePrice), "1", "x/10", String(finalPrice)],
     keypadSymbols: KEYPAD_SYMBOLS,
 
     hint:

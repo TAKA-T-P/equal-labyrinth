@@ -918,10 +918,11 @@ function createKeypadButton(label, inputValue, extraClass) {
   return button;
 }
 
-const NUMBER_FRACTION_PATTERN = /^(\d+)\/(\d+)$/;
+// 分子は数値のほか、"x"・"y"（例："x/10"）も許可する。
+const NUMBER_FRACTION_PATTERN = /^([xy]|\d+)\/(\d+)$/;
 
 /**
- * 「1/2」のような分数の数字カードを、上下型分数の見た目で作る。
+ * 「1/2」「x/10」のような分数の数字カードを、上下型分数の見た目で作る。
  * data-action="insert-number-fraction"で識別し（x²・□²ボタンと同じ仕組み）、
  * 解答欄へも文字列ではなく完成済みの分数トークンとして挿入する
  * （解答欄でもカードと同じ上下型分数の見た目になるようにするため）。
@@ -940,7 +941,7 @@ function createFractionNumberButton(numerator, denominator) {
 
   const numeratorNode = document.createElement("span");
   numeratorNode.className = "math-fraction__numerator";
-  numeratorNode.textContent = numerator;
+  appendStyledVariableParts(numeratorNode, numerator);
 
   const bar = document.createElement("span");
   bar.className = "math-fraction__bar";

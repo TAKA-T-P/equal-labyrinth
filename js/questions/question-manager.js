@@ -760,8 +760,8 @@ const QUADRATIC_FALLBACK_QUESTIONS = {
     expectedRoots: [-3, 3],
     validXValues: [3],
     solutionDisplay: "x＝3",
-    keypadNumbers: ["2400", "1", "10", "2184"],
-    keypadSymbols: ["x", "square", "+", "-", "fraction", "(", ")", "="],
+    keypadNumbers: ["2400", "1", "x/10", "2184"],
+    keypadSymbols: ["x", "square", "+", "-", "(", ")", "="],
     hint:
       "x割は10分のxと表せます。値上げ後の価格は「定価×(1＋x/10)」、" +
       "そこからさらに値引きした価格は、その「×(1−x/10)」で求められます。",
@@ -1037,7 +1037,17 @@ export function getNextQuestion(queue, index) {
 /**
  * 指定した単元・難易度（NORMAL・HARD）のカテゴリだけからテンプレート候補を絞り込む。
  */
+/**
+ * 段位認定モードの出題テンプレートを、難易度から絞り込む。
+ * NORMALは、そのカテゴリ難易度がNORMALのカテゴリのみを対象にする。
+ * HARDは、NORMAL・HARD両方の全カテゴリを対象にする（HARD専用カテゴリだけでは
+ * 出題の幅が狭いため、NORMAL問題も含めて全カテゴリから出題する）。
+ */
 function getTemplatesByDifficulty(unit, difficulty) {
+  if (difficulty === "HARD") {
+    return getTemplatesForUnit(unit);
+  }
+
   const categoryIds = new Set(
     getCategoriesForUnit(unit)
       .filter((c) => c.difficulty === difficulty)
