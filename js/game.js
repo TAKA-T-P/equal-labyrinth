@@ -189,6 +189,7 @@ export function initGame() {
     onInsertPower: handleInsertPower,
     onInsertSquare: handleInsertSquare,
     onHintFractionPartPress: handleHintFractionPartPress,
+    onInsertNumberFraction: handleInsertNumberFraction,
     onCursorLeft: handleCursorLeft,
     onCursorRight: handleCursorRight,
     onBackspace: handleBackspace,
@@ -529,6 +530,24 @@ function handleHintFractionPartPress(part) {
   if (!gameState.usedHintPartValues.includes(part.value)) {
     gameState.usedHintPartValues.push(part.value);
   }
+}
+
+/**
+ * 「1/2」のような分数の数字カードを、完成済みの分数トークンとして
+ * 現在アクティブな入力欄のカーソル位置へ挿入する。ヒントパーツではない
+ * 通常の数値ボタンのため、ヒント使用のフラグ・履歴は更新しない。
+ */
+function handleInsertNumberFraction(numerator, denominator) {
+  if (gameState.fractionInputState.isWaitingForDenominator) return;
+
+  const fractionToken = {
+    type: "fraction",
+    numeratorTokens: [numerator],
+    denominatorTokens: [denominator],
+    isComplete: true,
+    source: "keypad-number"
+  };
+  insertValueAtCursor(fractionToken);
 }
 
 // ============================================================

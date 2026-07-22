@@ -37,7 +37,8 @@ function buildQTowardAQuestion({ templateId, isSquare, heightValue, widthValue, 
 
   const qSpeedInternalTerm = qSpeed === 1 ? "x" : `${qSpeed}*x`;
   const qSpeedDisplayTerm = qSpeed === 1 ? "x" : `${qSpeed}x`;
-  const canonicalInternal = `(1/2)*x*(${lengthAD}-${qSpeedInternalTerm})=${target}`;
+  // かっこで囲まない（1/2は上下型の分数として描画されるため、囲みかっこは不要）
+  const canonicalInternal = `1/2*x*(${lengthAD}-${qSpeedInternalTerm})=${target}`;
   const roots = computeQuadraticRoots(canonicalInternal);
 
   const maxXExclusive = Math.min(heightValue, lengthAD / qSpeed);
@@ -113,7 +114,7 @@ function buildQTowardDQuestion({ templateId, heightValue, widthValue, qSpeed }) 
   }
   const target = raw / 2;
 
-  const canonicalInternal = `(1/2)*x*(${qSpeed}*x)=${target}`;
+  const canonicalInternal = `1/2*x*(${qSpeed}*x)=${target}`;
   const roots = computeQuadraticRoots(canonicalInternal);
   const validXValues = roots.filter((root) => root > ROOT_EPSILON);
 

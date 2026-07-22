@@ -694,7 +694,7 @@ const QUADRATIC_FALLBACK_QUESTIONS = {
       "三角形APQの面積が12cm²になるとき、xの値を求める2次方程式を立てなさい。",
     variableDefinition: "2点が出発してからの時間（秒）",
     canonicalEquation: {
-      internal: "(1/2)*x*(10-x)=12",
+      internal: "1/2*x*(10-x)=12",
       display: "1/2 x(10−x)＝12",
       relationName: "三角形の面積（底辺×高さ÷2）"
     },

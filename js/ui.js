@@ -899,16 +899,18 @@ const NUMBER_FRACTION_PATTERN = /^(\d+)\/(\d+)$/;
 
 /**
  * 「1/2」のような分数の数字カードを、上下型分数の見た目で作る。
- * data-inputValue・data-keyTypeはkey-button--numberと同じ（"1/2"という文字列を
- * そのまま解答欄へ挿入する）ため、押したときの処理（onKeyPress）は変わらない。
- * 見た目だけを、ヒントパーツの分数カードと同じ組み方（分子・分数線・分母）にする。
+ * data-action="insert-number-fraction"で識別し（x²・□²ボタンと同じ仕組み）、
+ * 解答欄へも文字列ではなく完成済みの分数トークンとして挿入する
+ * （解答欄でもカードと同じ上下型分数の見た目になるようにするため）。
  */
-function createFractionNumberButton(numberText, numerator, denominator) {
+function createFractionNumberButton(numerator, denominator) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "key-button key-button--number key-button--number-fraction";
-  button.dataset.inputValue = numberText;
-  button.dataset.keyType = "number";
+  button.dataset.action = "insert-number-fraction";
+  button.dataset.fractionNumerator = numerator;
+  button.dataset.fractionDenominator = denominator;
+  button.setAttribute("aria-label", `${denominator}分の${numerator}`);
 
   const fraction = document.createElement("span");
   fraction.className = "math-fraction math-fraction--number-key";
@@ -937,7 +939,7 @@ function renderNumberKeys(numbers) {
   numbers.forEach((numberText) => {
     const fractionMatch = numberText.match(NUMBER_FRACTION_PATTERN);
     const button = fractionMatch
-      ? createFractionNumberButton(numberText, fractionMatch[1], fractionMatch[2])
+      ? createFractionNumberButton(fractionMatch[1], fractionMatch[2])
       : createKeypadButton(numberText, numberText, "key-button--number");
     if (!fractionMatch) {
       button.dataset.keyType = "number";
@@ -1576,6 +1578,12 @@ export function initUI(callbacks) {
         break;
       case "insert-square":
         callbacks.onInsertSquare();
+        break;
+      case "insert-number-fraction":
+        callbacks.onInsertNumberFraction(
+          button.dataset.fractionNumerator,
+          button.dataset.fractionDenominator
+        );
         break;
       default:
         break;
