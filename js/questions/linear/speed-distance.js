@@ -1,10 +1,10 @@
-// カテゴリ：速さ・時間・道のり
+// カテゴリ：速さ・時間
 // 基本式：遅い速さ×(時間＋差)＝速い速さ×時間（同じ道のりを2通りの速さで進む）
 
 import { createUniqueId, randomInt, buildKeypadNumbers } from "./categories.js";
 
 const CATEGORY_ID = "L1-07";
-const CATEGORY_NAME = "速さ・時間・道のり";
+const CATEGORY_NAME = "速さ・時間";
 
 // このカテゴリの式は「遅い速さ×(x＋差の分)＝速い速さ×x」で固定のため、
 // 使用する記号も問題によらず一定になる。

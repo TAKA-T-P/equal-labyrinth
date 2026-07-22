@@ -141,7 +141,7 @@ const FALLBACK_QUESTIONS = {
   "L1-07": {
     templateId: "L1-07-fallback",
     categoryId: "L1-07",
-    categoryName: "速さ・時間・道のり",
+    categoryName: "速さ・時間",
     rankDifficulty: "HARD",
     prompt:
       "家から図書館まで、毎分60mで歩くと、毎分80mで歩く場合より5分多くかかります。" +
@@ -200,7 +200,7 @@ const FALLBACK_QUESTIONS = {
   "L1-10": {
     templateId: "L1-10-fallback",
     categoryId: "L1-10",
-    categoryName: "2種類の品物と代金",
+    categoryName: "2種類の品物",
     rankDifficulty: "NORMAL",
     prompt:
       "1個150円のりんごと1個80円のみかんを合わせて10個買うと、代金の合計が" +
@@ -221,7 +221,7 @@ const FALLBACK_QUESTIONS = {
   "L1-11": {
     templateId: "L1-11-fallback",
     categoryId: "L1-11",
-    categoryName: "大人・子どもの人数と料金",
+    categoryName: "人数と料金",
     rankDifficulty: "NORMAL",
     prompt:
       "水族館の入館料は、大人1人1500円、子ども1人700円です。大人と子どもを合わせて" +
@@ -247,7 +247,7 @@ const SIMULTANEOUS_FALLBACK_QUESTIONS = {
     templateId: "L2-01-fallback",
     unit: UNIT_IDS.SIMULTANEOUS,
     categoryId: "L2-01",
-    categoryName: "2種類の品物と代金",
+    categoryName: "2種類の品物",
     rankDifficulty: "NORMAL",
     prompt:
       "1個120円のパンと1個150円のパンを合わせて10個買うと、代金は1320円でした。" +
@@ -403,7 +403,7 @@ const SIMULTANEOUS_FALLBACK_QUESTIONS = {
     templateId: "L2-08-fallback",
     unit: UNIT_IDS.SIMULTANEOUS,
     categoryId: "L2-08",
-    categoryName: "池・トラックの周回",
+    categoryName: "池の周回",
     rankDifficulty: "HARD",
     prompt:
       "1周1500mの池のまわりを、AさんとB君が同じ地点から同時に出発しました。反対方向に" +
@@ -653,7 +653,7 @@ const QUADRATIC_FALLBACK_QUESTIONS = {
     templateId: "L3-06-fallback",
     unit: UNIT_IDS.QUADRATIC,
     categoryId: "L3-06",
-    categoryName: "容積・ふたのない箱",
+    categoryName: "箱の容積",
     rankDifficulty: "NORMAL",
     prompt:
       "1辺の長さがxcmの正方形の工作用紙の四すみから、1辺2cmの正方形を切り取り、" +
@@ -746,7 +746,7 @@ const QUADRATIC_FALLBACK_QUESTIONS = {
     templateId: "L3-09-fallback",
     unit: UNIT_IDS.QUADRATIC,
     categoryId: "L3-09",
-    categoryName: "割合の応用・利益と割引",
+    categoryName: "利益と割引",
     rankDifficulty: "HARD",
     prompt:
       "定価2400円の洋服があります。この定価をx割値上げしたあと、そこからさらにx割値引きして" +

@@ -22,13 +22,13 @@ export const LINEAR_CATEGORIES = [
   },
   {
     id: "L1-10",
-    name: "2種類の品物と代金",
+    name: "2種類の品物",
     description: "一方をx個、他方を全体−x個と表す",
     difficulty: "NORMAL"
   },
   {
     id: "L1-11",
-    name: "大人・子どもの人数と料金",
+    name: "人数と料金",
     description: "一方をx人、他方を全体−x人と表す",
     difficulty: "NORMAL"
   },
@@ -70,7 +70,7 @@ export const LINEAR_CATEGORIES = [
   },
   {
     id: "L1-07",
-    name: "速さ・時間・道のり",
+    name: "速さ・時間",
     description: "速さと時間の関係から式を立てる",
     difficulty: "HARD"
   },

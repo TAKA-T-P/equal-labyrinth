@@ -1,10 +1,10 @@
-// カテゴリ：2種類の品物と代金（L2-01）
+// カテゴリ：2種類の品物（L2-01）
 // 基本式：個数の合計＝全体の個数／単価×個数の合計＝代金の合計
 
 import { createUniqueId, randomInt, randomChoice, buildKeypadNumbers } from "./categories.js";
 
 const CATEGORY_ID = "L2-01";
-const CATEGORY_NAME = "2種類の品物と代金";
+const CATEGORY_NAME = "2種類の品物";
 const UNIT = "simultaneous";
 
 const KEYPAD_SYMBOLS_SUM = ["x", "y", "+", "="];

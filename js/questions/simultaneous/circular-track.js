@@ -1,11 +1,11 @@
-// カテゴリ：池・トラックの周回（L2-08）
+// カテゴリ：池の周回（L2-08）
 // 反対方向に進むと2人の道のりの和が1周分、同じ方向に進むと2人の道のりの差が
 // 1周分になることから、2人の速さ（x, y）を求める。
 
 import { createUniqueId, randomInt, randomChoice, buildKeypadNumbers } from "./categories.js";
 
 const CATEGORY_ID = "L2-08";
-const CATEGORY_NAME = "池・トラックの周回";
+const CATEGORY_NAME = "池の周回";
 const UNIT = "simultaneous";
 
 const KEYPAD_SYMBOLS = ["x", "y", "+", "-", "="];

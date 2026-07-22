@@ -65,7 +65,7 @@ export const QUADRATIC_CATEGORIES = [
   },
   {
     id: "L3-06",
-    name: "容積・ふたのない箱",
+    name: "箱の容積",
     difficulty: "NORMAL"
   },
   {
@@ -80,7 +80,7 @@ export const QUADRATIC_CATEGORIES = [
   },
   {
     id: "L3-09",
-    name: "割合の応用・利益と割引",
+    name: "利益と割引",
     difficulty: "HARD"
   }
 ];

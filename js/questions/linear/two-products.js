@@ -1,4 +1,4 @@
-// カテゴリ：2種類の品物と代金
+// カテゴリ：2種類の品物
 // 一方をx個、他方を「全体個数－x」と表す。
 
 import {
@@ -9,7 +9,7 @@ import {
 } from "./categories.js";
 
 const CATEGORY_ID = "L1-10";
-const CATEGORY_NAME = "2種類の品物と代金";
+const CATEGORY_NAME = "2種類の品物";
 
 // このカテゴリの式は「A×x＋B×(全体－x)＝合計」で固定のため、
 // 使用する記号も問題によらず一定になる。

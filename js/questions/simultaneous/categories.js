@@ -17,7 +17,7 @@ export {
 export const SIMULTANEOUS_CATEGORIES = [
   {
     id: "L2-01",
-    name: "2種類の品物と代金",
+    name: "2種類の品物",
     difficulty: "NORMAL"
   },
   {
@@ -52,7 +52,7 @@ export const SIMULTANEOUS_CATEGORIES = [
   },
   {
     id: "L2-08",
-    name: "池・トラックの周回",
+    name: "池の周回",
     difficulty: "HARD"
   },
   {

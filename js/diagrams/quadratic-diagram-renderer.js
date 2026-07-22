@@ -193,7 +193,7 @@ function buildCrossRoadSvg(diagram) {
 }
 
 // ============================================================
-// 容積・ふたのない箱（L3-06）：正方形の厚紙の四隅を切り取る展開図
+// 箱の容積（L3-06）：正方形の厚紙の四隅を切り取る展開図
 // ============================================================
 function buildOpenBoxNetSvg(diagram) {
   const paperSideSymbol = requireNonEmptyString(diagram.paperSideSymbol, "paperSideSymbol");
@@ -276,7 +276,7 @@ function buildOpenBoxNetSvg(diagram) {
 }
 
 // ============================================================
-// 容積・ふたのない箱（L3-06）：長方形の紙の四隅を切り取る展開図
+// 箱の容積（L3-06）：長方形の紙の四隅を切り取る展開図
 // （縦x・横「x＋widthDiff」の長方形パターン）
 // ============================================================
 function buildOpenBoxNetRectSvg(diagram) {

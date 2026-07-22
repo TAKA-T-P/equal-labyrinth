@@ -1,4 +1,4 @@
-// カテゴリ：割合の応用・利益と割引（L3-09）
+// カテゴリ：利益と割引（L3-09）
 // 基本式：定価に対してx割増しにした後、x割引きすると、結果的に定価より安くなる関係
 // 2400*(1+x/10)*(1-x/10)=2184 のように、上下型分数（x/10）を使う。
 // このカテゴリだけは、「分数」ボタン→「10」の2打ではなく、「x/10」の完成した分数を
@@ -12,7 +12,7 @@ import {
 } from "./categories.js";
 
 const CATEGORY_ID = "L3-09";
-const CATEGORY_NAME = "割合の応用・利益と割引";
+const CATEGORY_NAME = "利益と割引";
 const UNIT = "quadratic";
 const KEYPAD_SYMBOLS = ["x", "square", "+", "-", "(", ")", "="];
 

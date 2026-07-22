@@ -1,4 +1,4 @@
-// カテゴリ：大人・子どもの人数と料金
+// カテゴリ：人数と料金
 // 大人をx人、子どもを「全体人数－x」と表す。
 
 import {
@@ -9,7 +9,7 @@ import {
 } from "./categories.js";
 
 const CATEGORY_ID = "L1-11";
-const CATEGORY_NAME = "大人・子どもの人数と料金";
+const CATEGORY_NAME = "人数と料金";
 
 // このカテゴリの式は「大人料金×x＋子ども料金×(全体－x)＝合計」で固定のため、
 // 使用する記号も問題によらず一定になる。

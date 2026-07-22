@@ -1,4 +1,4 @@
-// カテゴリ：容積・ふたのない箱（L3-06）
+// カテゴリ：箱の容積（L3-06）
 // 基本式：正方形の厚紙の四隅から、1辺cの正方形を切り取って折り、ふたのない箱を作る
 // 底面の1辺は「x−2c」、高さはc、容積は c×(x−2c)² となる（単位はcm³）
 
@@ -9,7 +9,7 @@ import {
 } from "./categories.js";
 
 const CATEGORY_ID = "L3-06";
-const CATEGORY_NAME = "容積・ふたのない箱";
+const CATEGORY_NAME = "箱の容積";
 const UNIT = "quadratic";
 const KEYPAD_SYMBOLS = ["x", "square", "-", "(", ")", "="];
 // 長方形パターンは「x＋widthDiff−2c」のように＋も使うため、専用の記号一覧を使う
