@@ -711,6 +711,8 @@ const QUADRATIC_FALLBACK_QUESTIONS = {
       widthValue: 10,
       heightValue: 10,
       pointQMovesToward: "A",
+      pSpeedValue: 1,
+      qSpeedValue: 1,
       ariaLabel: "1辺10センチメートルの正方形ABCDで、点PはAからBへ、点QはDからAへ、それぞれ辺の上を移動する図"
     }
   },

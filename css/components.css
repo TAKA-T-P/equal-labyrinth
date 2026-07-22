@@ -170,6 +170,12 @@ body.is-hint-open .prompt-card {
   z-index: 61;
 }
 
+.quadratic-diagram-note {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
 .quadratic-diagram-close-button {
   margin-top: 12px;
   width: 100%;

@@ -62,6 +62,7 @@ const elements = {
   diagramPanel: document.getElementById("quadratic-diagram-panel"),
   diagramCloseButton: document.getElementById("quadratic-diagram-close-button"),
   diagramContainer: document.getElementById("quadratic-diagram-container"),
+  diagramNote: document.getElementById("quadratic-diagram-note"),
   equationInputSingle: document.getElementById("equation-input-single"),
   equationInputScroll: document.getElementById("equation-input-scroll"),
   equationInputDisplay: document.getElementById("equation-input-display"),
@@ -542,6 +543,20 @@ export function renderDiagram(diagram) {
   if (elements.showDiagramButton) {
     elements.showDiagramButton.hidden = !renderedSuccessfully;
   }
+
+  // 動点（moving-points-rectangle）の図では、点P・点Qの移動速度を
+  // 「閉じる」ボタンのすぐ上に添える（図だけでは速さが分からないため）。
+  if (elements.diagramNote) {
+    if (renderedSuccessfully && diagram.type === "moving-points-rectangle") {
+      elements.diagramNote.textContent =
+        `点P：秒速${diagram.pSpeedValue}cm、点Q：秒速${diagram.qSpeedValue}cm`;
+      elements.diagramNote.hidden = false;
+    } else {
+      elements.diagramNote.textContent = "";
+      elements.diagramNote.hidden = true;
+    }
+  }
+
   hideDiagramPanel();
 }
 

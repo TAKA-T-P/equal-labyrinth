@@ -94,6 +94,8 @@ function buildQTowardAQuestion({ templateId, isSquare, heightValue, widthValue, 
       widthValue,
       heightValue,
       pointQMovesToward: "A",
+      pSpeedValue: 1,
+      qSpeedValue: qSpeed,
       ariaLabel:
         `${isSquare ? `1辺${heightValue}センチメートルの正方形` : `AB＝${heightValue}センチメートル、AD＝${widthValue}センチメートルの長方形`}` +
         "ABCDで、点PはAからBへ、点QはDからAへ、それぞれ辺の上を移動する図"
@@ -157,6 +159,8 @@ function buildQTowardDQuestion({ templateId, heightValue, widthValue, qSpeed }) 
       widthValue,
       heightValue,
       pointQMovesToward: "D",
+      pSpeedValue: 1,
+      qSpeedValue: qSpeed,
       ariaLabel:
         `AB＝${heightValue}センチメートル、AD＝${widthValue}センチメートルの長方形ABCDで、` +
         "点PはAからBへ、点QはAからDへ、それぞれ辺の上を移動する図"

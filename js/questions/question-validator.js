@@ -744,6 +744,12 @@ function validateDiagram(diagram) {
     if (diagram.pointQMovesToward !== "A" && diagram.pointQMovesToward !== "D") {
       return "diagram.pointQMovesTowardは\"A\"または\"D\"である必要があります。";
     }
+    if (typeof diagram.pSpeedValue !== "number" || !Number.isFinite(diagram.pSpeedValue)) {
+      return "diagram.pSpeedValueが数値ではありません。";
+    }
+    if (typeof diagram.qSpeedValue !== "number" || !Number.isFinite(diagram.qSpeedValue)) {
+      return "diagram.qSpeedValueが数値ではありません。";
+    }
   }
 
   return null;
