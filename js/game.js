@@ -160,6 +160,11 @@ export function initGame() {
   const savedTotalQuestions = storage.loadTotalQuestions(
     APP_CONFIG.defaultQuestions
   );
+
+  // タイトル画面のモード・単元の選択状態も、前回の続きから始められるよう復元する。
+  gameState.mode = storage.loadSelectedMode(gameState.mode);
+  gameState.unit = storage.loadSelectedUnit(gameState.unit);
+
   const validCategoryIds = getCategoriesForUnit(gameState.unit).map(
     (category) => category.id
   );
@@ -254,6 +259,7 @@ function updateStartButtonAvailability() {
 
 function handleModeSelect(mode) {
   gameState.mode = mode;
+  storage.saveSelectedMode(mode);
   ui.renderModeSelection(mode);
   updateStartButtonAvailability();
 }
@@ -265,6 +271,7 @@ function handleModeSelect(mode) {
  */
 function handleUnitSelect(unit) {
   gameState.unit = unit;
+  storage.saveSelectedUnit(unit);
   ui.renderUnitSelection(unit);
 
   const validCategoryIds = getCategoriesForUnit(unit).map((category) => category.id);

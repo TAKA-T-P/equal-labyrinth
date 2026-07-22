@@ -1,11 +1,13 @@
 // localStorageの読み書きを担当するモジュール
 // 保存に失敗しても、アプリが停止しないようにする。
 
-import { APP_CONFIG } from "./config.js";
+import { APP_CONFIG, SELECTABLE_MODE_IDS, SELECTABLE_UNIT_IDS } from "./config.js";
 
 const KEYS = {
   soundEnabled: `${APP_CONFIG.storageKeyPrefix}.soundEnabled`,
-  totalQuestions: `${APP_CONFIG.storageKeyPrefix}.totalQuestions`
+  totalQuestions: `${APP_CONFIG.storageKeyPrefix}.totalQuestions`,
+  selectedMode: `${APP_CONFIG.storageKeyPrefix}.selectedMode`,
+  selectedUnit: `${APP_CONFIG.storageKeyPrefix}.selectedUnit`
 };
 
 function selectedCategoriesKey(unit) {
@@ -58,6 +60,38 @@ export function loadTotalQuestions(defaultValue) {
     return defaultValue;
   }
   return parsed;
+}
+
+/**
+ * タイトル画面で選んだモード（トレーニング・クエスト・段位認定）を保存する。
+ * タイトル画面へ戻ったとき・アプリを再起動したときも、直前の選択状態を
+ * 復元できるようにするため。
+ */
+export function saveSelectedMode(mode) {
+  safeSetItem(KEYS.selectedMode, mode);
+}
+
+export function loadSelectedMode(defaultValue) {
+  const raw = safeGetItem(KEYS.selectedMode);
+  if (raw === null || !SELECTABLE_MODE_IDS.includes(raw)) {
+    return defaultValue;
+  }
+  return raw;
+}
+
+/**
+ * タイトル画面で選んだ単元（1次方程式・連立方程式・2次方程式）を保存する。
+ */
+export function saveSelectedUnit(unit) {
+  safeSetItem(KEYS.selectedUnit, unit);
+}
+
+export function loadSelectedUnit(defaultValue) {
+  const raw = safeGetItem(KEYS.selectedUnit);
+  if (raw === null || !SELECTABLE_UNIT_IDS.includes(raw)) {
+    return defaultValue;
+  }
+  return raw;
 }
 
 /**

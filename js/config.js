@@ -54,3 +54,12 @@ export const UNIT_CONFIG = {
 
 // 今回選択可能な単元
 export const SELECTABLE_UNIT_IDS = [UNIT_IDS.LINEAR, UNIT_IDS.SIMULTANEOUS, UNIT_IDS.QUADRATIC];
+
+// タイトル画面で選べるモードの内部識別子
+export const MODE_IDS = {
+  TRAINING: "training",
+  QUEST: "quest",
+  RANK: "rank"
+};
+
+export const SELECTABLE_MODE_IDS = [MODE_IDS.TRAINING, MODE_IDS.QUEST, MODE_IDS.RANK];
