@@ -6,9 +6,9 @@ import { createUniqueId, randomInt, randomChoice, buildKeypadNumbers } from "./c
 const CATEGORY_ID = "L1-09";
 const CATEGORY_NAME = "割合・増減";
 
-// このカテゴリの式は「小数×x＝結果」だけで組み立てられるため、
-// 使用する記号も問題によらず一定になる（かっこ・×は不要）。
-const KEYPAD_SYMBOLS = ["x", "="];
+// 模範解は「小数×x＝結果」だけで組み立てられるが、「x－割引分＝結果」のように
+// 割合を先に引く／足す形で立式する生徒もいるため、＋・－も使えるようにする。
+const KEYPAD_SYMBOLS = ["x", "+", "-", "="];
 
 const DISCOUNT_PERCENT_CHOICES = [10, 20, 30, 40];
 const MARKUP_PERCENT_CHOICES = [10, 20, 30];
