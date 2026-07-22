@@ -41,21 +41,35 @@
 }
 
 /* ---------------- タイトル画面 ---------------- */
+/* タイトル画面全体はスクロールさせず、画面の高さ内に固定する。
+   「出題するカテゴリ」のリスト部分だけが内部スクロールする
+   （#training-only-settings → .category-setting-card → #category-list の
+   3段のflex-growチェーンで、リスト以外は自然な高さのまま、リストだけが
+   残りの縦スペースを埋めてスクロールする）。 */
+
+#screen-title {
+  overflow: hidden;
+}
 
 .title-screen {
   position: relative;
   align-items: stretch;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .title-header {
   text-align: center;
   padding: 12px 0 4px;
   margin-bottom: -10px;
+  flex: 0 0 auto;
 }
 
 .title-footer {
   text-align: center;
   padding-top: 8px;
+  flex: 0 0 auto;
 }
 
 #training-only-settings {
@@ -64,10 +78,31 @@
   gap: 8px;
   margin-top: -8px;
   margin-bottom: -8px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 #training-only-settings[hidden] {
   display: none;
+}
+
+.category-setting-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.category-setting-card .category-list {
+  flex: 1 1 auto;
+  min-height: 60px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.category-setting-card .setting-heading-row,
+.category-setting-card .warning-text {
+  flex: 0 0 auto;
 }
 
 /* ---------------- カウントダウン画面 ---------------- */

@@ -94,9 +94,9 @@ function createLengthWhisker(x1, y1, x2, y2, bulge) {
   });
 }
 
-function createRootSvg(ariaLabel) {
+function createRootSvg(ariaLabel, viewBox = VIEW_BOX) {
   return createSvgElement("svg", {
-    viewBox: VIEW_BOX,
+    viewBox,
     width: "100%",
     role: "img",
     "aria-label": ariaLabel,
@@ -390,7 +390,10 @@ function buildMovingPointsRectangleSvg(diagram) {
   const ariaLabel = requireNonEmptyString(diagram.ariaLabel, "ariaLabel");
   const pointQMovesToward = diagram.pointQMovesToward === "D" ? "D" : "A";
 
-  const svg = createRootSvg(ariaLabel);
+  // 実際の描画内容（点P・Qのラベル〜下辺のひげ・ラベルまで）は縦方向に
+  // 大きな余白を必要としないため、共通のビューボックス（0 0 320 240）より
+  // 縦を詰めた専用のビューボックスを使い、図の表示ウィンドウの上下幅を抑える。
+  const svg = createRootSvg(ariaLabel, "0 20 320 205");
 
   // 正方形（縦＝横）のときは、見た目も正方形になるよう縦横同じ幅で描画する
   // （長方形固定の比率のままだと、実際には正方形の問題なのに縦長の長方形に

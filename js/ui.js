@@ -88,6 +88,7 @@ const elements = {
   hintBackdrop: document.getElementById("hint-backdrop"),
   hintPanel: document.getElementById("hint-panel"),
   hintText: document.getElementById("hint-text"),
+  hintCloseButton: document.getElementById("hint-close-button"),
   passConfirmBackdrop: document.getElementById("pass-confirm-backdrop"),
   passConfirmPanel: document.getElementById("pass-confirm-panel"),
   passConfirmYesButton: document.getElementById("pass-confirm-yes"),
@@ -1639,6 +1640,13 @@ export function initUI(callbacks) {
     callbacks.onPhysicalKeyDown(event);
   });
 
+  // 「閉じる」ボタンでヒントカードを閉じる
+  if (elements.hintCloseButton) {
+    elements.hintCloseButton.addEventListener("click", () => {
+      hideHintPanel();
+    });
+  }
+
   // ヒントカード以外の場所をタップ・クリックすると、ヒントカードを閉じる
   elements.hintBackdrop.addEventListener("click", () => {
     hideHintPanel();
@@ -1661,6 +1669,12 @@ export function initUI(callbacks) {
     });
   }
 
+  // ヒントカードの外側（数式キーボードのボタンなど）をタップして閉じたとき、
+  // その1回のタップで、閉じるために押した場所にあるボタン自体が反応しない
+  // （例："x"ボタンの上で閉じたのにxが入力される）ようにする。
+  // pointerdownで先に判定・消去し、直後に続く1回のclickだけを捕捉フェーズで止める。
+  let suppressNextClickForHintClose = false;
+
   document.addEventListener("pointerdown", (event) => {
     if (elements.hintPanel.hidden) {
       return;
@@ -1669,8 +1683,22 @@ export function initUI(callbacks) {
     const clickedHintButton = elements.hintButton.contains(event.target);
     if (!clickedInsideHint && !clickedHintButton) {
       hideHintPanel();
+      suppressNextClickForHintClose = true;
     }
   });
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (!suppressNextClickForHintClose) {
+        return;
+      }
+      suppressNextClickForHintClose = false;
+      event.stopPropagation();
+      event.preventDefault();
+    },
+    true
+  );
 
   elements.passConfirmYesButton.addEventListener("click", () => {
     callbacks.onPassConfirmYes();

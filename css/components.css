@@ -109,7 +109,7 @@
 .question-prompt {
   font-size: 0.92rem;
   line-height: 1.45;
-  max-height: 7.25em; /* line-height(1.45) × 5行ぶん */
+  max-height: 8.7em; /* line-height(1.45) × 6行ぶん */
   overflow-y: auto;
 }
 
@@ -177,6 +177,11 @@ body.is-hint-open .prompt-card {
 }
 
 .quadratic-diagram-close-button {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.hint-close-button {
   margin-top: 12px;
   width: 100%;
 }
@@ -982,22 +987,19 @@ input[type="range"] {
 }
 
 /* ヒントパーツボタン：数値ボタンと同じカード（keypad-numbers）内に、
-   区別しやすい金色の縁取りで表示する。数値の列幅に埋もれないよう、
-   カードの横幅いっぱいに1段を使う。 */
+   区別しやすい金色の縁取りで表示する。他の数字カードと同じ段に並ぶよう、
+   横幅は数字カードに合わせて狭め、文字サイズも縮小する
+   （収まりきらない場合は末尾を省略記号で表示する）。 */
 .key-button--hint-part {
   min-height: 34px;
-  padding: 3px 14px;
+  padding: 3px 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   background: rgba(232, 201, 104, 0.16);
   border: 1px solid var(--color-correct-gold);
   color: var(--color-correct-gold);
-  font-size: 1rem;
-}
-
-.keypad-numbers .key-button--hint-part {
-  grid-column: 1 / -1;
+  font-size: 0.82rem;
 }
 
 /* 分数ボタン（数式キーボード上、÷の代わりに配置する）：□/─/□のアイコンで表す */
