@@ -606,17 +606,28 @@ async function handleMissionSuccess() {
   questEffects.playTreasureFoundEffect();
 }
 
+/**
+ * 部屋のreward（1つ以上のアイテム候補の配列）から、宝箱を開けたときに実際に
+ * 手に入るアイテムを1つランダムに選ぶ。要素が1つの部屋（ステージ4・5）は、
+ * 常にその1つになる。
+ */
+function pickRandomReward(rewardPool) {
+  const index = Math.floor(Math.random() * rewardPool.length);
+  return rewardPool[index];
+}
+
 async function handleOpenChest() {
   const room = getRoom(questState.currentRoomId);
+  const reward = pickRandomReward(room.reward);
 
   questUi.markTreasureChestOpen();
   await questEffects.playTreasureOpenEffect(questUi.getTreasureChestElement());
 
-  const updatedItem = recordItemObtained(room.reward);
-  recordItemAcquired(room.reward);
+  const updatedItem = recordItemObtained(reward);
+  recordItemAcquired(reward);
 
   questUi.showQuestView("item-get");
-  questUi.renderItemGet({ reward: room.reward, count: updatedItem.count });
+  questUi.renderItemGet({ reward, count: updatedItem.count });
   await questEffects.playItemRevealEffect(questUi.getItemGetEmojiElement());
 }
 

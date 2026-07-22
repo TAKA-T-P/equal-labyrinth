@@ -4,15 +4,19 @@
 //
 // アイテム数を固定値（例：26）としてコード内に持たないこと。将来QUEST_ROOMSへ
 // 部屋・報酬が追加されれば、buildItemMasterList()の結果もそのまま増える。
+//
+// rewardは1つの部屋につき1つ以上のアイテム（配列）を持つ（ステージ1〜3の部屋は、
+// 宝箱を開けるたびにこの配列からランダムで1つを入手する。js/modes/quest-mode.jsを参照）。
+// 図鑑には、その部屋で入手しうるすべてのアイテムを個別に一覧表示する。
 
 import { QUEST_ROOMS } from "../quest/quest-room-data.js";
 import { listInventoryItems } from "../quest/quest-storage.js";
 
 /**
- * QUEST_ROOMSの各部屋のrewardから、アイテムのマスター一覧を構築する。
+ * QUEST_ROOMSの各部屋のreward（アイテム候補の配列）から、アイテムのマスター一覧を構築する。
  * 同じitemIdが複数の部屋に登録されている場合は最初の1件だけを採用し、
  * コンソールへ警告する（README「クエストの部屋データの追加・変更方法」を参照）。
- * 並び順：ステージの小さい順→同じステージでは部屋ID順→部屋に属さない項目は最後。
+ * 並び順：ステージの小さい順→同じステージでは部屋ID順→同じ部屋の中ではreward配列の順。
  * @param {Array} rooms QUEST_ROOMS
  * @returns {Array<{itemId: string, emoji: string, name: string, description: string|null,
  *   roomId: string, stage: number}>}
@@ -22,21 +26,27 @@ export function buildItemMasterList(rooms) {
   const duplicates = [];
 
   (Array.isArray(rooms) ? rooms : []).forEach((room) => {
-    if (!room || !room.reward || typeof room.reward.itemId !== "string") {
+    if (!room || !Array.isArray(room.reward)) {
       return;
     }
-    const { itemId, emoji, name, description } = room.reward;
-    if (seen.has(itemId)) {
-      duplicates.push({ itemId, existingRoomId: seen.get(itemId).roomId, roomId: room.roomId });
-      return;
-    }
-    seen.set(itemId, {
-      itemId,
-      emoji,
-      name,
-      description: typeof description === "string" && description ? description : null,
-      roomId: room.roomId,
-      stage: room.stage
+    room.reward.forEach((rewardItem, indexInRoom) => {
+      if (!rewardItem || typeof rewardItem.itemId !== "string") {
+        return;
+      }
+      const { itemId, emoji, name, description } = rewardItem;
+      if (seen.has(itemId)) {
+        duplicates.push({ itemId, existingRoomId: seen.get(itemId).roomId, roomId: room.roomId });
+        return;
+      }
+      seen.set(itemId, {
+        itemId,
+        emoji,
+        name,
+        description: typeof description === "string" && description ? description : null,
+        roomId: room.roomId,
+        stage: room.stage,
+        indexInRoom
+      });
     });
   });
 
@@ -52,10 +62,12 @@ export function buildItemMasterList(rooms) {
     const stageA = Number.isFinite(a.stage) ? a.stage : Infinity;
     const stageB = Number.isFinite(b.stage) ? b.stage : Infinity;
     if (stageA !== stageB) return stageA - stageB;
-    return String(a.roomId || "").localeCompare(String(b.roomId || ""));
+    const roomCompare = String(a.roomId || "").localeCompare(String(b.roomId || ""));
+    if (roomCompare !== 0) return roomCompare;
+    return a.indexInRoom - b.indexInRoom;
   });
 
-  return items;
+  return items.map(({ indexInRoom, ...item }) => item);
 }
 
 /**

@@ -992,8 +992,12 @@ STAGE 3/5　Hの部屋
 
 ### アイテムコレクション
 
-宝箱を開けると、部屋ごとに決まったアイテムを1つ入手する。アイテムは純粋なコレクション要素で
-あり、**時間延長・ミス無効化・追加ヒント・出題の易化・スキップ・復活・ルート変更など、
+宝箱を開けると、部屋ごとに用意されたアイテムを1つ入手する。ステージ4・5（L〜Zの部屋）は
+部屋ごとに固定の1種類、**ステージ1〜3（A〜Kの部屋）は部屋ごとに複数のアイテム候補
+（`room.reward`は常に1つ以上の配列）が設定されており、宝箱を開けるたびにその中から
+ランダムで1つを入手する**（`quest-mode.js`の`pickRandomReward()`）。同じ部屋を再訪しても、
+毎回同じアイテムが手に入るとは限らない。アイテムは純粋なコレクション要素であり、
+**時間延長・ミス無効化・追加ヒント・出題の易化・スキップ・復活・ルート変更など、
 ゲーム上の効果は一切持たない**。「イコール・ラビリンスで手に入れた宝物」として記録・表示
 されるだけである。
 
@@ -1106,12 +1110,14 @@ B🐗 → D🐍 → I👁️ → ?? → ??
 保存済みインベントリ（`js/quest/quest-storage.js`の`equalLabyrinth.quest.inventory`）から、
 アイテム名・絵文字・部屋の対応をどこにも二重管理せずに図鑑を構築する。
 
-- `buildItemMasterList(rooms)`が、各部屋の`reward`（`{itemId, emoji, name}`）と
-  `roomId` / `stage`からアイテムのマスター一覧を作る。同じ`itemId`が複数の部屋に
-  登録されていた場合は最初の1件だけを採用し、コンソールへ`console.warn`する。
-  並び順はステージの小さい順→同じステージでは部屋ID順。**アイテム数を26などの固定値として
-  コードに持たず**、`QUEST_ROOMS`の件数がそのまま反映されるため、将来部屋・報酬が増えても
-  このファイルやHTMLを変更する必要はない。
+- `buildItemMasterList(rooms)`が、各部屋の`reward`（`{itemId, emoji, name}`の**配列**。
+  1部屋につき1つ以上）と`roomId` / `stage`からアイテムのマスター一覧を作る。1つの部屋に
+  複数のアイテム候補がある場合（ステージ1〜3）は、その部屋で入手しうるすべての候補を
+  個別の図鑑エントリとして展開する。同じ`itemId`が複数の部屋に登録されていた場合は
+  最初の1件だけを採用し、コンソールへ`console.warn`する。並び順はステージの小さい順→
+  同じステージでは部屋ID順→同じ部屋の中では`reward`配列の順。**アイテム数を26などの
+  固定値としてコードに持たず**、`QUEST_ROOMS`の件数がそのまま反映されるため、将来部屋・
+  報酬候補が増えてもこのファイルやHTMLを変更する必要はない。
 - `buildItemCatalog()`が、マスター一覧と`listInventoryItems()`（保存済みインベントリ）を
   `itemId`で結合する。図鑑を開くたび（`help-ui.js`の`openItemCatalog()`）に呼び直すため、
   常に最新のインベントリが反映される。所持数は
@@ -1570,13 +1576,21 @@ A〜Zの部屋データは、すべて`js/quest/quest-room-data.js`の`QUEST_ROO
     requiredCorrect: 1, timeLimitMultiplier: 3, maxIncorrect: null,
     hintMode: "after20", categoryGroup: "normal"
   },
-  reward: { itemId: "item-B", emoji: "🍖", name: "完熟ケモノ肉" },
+  // rewardは常に配列（1つ以上のアイテム候補）。要素が複数あると、宝箱を開けるたびに
+  // ランダムで1つを入手する（pickRandomReward()、詳細は「アイテムコレクション」を参照）。
+  // 要素が1つだけの部屋（現在のステージ4・5）は、常にその1つになる。
+  reward: [
+    { itemId: "item-B", emoji: "🍖", name: "完熟ケモノ肉", description: "…" },
+    { itemId: "item-B2", emoji: "🍌", name: "パワーバナナ", description: "…" }
+  ],
   successRooms: ["D", "E"], failureRoom: "C"
 }
 ```
 
 1. `roomId`（A〜Zの1文字、重複不可）・`stage`（1〜5）・`enemy`（`emoji` / `name`）・
-   `reward`（`itemId` / `emoji` / `name`）を設定する
+   `reward`（`itemId` / `emoji` / `name`、任意で`description`を持つオブジェクトの配列。
+   1つ以上必須）を設定する。同じ部屋にアイテム候補を追加するときは、この配列へ要素を
+   追加するだけでよい（`itemId`は他のどの部屋・候補とも重複しない文字列にする）
 2. `mission`を設定する
    - `requiredCorrect` … その部屋で必要な正解数（1以上の整数）。**3以上にすると、
      出題カテゴリが入室まで「？？？」と隠され、問題ごとに異なるカテゴリが出題される**
