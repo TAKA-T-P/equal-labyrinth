@@ -151,6 +151,32 @@
   margin-bottom: 0;
 }
 
+/* 遊び方の文中に埋め込む、分数ボタンのミニアイコン（{{fraction-icon}}） */
+.help-inline-fraction-icon {
+  display: inline-grid;
+  grid-template-rows: auto 2px auto;
+  align-items: center;
+  justify-items: center;
+  gap: 1px;
+  font-size: 0.75em;
+  line-height: 1;
+  vertical-align: middle;
+  margin: 0 0.2em;
+  color: var(--color-correct-gold);
+}
+
+.help-inline-fraction-icon__bar {
+  width: 100%;
+  min-width: 0.9em;
+  height: 2px;
+  background: currentColor;
+}
+
+/* 遊び方の文中に埋め込む、上下型の分数（{{fraction:分子:分母}}） */
+.help-inline-fraction {
+  vertical-align: middle;
+}
+
 /* ---------------- アイテム図鑑 ---------------- */
 
 .help-catalog-summary {

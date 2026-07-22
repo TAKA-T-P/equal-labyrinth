@@ -5,7 +5,7 @@
 //
 // 画面の切り替えは、既存のui.js（showScreen）の仕組みにそのまま合わせている。
 
-import { showScreen } from "../ui.js";
+import { showScreen, appendStyledVariableParts } from "../ui.js";
 import { HOW_TO_PLAY_SECTIONS } from "./help-content.js";
 import { buildItemCatalog } from "./item-catalog.js";
 import { resetAllEqualLabyrinthData } from "./data-reset.js";
@@ -89,6 +89,86 @@ function backToHelpMenuFromCatalog() {
 // 「このゲームの遊び方」（details/summaryのアコーディオン）
 // ============================================================
 
+// help-content.jsの段落中に埋め込まれるインライン記法（{{fraction-icon}}・
+// {{fraction:分子:分母}}）を検出するパターン。
+const INLINE_TOKEN_PATTERN = /\{\{([^}]+)\}\}/g;
+
+/**
+ * 分数ボタン（□/□）のミニアイコンを、文中に埋め込めるサイズで作る。
+ * 数式キーボードの分数ボタン（ui.jsのcreateFractionKeyButton）と同じ組み方。
+ */
+function appendInlineFractionIcon(container) {
+  const icon = document.createElement("span");
+  icon.className = "help-inline-fraction-icon";
+  icon.setAttribute("role", "img");
+  icon.setAttribute("aria-label", "分数ボタン");
+
+  const top = document.createElement("span");
+  top.textContent = "□";
+  const bar = document.createElement("span");
+  bar.className = "help-inline-fraction-icon__bar";
+  const bottom = document.createElement("span");
+  bottom.textContent = "□";
+
+  icon.append(top, bar, bottom);
+  container.appendChild(icon);
+}
+
+/**
+ * 上下型の分数（分子・分数線・分母）を、文中に埋め込めるサイズで作る。
+ * 分子にx・yが含まれる場合は、数式用の斜体フォントで表示する。
+ */
+function appendInlineFraction(container, numerator, denominator) {
+  const fraction = document.createElement("span");
+  fraction.className = "math-fraction help-inline-fraction";
+  fraction.setAttribute("role", "img");
+  fraction.setAttribute("aria-label", `${denominator}分の${numerator}`);
+
+  const numeratorNode = document.createElement("span");
+  numeratorNode.className = "math-fraction__numerator";
+  appendStyledVariableParts(numeratorNode, numerator);
+
+  const bar = document.createElement("span");
+  bar.className = "math-fraction__bar";
+
+  const denominatorNode = document.createElement("span");
+  denominatorNode.className = "math-fraction__denominator";
+  appendStyledVariableParts(denominatorNode, denominator);
+
+  fraction.append(numeratorNode, bar, denominatorNode);
+  container.appendChild(fraction);
+}
+
+/**
+ * 遊び方の段落1つをcontainerへ描画する。文中の"x"・"y"は斜体フォントで表示し、
+ * {{fraction-icon}}・{{fraction:分子:分母}}のインライン記法は、対応するミニ図へ置き換える。
+ */
+function renderHelpParagraphContent(container, text) {
+  let lastIndex = 0;
+  let match;
+
+  INLINE_TOKEN_PATTERN.lastIndex = 0;
+  while ((match = INLINE_TOKEN_PATTERN.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      appendStyledVariableParts(container, text.slice(lastIndex, match.index));
+    }
+
+    const token = match[1];
+    if (token === "fraction-icon") {
+      appendInlineFractionIcon(container);
+    } else if (token.startsWith("fraction:")) {
+      const [, numerator, denominator] = token.split(":");
+      appendInlineFraction(container, numerator, denominator);
+    }
+
+    lastIndex = INLINE_TOKEN_PATTERN.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    appendStyledVariableParts(container, text.slice(lastIndex));
+  }
+}
+
 function renderHowToPlayContent() {
   if (!elements.howToPlayContent) return;
   elements.howToPlayContent.innerHTML = "";
@@ -100,7 +180,7 @@ function renderHowToPlayContent() {
 
     const summary = document.createElement("summary");
     summary.className = "help-section-summary";
-    summary.textContent = section.title;
+    appendStyledVariableParts(summary, section.title);
     details.appendChild(summary);
 
     const body = document.createElement("div");
@@ -108,7 +188,7 @@ function renderHowToPlayContent() {
     section.paragraphs.forEach((paragraph) => {
       const p = document.createElement("p");
       p.className = "help-paragraph";
-      p.textContent = paragraph;
+      renderHelpParagraphContent(p, paragraph);
       body.appendChild(p);
     });
     details.appendChild(body);

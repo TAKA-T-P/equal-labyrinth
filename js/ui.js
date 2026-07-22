@@ -137,7 +137,7 @@ const elements = {
  * テキスト中の "x"・"y" だけを、斜体太字のTimes New Romanのspanへ差し替えながら
  * containerへ子要素として追加する（containerの既存の中身はクリアしない）。
  */
-function appendStyledVariableParts(container, text) {
+export function appendStyledVariableParts(container, text) {
   const parts = text.split(/([xy])/);
 
   parts.forEach((part) => {
