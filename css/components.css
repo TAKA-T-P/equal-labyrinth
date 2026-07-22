@@ -340,13 +340,6 @@ input[type="range"] {
   font-size: 0.84rem;
 }
 
-.warning-text {
-  margin-top: 8px;
-  color: var(--color-incorrect);
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
 /* ---------------- ボタン ---------------- */
 
 .primary-button {
@@ -745,6 +738,13 @@ input[type="range"] {
 .judge-message.is-pass {
   color: var(--color-correct-gold);
   border-color: var(--color-correct-gold);
+}
+
+/* タイトル画面「スタート」を、開始条件を満たさない状態（カテゴリ未選択など）で
+   押したときに表示する警告メッセージ（#start-message）用。 */
+.judge-message.is-warning {
+  color: var(--color-incorrect);
+  border-color: var(--color-incorrect);
 }
 
 /* ---------------- ヒント（前面に表示するカード） ---------------- */

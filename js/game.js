@@ -248,17 +248,9 @@ function updateStartButtonAvailability() {
     gameState.selectedCategories.length === getCategoriesForUnit(gameState.unit).length
   );
 
-  if (gameState.mode === "rank" || gameState.mode === "quest") {
-    // 段位認定モードは難易度に、クエストモードは部屋データに既定値があるため、
-    // どちらも問題数・カテゴリ選択なしで常に開始できる
-    ui.setStartButtonEnabled(true);
-    ui.showCategoryWarning(false);
-    return;
-  }
-
-  const result = validateSelectedCategories(gameState.selectedCategories, gameState.unit);
-  ui.setStartButtonEnabled(result.valid);
-  ui.showCategoryWarning(!result.valid);
+  // トレーニングでカテゴリが1つも選ばれていない場合も、スタートボタン自体は常に押せる
+  // ようにしておき、実際に押したとき（handleStart）に警告メッセージを前面表示する。
+  ui.setStartButtonEnabled(true);
 }
 
 function handleModeSelect(mode) {
@@ -356,6 +348,14 @@ function handleSoundToggle(enabled) {
 // ============================================================
 
 async function handleStart() {
+  if (gameState.mode === "training") {
+    const result = validateSelectedCategories(gameState.selectedCategories, gameState.unit);
+    if (!result.valid) {
+      ui.showStartMessage(result.reason);
+      return;
+    }
+  }
+
   await startNewGame();
 }
 

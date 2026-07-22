@@ -50,8 +50,8 @@ function buildProfitDiscountQuestion({ templateId, itemName, basePrice, n: fixed
     keypadSymbols: KEYPAD_SYMBOLS,
 
     hint:
-      "x割は10分のxと表せます。値上げ後の価格は「定価×(1＋x/10)」、" +
-      "そこからさらに値引きした価格は、その「×(1−x/10)」で求められます。",
+      "x割は10分のxと表せます。値上げ後の価格は「定価×(1＋{{fraction:x:10}})」、" +
+      "そこからさらに値引きした価格は、その「×(1−{{fraction:x:10}})」で求められます。",
     hintKeypadParts: [],
     explanation: "値上げ後の価格に、値引きの割合をかけると、最終的な売り値になります。",
     diagram: null

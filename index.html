@@ -103,11 +103,10 @@
             <button type="button" class="small-button" id="category-select-toggle">すべて選択</button>
           </div>
           <div id="category-list" class="category-list" role="group" aria-label="カテゴリ選択"></div>
-          <p id="category-warning" class="warning-text" hidden>
-            出題するカテゴリを1つ以上選んでください。
-          </p>
         </div>
       </div>
+
+      <p id="start-message" class="judge-message" aria-live="assertive"></p>
 
       <footer class="title-footer">
         <p class="credit">©2026 T.TAKEMOTO / KEC Glows</p>
@@ -574,7 +573,6 @@
         各カテゴリの代表的な問題と、<br />
         方程式の立て方を確認できます。
       </p>
-      <p id="example-catalog-count" class="help-example-count" aria-live="polite"></p>
 
       <div class="help-example-unit-tabs" role="tablist" aria-label="単元を選ぶ">
         <button type="button" id="example-unit-linear" class="help-example-unit-button" data-unit="linear" role="tab" aria-selected="true">1次方程式</button>

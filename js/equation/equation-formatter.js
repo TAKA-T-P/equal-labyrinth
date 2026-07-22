@@ -103,9 +103,8 @@ function appendPlainToken(container, token) {
     case TokenType.MINUS:
       container.appendChild(document.createTextNode("−"));
       break;
-    case TokenType.TIMES:
-      // 暗黙の乗法として省略する（3*x → 3x）
-      break;
+    // TokenType.TIMESは、直後のトークンを見て判定する必要があるため、
+    // 呼び出し元のappendFormattedTokensでこの関数を呼ぶ前に処理している。
     case TokenType.DIVIDE:
       // 通常は分数として処理されるためここには来ないが、念のためのフォールバック
       container.appendChild(document.createTextNode("÷"));
@@ -169,6 +168,18 @@ function appendFormattedTokens(container, tokens) {
           continue;
         }
       }
+    }
+
+    // 数値どうしの掛け算（例："0.1*200"）は、暗黙の乗法として省略すると
+    // 単なる数字の連結（"0.1200"）に見えてしまうため、その場合だけ"×"を表示する。
+    // 係数×変数・係数×かっこ（例："3*x"→"3x"、"3*(x+1)"→"3(x+1)"）は、これまでどおり省略する。
+    if (tokens[i].type === TokenType.TIMES) {
+      const nextToken = tokens[i + 1];
+      if (nextToken && nextToken.type === TokenType.NUMBER) {
+        container.appendChild(document.createTextNode("×"));
+      }
+      i += 1;
+      continue;
     }
 
     appendPlainToken(container, tokens[i]);

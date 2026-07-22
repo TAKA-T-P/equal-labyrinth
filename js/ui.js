@@ -36,7 +36,7 @@ const elements = {
   questionCountSlider: document.getElementById("question-count-slider"),
   questionCountLabel: document.getElementById("question-count-label"),
   categoryList: document.getElementById("category-list"),
-  categoryWarning: document.getElementById("category-warning"),
+  startMessage: document.getElementById("start-message"),
   categorySelectToggleButton: document.getElementById("category-select-toggle"),
   soundToggleButton: document.getElementById("sound-toggle-button"),
   soundToggleIcon: document.getElementById("sound-toggle-icon"),
@@ -153,6 +153,54 @@ export function appendStyledVariableParts(container, text) {
       container.appendChild(document.createTextNode(part));
     }
   });
+}
+
+// 問題データ由来のテキスト（ヒントなど）に埋め込む、上下型分数のインライン記法。
+// help-content.jsの「このゲームの遊び方」で使っている{{fraction:分子:分母}}と同じ表記。
+const INLINE_FRACTION_PATTERN = /\{\{fraction:([^:{}]+):([^:{}]+)\}\}/g;
+
+function appendInlineFraction(container, numerator, denominator) {
+  const fraction = document.createElement("span");
+  fraction.className = "math-fraction";
+  fraction.setAttribute("role", "img");
+  fraction.setAttribute("aria-label", `${denominator}分の${numerator}`);
+
+  const numeratorNode = document.createElement("span");
+  numeratorNode.className = "math-fraction__numerator";
+  appendStyledVariableParts(numeratorNode, numerator);
+
+  const bar = document.createElement("span");
+  bar.className = "math-fraction__bar";
+
+  const denominatorNode = document.createElement("span");
+  denominatorNode.className = "math-fraction__denominator";
+  appendStyledVariableParts(denominatorNode, denominator);
+
+  fraction.append(numeratorNode, bar, denominatorNode);
+  container.appendChild(fraction);
+}
+
+/**
+ * 問題データのテキスト（ヒントなど）を、x・yの斜体表示に加えて、
+ * {{fraction:分子:分母}}記法を上下型分数へ変換しながらcontainerへ追加する
+ * （containerの既存の中身はクリアしない）。
+ */
+export function appendTextWithInlineFractions(container, text) {
+  let lastIndex = 0;
+  let match;
+
+  INLINE_FRACTION_PATTERN.lastIndex = 0;
+  while ((match = INLINE_FRACTION_PATTERN.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      appendStyledVariableParts(container, text.slice(lastIndex, match.index));
+    }
+    appendInlineFraction(container, match[1], match[2]);
+    lastIndex = INLINE_FRACTION_PATTERN.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    appendStyledVariableParts(container, text.slice(lastIndex));
+  }
 }
 
 /**
@@ -415,8 +463,29 @@ export function setAllCategoryCheckboxes(categories, checked) {
   });
 }
 
-export function showCategoryWarning(show) {
-  elements.categoryWarning.hidden = !show;
+const START_MESSAGE_DISPLAY_MILLISECONDS = 2000;
+let startMessageTimeoutId = null;
+
+/**
+ * タイトル画面で「スタート」を押したが開始条件を満たさない場合（カテゴリ未選択など）に、
+ * 前面へ一時的な警告メッセージを表示する（judge-messageと同じ「空文字なら非表示」の仕組み）。
+ */
+export function showStartMessage(message) {
+  const el = elements.startMessage;
+  if (!el) return;
+
+  if (startMessageTimeoutId !== null) {
+    clearTimeout(startMessageTimeoutId);
+  }
+
+  el.textContent = message;
+  el.className = "judge-message is-warning";
+
+  startMessageTimeoutId = setTimeout(() => {
+    startMessageTimeoutId = null;
+    el.textContent = "";
+    el.className = "judge-message";
+  }, START_MESSAGE_DISPLAY_MILLISECONDS);
 }
 
 /**
@@ -725,7 +794,8 @@ export function setPassButtonVisible(visible) {
 }
 
 export function showHintPanel(hintText) {
-  renderTextWithStyledVariable(elements.hintText, hintText);
+  elements.hintText.innerHTML = "";
+  appendTextWithInlineFractions(elements.hintText, hintText);
   elements.hintPanel.hidden = false;
   elements.hintBackdrop.hidden = false;
   // ヒント表示中も問題文が読めるよう、問題文カードだけは背景を暗くする幕より前面に出す

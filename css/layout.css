@@ -123,8 +123,7 @@
   padding-right: 4px;
 }
 
-.category-setting-card .setting-heading-row,
-.category-setting-card .warning-text {
+.category-setting-card .setting-heading-row {
   flex: 0 0 auto;
 }
 

@@ -3,26 +3,18 @@
 // 例題確認は閲覧専用のため、gameState・タイマー・スコア・問題履歴・localStorageには
 // 一切触れない（単元・カテゴリの選択状態は、このファイル内のローカル変数だけで管理する）。
 
-import { UNIT_IDS, SELECTABLE_UNIT_IDS } from "../config.js";
+import { UNIT_IDS } from "../config.js";
 import { getCategoriesForUnit } from "../questions/question-manager.js";
-import { appendStyledVariableParts } from "../ui.js";
+import { appendStyledVariableParts, appendTextWithInlineFractions } from "../ui.js";
 import { renderFormattedEquation } from "../equation/equation-formatter.js";
 import { renderQuadraticDiagram } from "../diagrams/quadratic-diagram-renderer.js";
 import {
   getExampleQuestionForCategory,
   normalizeVariableDefinitions,
-  getTotalCategoryCount,
   validateAllCategoryExamples
 } from "./example-catalog.js";
 
-const UNIT_LABELS = {
-  [UNIT_IDS.LINEAR]: "1次方程式",
-  [UNIT_IDS.SIMULTANEOUS]: "連立方程式",
-  [UNIT_IDS.QUADRATIC]: "2次方程式"
-};
-
 const elements = {
-  countText: document.getElementById("example-catalog-count"),
   unitButtons: Array.from(document.querySelectorAll(".help-example-unit-button")),
   categorySelect: document.getElementById("example-category-select"),
   categoryList: document.getElementById("example-category-list"),
@@ -330,7 +322,8 @@ function renderExampleCard() {
 
   elements.diagramOpenButton.hidden = !question.diagram;
 
-  setStyledText(elements.hintText, question.hint);
+  elements.hintText.innerHTML = "";
+  appendTextWithInlineFractions(elements.hintText, question.hint);
 
   renderEquationList(question);
   renderAlternateEquations(question);
@@ -380,13 +373,6 @@ export function resetExampleCatalogView() {
 
 export function initExampleUI() {
   if (!elementsReady()) return;
-
-  if (elements.countText) {
-    const unitSummary = SELECTABLE_UNIT_IDS.map(
-      (unit) => `${UNIT_LABELS[unit]}${getCategoriesForUnit(unit).length}`
-    ).join("・");
-    elements.countText.textContent = `全${getTotalCategoryCount()}カテゴリの例題を収録（${unitSummary}）`;
-  }
 
   validateAllCategoryExamples();
   wireEvents();
