@@ -392,10 +392,14 @@ function buildMovingPointsRectangleSvg(diagram) {
 
   const svg = createRootSvg(ariaLabel);
 
-  const rectX = 70;
-  const rectY = 56;
-  const rectW = 190;
-  const rectH = 120;
+  // 正方形（縦＝横）のときは、見た目も正方形になるよう縦横同じ幅で描画する
+  // （長方形固定の比率のままだと、実際には正方形の問題なのに縦長の長方形に
+  // 見えてしまうため）。
+  const isSquare = widthValue === heightValue;
+  const rectY = isSquare ? 40 : 56;
+  const rectW = isSquare ? 140 : 190;
+  const rectH = isSquare ? 140 : 120;
+  const rectX = isSquare ? 90 : 70;
 
   const corners = {
     A: [rectX, rectY],
