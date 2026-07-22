@@ -41,9 +41,23 @@
         <p class="app-subtitle">～方程式の迷宮～</p>
       </header>
 
-      <button type="button" id="start-button" class="primary-button" disabled>
-        スタート
-      </button>
+      <div class="start-row">
+        <button type="button" id="start-button" class="primary-button start-button--compact" disabled>
+          スタート
+        </button>
+        <label class="slider-row" for="question-count-slider" id="question-count-row">
+          <span id="question-count-label" class="slider-value">5問</span>
+          <input
+            type="range"
+            id="question-count-slider"
+            min="3"
+            max="20"
+            step="1"
+            value="5"
+            aria-labelledby="question-count-label"
+          />
+        </label>
+      </div>
 
       <div class="choice-group mode-choice-group" role="group" aria-label="モード選択">
         <button type="button" class="choice-button is-selected" id="mode-training" data-mode="training" aria-pressed="true">
@@ -83,19 +97,6 @@
       </div>
 
       <div id="training-only-settings">
-        <label class="slider-row" for="question-count-slider">
-          <span id="question-count-label" class="slider-value">問題数：5問</span>
-          <input
-            type="range"
-            id="question-count-slider"
-            min="3"
-            max="20"
-            step="1"
-            value="5"
-            aria-labelledby="question-count-label"
-          />
-        </label>
-
         <div class="setting-card category-setting-card">
           <div class="setting-heading-row">
             <h2 class="setting-heading">出題するカテゴリ</h2>

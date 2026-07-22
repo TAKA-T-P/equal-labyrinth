@@ -68,8 +68,31 @@
 
 .title-footer {
   text-align: center;
-  padding-top: 8px;
+  margin-top: -6px;
   flex: 0 0 auto;
+}
+
+/* スタートボタンと問題数スライダー（トレーニングのときだけ）を同じ段に並べる。
+   スライダー側はhidden切り替え（トレーニング以外では#question-count-rowごと隠す）。 */
+.start-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.start-button--compact {
+  flex: 0 0 auto;
+  min-width: 108px;
+}
+
+.start-row #question-count-row {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.start-row #question-count-row[hidden] {
+  display: none;
 }
 
 #training-only-settings {

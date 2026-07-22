@@ -31,6 +31,7 @@ const elements = {
   difficultyNormalButton: document.getElementById("difficulty-normal"),
   difficultyHardButton: document.getElementById("difficulty-hard"),
   trainingOnlySettings: document.getElementById("training-only-settings"),
+  questionCountRow: document.getElementById("question-count-row"),
   questionCountSlider: document.getElementById("question-count-slider"),
   questionCountLabel: document.getElementById("question-count-label"),
   categoryList: document.getElementById("category-list"),
@@ -365,7 +366,7 @@ export function showScreen(screenName) {
 // ============================================================
 
 export function renderQuestionCountLabel(totalQuestions) {
-  elements.questionCountLabel.textContent = `問題数：${totalQuestions}問`;
+  elements.questionCountLabel.textContent = `${totalQuestions}問`;
   elements.questionCountSlider.value = String(totalQuestions);
 }
 
@@ -470,6 +471,9 @@ export function renderModeSelection(mode) {
   }
 
   elements.trainingOnlySettings.hidden = !isTraining;
+  if (elements.questionCountRow) {
+    elements.questionCountRow.hidden = !isTraining;
+  }
   elements.rankDifficultyGroup.hidden = !isRank;
 
   elements.modeDescription.textContent = MODE_DESCRIPTIONS[mode] || "";
