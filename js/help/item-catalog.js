@@ -14,7 +14,8 @@ import { listInventoryItems } from "../quest/quest-storage.js";
  * コンソールへ警告する（README「クエストの部屋データの追加・変更方法」を参照）。
  * 並び順：ステージの小さい順→同じステージでは部屋ID順→部屋に属さない項目は最後。
  * @param {Array} rooms QUEST_ROOMS
- * @returns {Array<{itemId: string, emoji: string, name: string, roomId: string, stage: number}>}
+ * @returns {Array<{itemId: string, emoji: string, name: string, description: string|null,
+ *   roomId: string, stage: number}>}
  */
 export function buildItemMasterList(rooms) {
   const seen = new Map();
@@ -24,12 +25,19 @@ export function buildItemMasterList(rooms) {
     if (!room || !room.reward || typeof room.reward.itemId !== "string") {
       return;
     }
-    const { itemId, emoji, name } = room.reward;
+    const { itemId, emoji, name, description } = room.reward;
     if (seen.has(itemId)) {
       duplicates.push({ itemId, existingRoomId: seen.get(itemId).roomId, roomId: room.roomId });
       return;
     }
-    seen.set(itemId, { itemId, emoji, name, roomId: room.roomId, stage: room.stage });
+    seen.set(itemId, {
+      itemId,
+      emoji,
+      name,
+      description: typeof description === "string" && description ? description : null,
+      roomId: room.roomId,
+      stage: room.stage
+    });
   });
 
   duplicates.forEach(({ itemId, existingRoomId, roomId }) => {
@@ -67,8 +75,8 @@ function normalizeCount(rawCount) {
  * （見つからない場合は「旧アイテム」「❔」で表示し、データそのものは削除しない）。
  *
  * @returns {{
- *   items: Array<{itemId, emoji, name, roomId: string|null, stage: number|null,
- *     obtained: boolean, count: number, isOrphan: boolean}>,
+ *   items: Array<{itemId, emoji, name, description: string|null, roomId: string|null,
+ *     stage: number|null, obtained: boolean, count: number, isOrphan: boolean}>,
  *   totalCount: number,
  *   obtainedCount: number,
  *   collectionRate: number,
@@ -89,6 +97,7 @@ export function buildItemCatalog() {
         itemId: master.itemId,
         emoji: master.emoji,
         name: master.name,
+        description: master.description,
         roomId: master.roomId || null,
         stage: Number.isFinite(master.stage) ? master.stage : null,
         obtained: count > 0,
@@ -105,6 +114,8 @@ export function buildItemCatalog() {
           itemId: entry.itemId,
           emoji: typeof entry.emoji === "string" && entry.emoji ? entry.emoji : "❔",
           name: typeof entry.name === "string" && entry.name ? entry.name : "旧アイテム",
+          // インベントリには説明文を保存していないため、旧アイテムは常にdescription: nullになる。
+          description: null,
           roomId: typeof entry.roomId === "string" && entry.roomId ? entry.roomId : null,
           stage: null,
           obtained: count > 0,

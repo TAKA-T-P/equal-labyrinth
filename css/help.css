@@ -278,6 +278,16 @@
   margin: 0;
 }
 
+.help-item-description {
+  font-size: 0.72rem;
+  color: var(--color-text-main);
+  opacity: 0.9;
+  line-height: 1.5;
+  margin: 6px 0 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 /* ---------------- データ消去確認ダイアログ ---------------- */
 
 .help-confirm-dialog {

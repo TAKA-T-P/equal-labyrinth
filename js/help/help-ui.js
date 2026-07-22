@@ -235,7 +235,8 @@ function createObtainedItemCard(item) {
   card.className = "help-item-card";
   card.setAttribute("role", "group");
   const roomLabel = item.roomId ? `${item.roomId}の部屋` : "入手場所の記録なし";
-  card.setAttribute("aria-label", `${item.name}、所持数${item.count}、${roomLabel}`);
+  const descriptionLabel = item.description ? `、${item.description}` : "";
+  card.setAttribute("aria-label", `${item.name}、所持数${item.count}、${roomLabel}${descriptionLabel}`);
 
   const emoji = document.createElement("p");
   emoji.className = "help-item-emoji";
@@ -255,6 +256,15 @@ function createObtainedItemCard(item) {
   room.textContent = item.roomId ? `${item.roomId}の部屋` : "入手場所：記録なし";
 
   card.append(emoji, name, count, room);
+
+  // 説明文（description）は未設定（旧アイテムなど）の場合があるため、あるときだけ表示する。
+  if (item.description) {
+    const description = document.createElement("p");
+    description.className = "help-item-description";
+    description.textContent = item.description;
+    card.appendChild(description);
+  }
+
   return card;
 }
 
