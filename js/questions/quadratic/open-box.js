@@ -147,6 +147,25 @@ function buildRectangularOpenBoxQuestion({ templateId, scenario, cutSideValue, s
   };
 }
 
+// テンプレート選択は「カテゴリ内の配列からの一様ランダム抽選（直前と同じ
+// テンプレートは除外）」のため、出現割合を上げたいテンプレートは配列に
+// 複数回登録する。長方形パターン（rectangularPaperTemplate）を4回、
+// 正方形パターン3種を1回ずつ（計7エントリ）登録すると、直前除外の効果も
+// 込みで長方形パターンの出現割合がおよそ4割になる（実測で確認済み）。
+const rectangularPaperTemplate = {
+  templateId: "L3-06-rectangular-paper",
+  categoryId: CATEGORY_ID,
+
+  generate() {
+    return buildRectangularOpenBoxQuestion({
+      templateId: this.templateId,
+      scenario: "紙",
+      cutSideValue: randomInt(2, 3),
+      simplifiedDiff: randomInt(1, 4)
+    });
+  }
+};
+
 export const openBoxTemplates = [
   {
     templateId: "L3-06-craft-paper",
@@ -187,17 +206,8 @@ export const openBoxTemplates = [
     }
   },
 
-  {
-    templateId: "L3-06-rectangular-paper",
-    categoryId: CATEGORY_ID,
-
-    generate() {
-      return buildRectangularOpenBoxQuestion({
-        templateId: this.templateId,
-        scenario: "紙",
-        cutSideValue: randomInt(2, 3),
-        simplifiedDiff: randomInt(1, 4)
-      });
-    }
-  }
+  rectangularPaperTemplate,
+  rectangularPaperTemplate,
+  rectangularPaperTemplate,
+  rectangularPaperTemplate
 ];
