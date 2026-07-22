@@ -135,7 +135,15 @@ function buildRectangularOpenBoxQuestion({ templateId, scenario, cutSideValue, s
       "箱の高さは切り取った正方形の1辺の長さと等しく、底面は縦・横それぞれ" +
       "切り取った分だけ短くなった長方形になります。",
 
-    diagram: null
+    diagram: {
+      type: "open-box-net-rect",
+      paperHeightSymbol: "x",
+      widthDiffValue: widthDiff,
+      cutSideValue,
+      ariaLabel:
+        `縦xセンチメートル、横がそれより${widthDiff}センチメートル長い長方形の${scenario}の四すみから、` +
+        `1辺${cutSideValue}センチメートルの正方形を切り取り、ふたのない箱を作る図`
+    }
   };
 }
 

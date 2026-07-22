@@ -71,8 +71,10 @@ export const crossRoadTemplates = [
     categoryId: CATEGORY_ID,
 
     generate() {
-      const widthValue = randomInt(10, 18);
-      const heightValue = randomInt(8, 16);
+      // 縦＜横になるよう、縦を先に決めてから横を「縦＋α」で決める
+      // （同じ値にならない・縦の方が長くならないようにするため）。
+      const heightValue = randomInt(8, 14);
+      const widthValue = heightValue + randomInt(2, 8);
       return buildCrossRoadQuestion({
         templateId: this.templateId,
         scenario: "花だん",
@@ -87,8 +89,8 @@ export const crossRoadTemplates = [
     categoryId: CATEGORY_ID,
 
     generate() {
-      const widthValue = randomInt(12, 24);
-      const heightValue = randomInt(10, 20);
+      const heightValue = randomInt(10, 18);
+      const widthValue = heightValue + randomInt(2, 10);
       return buildCrossRoadQuestion({
         templateId: this.templateId,
         scenario: "畑",
@@ -103,8 +105,8 @@ export const crossRoadTemplates = [
     categoryId: CATEGORY_ID,
 
     generate() {
-      const widthValue = randomInt(14, 26);
-      const heightValue = randomInt(10, 22);
+      const heightValue = randomInt(10, 20);
+      const widthValue = heightValue + randomInt(2, 10);
       return buildCrossRoadQuestion({
         templateId: this.templateId,
         scenario: "広場",

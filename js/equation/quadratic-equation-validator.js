@@ -6,7 +6,7 @@
 // あるかどうかで判定する（詳細はREADMEの「2次方程式の正誤判定」を参照）。
 
 import { tokenize, EquationError } from "./tokenizer.js";
-import { parseExpression } from "./parser.js";
+import { parseExpression, NodeType } from "./parser.js";
 import { splitAtEquals } from "./equation-validator.js";
 import {
   astToQuadraticExpression,
@@ -110,7 +110,14 @@ export function solveQuadraticStandardForm(standardForm, tolerance) {
   const c = standardForm.constant;
 
   if (Math.abs(a) < tolerance) {
-    return null;
+    // x²の係数が0（1次方程式に退化した場合）は、bx+c=0として解く。
+    // 「正方形を固定の長さだけ変形し、面積の増加量を問う」パターンなど、
+    // 見かけは2次式でも整理するとx²が消えて1次方程式になる問題で使う。
+    // b・cどちらも0（恒等式または解なしの定数式）はnullのままにする。
+    if (Math.abs(b) < tolerance) {
+      return null;
+    }
+    return [-c / b];
   }
 
   const discriminant = b * b - 4 * a * c;
@@ -126,6 +133,33 @@ export function solveQuadraticStandardForm(standardForm, tolerance) {
   const roots = [(-b - sqrtD) / (2 * a), (-b + sqrtD) / (2 * a)];
   roots.sort((x, y) => x - y);
   return roots;
+}
+
+/**
+ * 「x＝12」のように、左右が「変数のみ」「数値のみ」の組み合わせになっているかを判定する
+ * （1次方程式のequation-validator.jsと同じ考え方）。模範式自体が1次方程式に退化する問題
+ * （面積の増減で正方形をx²ごと打ち消す形になるパターンなど）では、比例判定だけでは
+ * 「答えの値をそのまま代入しただけの式」もacceptしてしまうため、この判定を別途行う。
+ * 解析できない入力はfalseを返す（呼び出し側で別途input-error等として扱われる）。
+ */
+function isBareVariableEqualsNumber(inputString) {
+  try {
+    const tokens = tokenize(inputString);
+    const splitResult = splitAtEquals(tokens);
+    if (splitResult.error) {
+      return false;
+    }
+    const leftAst = parseExpression(splitResult.leftTokens);
+    const rightAst = parseExpression(splitResult.rightTokens);
+    const isBareVariable = (node) => node.type === NodeType.VARIABLE;
+    const isBareNumber = (node) => node.type === NodeType.NUMBER;
+    return (
+      (isBareVariable(leftAst) && isBareNumber(rightAst)) ||
+      (isBareNumber(leftAst) && isBareVariable(rightAst))
+    );
+  } catch (error) {
+    return false;
+  }
 }
 
 /**
@@ -152,9 +186,17 @@ export function validateQuadraticEquation(inputString, question) {
     throw error;
   }
 
-  // x²の係数が0（恒等式・解なしの定数式・1次式に退化した式を含む）は、
-  // 2次方程式の問題では常に不正解にする
-  if (isLinearOrConstantQuadraticExpression(standardForm)) {
+  const canonicalStandardForm = parseEquationToQuadraticStandardForm(
+    question.canonicalEquation.internal
+  );
+
+  // x²の係数が0（恒等式・解なしの定数式・1次式に退化した式を含む）は、通常は
+  // 2次方程式の問題として不正解にする。ただし模範式自体がx²の係数が0になる関係
+  // （正方形を固定の長さだけ変形し、面積の増加量を問うパターンなど、整理すると
+  // x²が消えて1次方程式になる問題）の場合は、退化があらかじめ想定内であるため、
+  // 通常の比例判定へ進める。
+  const canonicalIsDegenerate = isLinearOrConstantQuadraticExpression(canonicalStandardForm);
+  if (!canonicalIsDegenerate && isLinearOrConstantQuadraticExpression(standardForm)) {
     return buildResult(
       "incorrect",
       "その式は2次方程式になっていません。数量の関係を見直しましょう。",
@@ -162,9 +204,13 @@ export function validateQuadraticEquation(inputString, question) {
     );
   }
 
-  const canonicalStandardForm = parseEquationToQuadraticStandardForm(
-    question.canonicalEquation.internal
-  );
+  if (canonicalIsDegenerate && isBareVariableEqualsNumber(inputString)) {
+    return buildResult(
+      "incorrect",
+      "答えだけを入力するのではなく、数量の関係を式で表しましょう。",
+      { standardForm }
+    );
+  }
 
   if (!areProportionalQuadraticEquations(standardForm, canonicalStandardForm, tolerance)) {
     return buildResult("incorrect", "もう一度考えよう", { standardForm });

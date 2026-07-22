@@ -615,6 +615,7 @@ const QUADRATIC_CATEGORY_DIFFICULTY_BY_ID = new Map(
 const QUADRATIC_DIAGRAM_TYPES = new Set([
   "cross-road",
   "open-box-net",
+  "open-box-net-rect",
   "moving-points-rectangle"
 ]);
 
@@ -696,6 +697,16 @@ function validateDiagram(diagram) {
   } else if (diagram.type === "open-box-net") {
     if (typeof diagram.paperSideSymbol !== "string" || diagram.paperSideSymbol.trim() === "") {
       return "diagram.paperSideSymbolが空です。";
+    }
+    if (typeof diagram.cutSideValue !== "number" || !Number.isFinite(diagram.cutSideValue)) {
+      return "diagram.cutSideValueが数値ではありません。";
+    }
+  } else if (diagram.type === "open-box-net-rect") {
+    if (typeof diagram.paperHeightSymbol !== "string" || diagram.paperHeightSymbol.trim() === "") {
+      return "diagram.paperHeightSymbolが空です。";
+    }
+    if (typeof diagram.widthDiffValue !== "number" || !Number.isFinite(diagram.widthDiffValue)) {
+      return "diagram.widthDiffValueが数値ではありません。";
     }
     if (typeof diagram.cutSideValue !== "number" || !Number.isFinite(diagram.cutSideValue)) {
       return "diagram.cutSideValueが数値ではありません。";
@@ -864,8 +875,15 @@ function validateQuadraticQuestion(question) {
     };
   }
 
-  if (Math.abs(standardForm.xSquaredCoefficient) < APP_CONFIG.numericTolerance) {
-    return { valid: false, reason: "canonicalEquationのx²の係数が0です（2次方程式になっていません）。" };
+  // x²の係数が0の場合でも、xの係数が0でなければ許可する（「正方形を固定の長さだけ
+  // 変形し、面積の増加量を問う」パターンなど、見かけは2次式でも整理するとx²が消えて
+  // 1次方程式になる問題のため）。x²の係数もxの係数も0（恒等式・解なしの定数式）は、
+  // 方程式として意味をなさないため引き続き拒否する。
+  if (
+    Math.abs(standardForm.xSquaredCoefficient) < APP_CONFIG.numericTolerance &&
+    Math.abs(standardForm.xCoefficient) < APP_CONFIG.numericTolerance
+  ) {
+    return { valid: false, reason: "canonicalEquationのx²の係数もxの係数も0です（方程式になっていません）。" };
   }
 
   const rootsReason = validateExpectedRootsAndValidXValues(question, standardForm);

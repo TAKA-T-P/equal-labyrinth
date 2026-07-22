@@ -39,7 +39,7 @@ function createSvgText(x, y, text, attributes = {}) {
  * @param {string} variableSymbol 変数部分（通常は"x"）
  * @param {object} attributes text要素へ追加する属性（transformなど）
  */
-function createSvgTextWithVariable(x, y, prefix, variableSymbol, attributes = {}) {
+function createSvgTextWithVariable(x, y, prefix, variableSymbol, attributes = {}, suffix = "") {
   const element = createSvgElement("text", {
     x,
     y,
@@ -56,6 +56,12 @@ function createSvgTextWithVariable(x, y, prefix, variableSymbol, attributes = {}
   const variableTspan = createSvgElement("tspan", { class: "var-x" });
   variableTspan.textContent = variableSymbol;
   element.appendChild(variableTspan);
+
+  if (suffix) {
+    const suffixTspan = createSvgElement("tspan");
+    suffixTspan.textContent = suffix;
+    element.appendChild(suffixTspan);
+  }
 
   return element;
 }
@@ -270,6 +276,109 @@ function buildOpenBoxNetSvg(diagram) {
 }
 
 // ============================================================
+// 容積・ふたのない箱（L3-06）：長方形の紙の四隅を切り取る展開図
+// （縦x・横「x＋widthDiff」の長方形パターン）
+// ============================================================
+function buildOpenBoxNetRectSvg(diagram) {
+  const paperHeightSymbol = requireNonEmptyString(diagram.paperHeightSymbol, "paperHeightSymbol");
+  const widthDiffValue = requireFiniteNumber(diagram.widthDiffValue, "widthDiffValue");
+  const cutSideValue = requireFiniteNumber(diagram.cutSideValue, "cutSideValue");
+  const ariaLabel = requireNonEmptyString(diagram.ariaLabel, "ariaLabel");
+
+  const svg = createRootSvg(ariaLabel);
+
+  const paperX = 40;
+  const paperY = 54;
+  const paperWidth = 220;
+  const paperHeight = 130;
+  const cutSize = 34;
+
+  svg.appendChild(
+    createSvgElement("rect", {
+      x: paperX,
+      y: paperY,
+      width: paperWidth,
+      height: paperHeight,
+      fill: "none",
+      stroke: "currentColor",
+      "stroke-width": 2
+    })
+  );
+
+  const corners = [
+    [paperX, paperY],
+    [paperX + paperWidth - cutSize, paperY],
+    [paperX, paperY + paperHeight - cutSize],
+    [paperX + paperWidth - cutSize, paperY + paperHeight - cutSize]
+  ];
+  corners.forEach(([cx, cy]) => {
+    svg.appendChild(
+      createSvgElement("rect", {
+        x: cx,
+        y: cy,
+        width: cutSize,
+        height: cutSize,
+        fill: "currentColor",
+        opacity: 0.15,
+        stroke: "currentColor",
+        "stroke-dasharray": "4 3"
+      })
+    );
+  });
+
+  // 折り線（点線）
+  const foldLines = [
+    [paperX + cutSize, paperY, paperX + cutSize, paperY + paperHeight],
+    [paperX + paperWidth - cutSize, paperY, paperX + paperWidth - cutSize, paperY + paperHeight],
+    [paperX, paperY + cutSize, paperX + paperWidth, paperY + cutSize],
+    [paperX, paperY + paperHeight - cutSize, paperX + paperWidth, paperY + paperHeight - cutSize]
+  ];
+  foldLines.forEach(([x1, y1, x2, y2]) => {
+    svg.appendChild(
+      createSvgElement("line", {
+        x1,
+        y1,
+        x2,
+        y2,
+        stroke: "currentColor",
+        "stroke-width": 1,
+        "stroke-dasharray": "3 3",
+        opacity: 0.6
+      })
+    );
+  });
+
+  // 「縦 x」＝紙の縦全体であることを示すひげ（左辺の上端〜下端）
+  svg.appendChild(createLengthWhisker(paperX, paperY, paperX, paperY + paperHeight, -16));
+  svg.appendChild(
+    createSvgTextWithVariable(paperX - 22, paperY + paperHeight / 2, "縦 ", paperHeightSymbol, {
+      transform: `rotate(-90 ${paperX - 22} ${paperY + paperHeight / 2})`
+    })
+  );
+
+  // 「横 x＋widthDiff」＝紙の横全体であることを示すひげ（上辺の左端〜右端）
+  svg.appendChild(createLengthWhisker(paperX, paperY, paperX + paperWidth, paperY, -18));
+  svg.appendChild(
+    createSvgTextWithVariable(
+      paperX + paperWidth / 2,
+      paperY - 26,
+      "横 ",
+      paperHeightSymbol,
+      {},
+      `＋${widthDiffValue}`
+    )
+  );
+
+  // 「cutSide」＝切り取る正方形の1辺だけであることを示すひげ
+  // （縦・横の全体を示すひげと重ならないよう、右上の隅の右辺を使う）
+  const rightEdgeX = paperX + paperWidth;
+  svg.appendChild(createLengthWhisker(rightEdgeX, paperY, rightEdgeX, paperY + cutSize, 16));
+  svg.appendChild(createSvgText(rightEdgeX + 30, paperY + cutSize / 2 + 5, `${cutSideValue}`));
+
+  return svg;
+}
+
+// ============================================================
 // 動点（L3-07）：長方形ABCDの辺上を、点P・点Qが移動する図（静止画）
 // ============================================================
 function buildMovingPointsRectangleSvg(diagram) {
@@ -373,6 +482,7 @@ function buildMovingPointsRectangleSvg(diagram) {
 const DIAGRAM_BUILDERS = {
   "cross-road": buildCrossRoadSvg,
   "open-box-net": buildOpenBoxNetSvg,
+  "open-box-net-rect": buildOpenBoxNetRectSvg,
   "moving-points-rectangle": buildMovingPointsRectangleSvg
 };
 

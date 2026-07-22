@@ -156,5 +156,60 @@ export const areaChangeTemplates = [
         diagram: null
       };
     }
+  },
+
+  {
+    // 1辺xの正方形を、縦・横それぞれ固定の長さだけ伸ばして長方形にするパターン。
+    // (x+heightExt)(x+widthExt) = x²+increase を展開すると、両辺のx²が打ち消し合い、
+    // 見かけは2次方程式でも実際には1次方程式になる（意図的な出題パターン）。
+    templateId: "L3-04-square-to-rectangle-increase",
+    categoryId: CATEGORY_ID,
+
+    generate() {
+      const heightExt = randomInt(2, 9);
+      const widthExt = randomInt(2, 9);
+      const x = randomInt(5, 30);
+      const increase = heightExt * widthExt + (heightExt + widthExt) * x;
+      const canonicalInternal = `(x+${heightExt})*(x+${widthExt})=x^2+${increase}`;
+      const roots = computeQuadraticRoots(canonicalInternal);
+
+      return {
+        id: createUniqueId(this.templateId),
+        templateId: this.templateId,
+        unit: UNIT,
+        categoryId: CATEGORY_ID,
+        categoryName: CATEGORY_NAME,
+        rankDifficulty: "NORMAL",
+
+        prompt:
+          `1辺xcmの正方形がある。縦を${heightExt}cm、横を${widthExt}cmのばして長方形をつくると、` +
+          `面積がもとの正方形より${increase}cm²大きくなった。xの値を求める2次方程式を立てなさい。`,
+        variableDefinition: "もとの正方形の1辺の長さ（cm）",
+
+        canonicalEquation: {
+          internal: canonicalInternal,
+          display: `(x＋${heightExt})(x＋${widthExt})＝x²＋${increase}`,
+          relationName: "変形後の長方形の面積と、もとの正方形の面積の増加分の関係"
+        },
+        expectedRoots: roots,
+        validXValues: [x],
+        solutionDisplay: `x＝${x}`,
+
+        keypadNumbers: [String(heightExt), String(widthExt), String(increase)],
+        keypadSymbols: KEYPAD_SYMBOLS,
+
+        hint:
+          `変形後の縦は「x＋${heightExt}」、横は「x＋${widthExt}」と表せます。` +
+          `もとの正方形の面積はx²なので、それに増えた分の${increase}cm²を加えた式と等しくなります。`,
+        hintKeypadParts: [
+          { display: `（x＋${heightExt}）`, value: `(x+${heightExt})`, ariaLabel: `xたす${heightExt}` },
+          { display: `（x＋${widthExt}）`, value: `(x+${widthExt})`, ariaLabel: `xたす${widthExt}` }
+        ],
+        explanation:
+          "変形後の長方形の面積（縦×横）は、もとの正方形の面積（x²）に増加分を加えた値と等しくなります。" +
+          "式を展開して整理すると、x²の項がちょうど打ち消し合い、1次方程式になります。",
+        diagram: null
+      };
+    }
   }
 ];
