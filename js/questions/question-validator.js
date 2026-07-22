@@ -74,6 +74,18 @@ const ALLOWED_KEYPAD_SYMBOLS = new Set([
 ]);
 
 const NUMBER_TEXT_PATTERN = /^\d+(\.\d+)?$/;
+// 「1/2」のような単純な分数表記も、数字の選択肢カードとして許可する
+// （動点カテゴリの三角形の面積の公式などで使う）。
+const FRACTION_TEXT_PATTERN = /^\d+\/\d+$/;
+
+/**
+ * keypadNumbersに「1/2」のような分数表記のカードが含まれるかどうか。
+ * このカード1つで割り算記号（/）自体を入力できるため、canonicalEquationに
+ * 割り算が含まれていても、別途「fraction」ボタンを用意する必要がなくなる。
+ */
+function hasFractionKeypadNumber(keypadNumbers) {
+  return keypadNumbers.some((value) => FRACTION_TEXT_PATTERN.test(String(value)));
+}
 
 function validateKeypadNumbers(keypadNumbers) {
   if (!Array.isArray(keypadNumbers) || keypadNumbers.length === 0) {
@@ -84,7 +96,7 @@ function validateKeypadNumbers(keypadNumbers) {
     if (typeof value !== "string" || value.trim() === "") {
       return "keypadNumbersに空でない文字列以外の要素が含まれています。";
     }
-    if (!NUMBER_TEXT_PATTERN.test(value)) {
+    if (!NUMBER_TEXT_PATTERN.test(value) && !FRACTION_TEXT_PATTERN.test(value)) {
       return `keypadNumbersに有効な数値表現ではない要素があります：${value}`;
     }
   }
@@ -126,6 +138,15 @@ function validateKeypadCoversEquation(canonicalEquation, keypadNumbers) {
   }
 
   const keypadNumberSet = new Set(keypadNumbers.map(String));
+  // 「1/2」のような分数カードは、ボタン1つで分子・分母どちらの数値も
+  // 入力できたことになるため、両方の数値をカバー済みとして扱う。
+  keypadNumbers.forEach((value) => {
+    const fractionMatch = String(value).match(/^(\d+)\/(\d+)$/);
+    if (fractionMatch) {
+      keypadNumberSet.add(fractionMatch[1]);
+      keypadNumberSet.add(fractionMatch[2]);
+    }
+  });
 
   for (const token of tokens) {
     if (token.type !== TokenType.NUMBER) continue;
@@ -529,10 +550,12 @@ function validateSimultaneousQuestion(question) {
   }
 
   // canonicalEquationsに割り算（分数）が含まれる場合、分数ボタンをkeypadSymbolsに
-  // 用意しておく必要がある（"fraction"のほか、後方互換の"÷"「/」も許可する）
-  const needsFractionSymbol = question.canonicalEquations.some((equation) =>
-    equationContainsDivision(equation.internal)
-  );
+  // 用意しておく必要がある（"fraction"のほか、後方互換の"÷"「/」も許可する。
+  // 「1/2」のような分数カードがkeypadNumbersにあれば、それ自体で割り算を
+  // 入力できるため例外とする）
+  const needsFractionSymbol =
+    question.canonicalEquations.some((equation) => equationContainsDivision(equation.internal)) &&
+    !hasFractionKeypadNumber(question.keypadNumbers);
   if (needsFractionSymbol) {
     const hasFractionSymbol =
       question.keypadSymbols.includes("fraction") ||
@@ -718,11 +741,8 @@ function validateDiagram(diagram) {
     if (typeof diagram.heightValue !== "number" || !Number.isFinite(diagram.heightValue)) {
       return "diagram.heightValueが数値ではありません。";
     }
-    if (typeof diagram.pointPLabel !== "string" || diagram.pointPLabel.trim() === "") {
-      return "diagram.pointPLabelが空です。";
-    }
-    if (typeof diagram.pointQLabel !== "string" || diagram.pointQLabel.trim() === "") {
-      return "diagram.pointQLabelが空です。";
+    if (diagram.pointQMovesToward !== "A" && diagram.pointQMovesToward !== "D") {
+      return "diagram.pointQMovesTowardは\"A\"または\"D\"である必要があります。";
     }
   }
 
@@ -841,8 +861,12 @@ function validateQuadraticQuestion(question) {
   }
 
   // canonicalEquationに割り算（分数）が含まれる場合、分数ボタンをkeypadSymbolsに
-  // 用意しておく必要がある
-  if (equationContainsDivision(question.canonicalEquation.internal)) {
+  // 用意しておく必要がある（「1/2」のような分数カードがkeypadNumbersにあれば、
+  // それ自体で割り算を入力できるため例外とする）
+  if (
+    equationContainsDivision(question.canonicalEquation.internal) &&
+    !hasFractionKeypadNumber(question.keypadNumbers)
+  ) {
     const hasFractionSymbol =
       question.keypadSymbols.includes("fraction") ||
       question.keypadSymbols.includes("÷") ||

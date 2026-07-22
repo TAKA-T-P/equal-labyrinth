@@ -380,26 +380,28 @@ function buildOpenBoxNetRectSvg(diagram) {
 
 // ============================================================
 // 動点（L3-07）：長方形ABCDの辺上を、点P・点Qが移動する図（静止画）
+// A（左上）を起点に、点Pは常にA→B（下向き）、点Qは辺AD上をA→DまたはD→Aの
+// 向きへ動く。三角形APQをAの近くに小さく示し、矢印で移動の向きだけを表す
+// （動きはアニメーションではなく静止画のため、実際の位置・比率とは対応しない）。
 // ============================================================
 function buildMovingPointsRectangleSvg(diagram) {
   const widthValue = requireFiniteNumber(diagram.widthValue, "widthValue");
   const heightValue = requireFiniteNumber(diagram.heightValue, "heightValue");
-  const pointPLabel = requireNonEmptyString(diagram.pointPLabel, "pointPLabel");
-  const pointQLabel = requireNonEmptyString(diagram.pointQLabel, "pointQLabel");
   const ariaLabel = requireNonEmptyString(diagram.ariaLabel, "ariaLabel");
+  const pointQMovesToward = diagram.pointQMovesToward === "D" ? "D" : "A";
 
   const svg = createRootSvg(ariaLabel);
 
-  const rectX = 60;
-  const rectY = 40;
-  const rectW = 200;
-  const rectH = 140;
+  const rectX = 70;
+  const rectY = 56;
+  const rectW = 190;
+  const rectH = 120;
 
   const corners = {
     A: [rectX, rectY],
-    B: [rectX + rectW, rectY],
+    B: [rectX, rectY + rectH],
     C: [rectX + rectW, rectY + rectH],
-    D: [rectX, rectY + rectH]
+    D: [rectX + rectW, rectY]
   };
 
   svg.appendChild(
@@ -415,45 +417,28 @@ function buildMovingPointsRectangleSvg(diagram) {
   );
 
   const labelOffsets = {
-    A: [-10, -6],
-    B: [10, -6],
-    C: [10, 16],
-    D: [-10, 16]
+    A: [-13, -9],
+    B: [-13, 18],
+    C: [13, 18],
+    D: [13, -9]
   };
   Object.entries(corners).forEach(([name, [x, y]]) => {
     const [dx, dy] = labelOffsets[name];
     svg.appendChild(createSvgText(x + dx, y + dy, name, { "font-weight": "bold" }));
   });
 
-  svg.appendChild(createSvgText(rectX + rectW / 2, rectY + rectH + 24, `${widthValue}`));
+  // 「縦（AB）」＝右辺（DC）に沿ったひげ。左辺はP・矢印・ラベルが集中するため使わない。
+  const rightEdgeX = rectX + rectW;
+  svg.appendChild(createLengthWhisker(rightEdgeX, rectY, rightEdgeX, rectY + rectH, 18));
   svg.appendChild(
-    createSvgText(rectX - 18, rectY + rectH / 2, `${heightValue}`, {
-      transform: `rotate(-90 ${rectX - 18} ${rectY + rectH / 2})`
+    createSvgText(rightEdgeX + 30, rectY + rectH / 2, `${heightValue}`, {
+      transform: `rotate(-90 ${rightEdgeX + 30} ${rectY + rectH / 2})`
     })
   );
 
-  function appendMovingPoint(startCorner, towardCorner, label) {
-    const [sx, sy] = corners[startCorner];
-    const [tx, ty] = corners[towardCorner];
-    const markerX = sx + (tx - sx) * 0.3;
-    const markerY = sy + (ty - sy) * 0.3;
-
-    svg.appendChild(
-      createSvgElement("line", {
-        x1: sx,
-        y1: sy,
-        x2: sx + (tx - sx) * 0.5,
-        y2: sy + (ty - sy) * 0.5,
-        stroke: "currentColor",
-        "stroke-width": 2,
-        "marker-end": "url(#quadratic-diagram-arrowhead)"
-      })
-    );
-    svg.appendChild(
-      createSvgElement("circle", { cx: markerX, cy: markerY, r: 4, fill: "currentColor" })
-    );
-    svg.appendChild(createSvgText(markerX, markerY - 10, label, { "font-weight": "bold" }));
-  }
+  // 「横（AD）」＝下辺（BC）に沿ったひげ。上辺はQ・矢印・ラベルが集中するため使わない。
+  svg.appendChild(createLengthWhisker(rectX, rectY + rectH, rectX + rectW, rectY + rectH, 20));
+  svg.appendChild(createSvgText(rectX + rectW / 2, rectY + rectH + 34, `${widthValue}`));
 
   const defs = createSvgElement("defs");
   const marker = createSvgElement("marker", {
@@ -469,12 +454,50 @@ function buildMovingPointsRectangleSvg(diagram) {
   defs.appendChild(marker);
   svg.insertBefore(defs, svg.firstChild);
 
-  if (diagram.pointPStart && diagram.pointPMovesTo) {
-    appendMovingPoint(diagram.pointPStart, diagram.pointPMovesTo, pointPLabel);
-  }
-  if (diagram.pointQStart && diagram.pointQMovesTo) {
-    appendMovingPoint(diagram.pointQStart, diagram.pointQMovesTo, pointQLabel);
-  }
+  // 三角形APQ（Aの近くだけの、比率を伴わない模式的な位置）
+  const [ax, ay] = corners.A;
+  const pointP = [ax, ay + rectH * 0.4];
+  const pointQ = [ax + rectW * 0.35, ay];
+
+  svg.appendChild(
+    createSvgElement("path", {
+      d: `M ${ax} ${ay} L ${pointP[0]} ${pointP[1]} L ${pointQ[0]} ${pointQ[1]} Z`,
+      fill: "currentColor",
+      opacity: 0.15
+    })
+  );
+
+  // 点P：常にA→B（下向き）
+  const pArrowEndY = pointP[1] + 26;
+  svg.appendChild(
+    createSvgElement("line", {
+      x1: pointP[0],
+      y1: pointP[1],
+      x2: pointP[0],
+      y2: pArrowEndY,
+      stroke: "currentColor",
+      "stroke-width": 2,
+      "marker-end": "url(#quadratic-diagram-arrowhead)"
+    })
+  );
+  svg.appendChild(createSvgElement("circle", { cx: pointP[0], cy: pointP[1], r: 4, fill: "currentColor" }));
+  svg.appendChild(createSvgText(pointP[0] - 14, pointP[1] + 4, "P", { "font-weight": "bold" }));
+
+  // 点Q：pointQMovesTowardに応じて左（A向き）または右（D向き）
+  const qArrowEndX = pointQMovesToward === "A" ? pointQ[0] - 26 : pointQ[0] + 26;
+  svg.appendChild(
+    createSvgElement("line", {
+      x1: pointQ[0],
+      y1: pointQ[1],
+      x2: qArrowEndX,
+      y2: pointQ[1],
+      stroke: "currentColor",
+      "stroke-width": 2,
+      "marker-end": "url(#quadratic-diagram-arrowhead)"
+    })
+  );
+  svg.appendChild(createSvgElement("circle", { cx: pointQ[0], cy: pointQ[1], r: 4, fill: "currentColor" }));
+  svg.appendChild(createSvgText(pointQ[0], pointQ[1] - 10, "Q", { "font-weight": "bold" }));
 
   return svg;
 }

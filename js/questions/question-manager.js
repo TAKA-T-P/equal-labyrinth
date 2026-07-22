@@ -689,34 +689,29 @@ const QUADRATIC_FALLBACK_QUESTIONS = {
     categoryName: "動点",
     rankDifficulty: "HARD",
     prompt:
-      "1辺8cmの正方形ABCDがあります。点Pは頂点Cから出発して、Dに向かって毎秒1cmで辺の上を" +
-      "動きます。点Qは頂点Dを出発して、隣の頂点に向かって毎秒2cmで辺の上を動きます。" +
-      "2点が同時に出発してからx秒後の三角形DPQの面積が16cm²になるとき、xの値を求める2次方程式を立てなさい。",
+      "1辺の長さが10cmの正方形ABCDがある。点Pは頂点Aから頂点Bに向かって毎秒1cmの速さで動く。" +
+      "点Qは頂点Dから頂点Aに向かって毎秒1cmの速さで動く。2点が同時に出発してからx秒後の" +
+      "三角形APQの面積が12cm²になるとき、xの値を求める2次方程式を立てなさい。",
     variableDefinition: "2点が出発してからの時間（秒）",
     canonicalEquation: {
-      internal: "x*(8-x)=16",
-      display: "x(8−x)＝16",
+      internal: "(1/2)*x*(10-x)=12",
+      display: "1/2 x(10−x)＝12",
       relationName: "三角形の面積（底辺×高さ÷2）"
     },
-    expectedRoots: [4],
-    validXValues: [4],
-    solutionDisplay: "x＝4",
-    keypadNumbers: ["8", "16"],
-    keypadSymbols: ["x", "square", "-", "(", ")", "="],
-    hint: "DPの長さは「8−x」、DQの長さは「2x」と表せます。三角形の面積は「底辺×高さ÷2」で求められます。",
-    hintKeypadParts: [{ display: "（8−x）", value: "(8-x)", ariaLabel: "8ひくx" }],
-    explanation: "点P・点Qそれぞれの動いた距離を使って、三角形DPQの面積を式に表します。",
+    expectedRoots: [4, 6],
+    validXValues: [4, 6],
+    solutionDisplay: "x＝4、6",
+    keypadNumbers: ["10", "12", "1/2"],
+    keypadSymbols: ["x", "square", "×", "-", "(", ")", "="],
+    hint: "APの長さはx、AQの長さは「10−x」と表せます。三角形の面積は「底辺×高さ÷2」で求められます。",
+    hintKeypadParts: [{ display: "（10−x）", value: "(10-x)", ariaLabel: "10ひくx" }],
+    explanation: "点P・点Qそれぞれの動いた距離を使って、直角三角形APQの面積（AP×AQ÷2）を式に表します。",
     diagram: {
       type: "moving-points-rectangle",
-      widthValue: 8,
-      heightValue: 8,
-      pointPLabel: "P",
-      pointQLabel: "Q",
-      pointPStart: "C",
-      pointPMovesTo: "D",
-      pointQStart: "D",
-      pointQMovesTo: "A",
-      ariaLabel: "1辺8センチメートルの正方形ABCDで、点PはCからDへ、点QはDからAへ、それぞれ辺の上を移動する図"
+      widthValue: 10,
+      heightValue: 10,
+      pointQMovesToward: "A",
+      ariaLabel: "1辺10センチメートルの正方形ABCDで、点PはAからBへ、点QはDからAへ、それぞれ辺の上を移動する図"
     }
   },
   "L3-08": {
