@@ -81,7 +81,9 @@ function buildQTowardAQuestion({ templateId, isSquare, heightValue, widthValue, 
       `APの長さはx、AQの長さは「${lengthAD}−${qSpeedDisplayTerm}」と表せます。` +
       "三角形の面積は「底辺×高さ÷2」で求められます。",
     hintKeypadParts: [
-      { display: `（${lengthAD}−${qSpeedDisplayTerm}）`, value: `(${lengthAD}-${qSpeedInternalTerm})`, ariaLabel: `${lengthAD}ひく${qSpeedDisplayTerm}` }
+      // valueは解答欄にそのまま挿入されるため、"*"を含めず暗黙の乗法（tokenizer側で
+      // 自動的にTIMESを補う）に任せる（"2*x"ではなく"2x"のように表示させるため）。
+      { display: `（${lengthAD}−${qSpeedDisplayTerm}）`, value: `(${lengthAD}-${qSpeedDisplayTerm})`, ariaLabel: `${lengthAD}ひく${qSpeedDisplayTerm}` }
     ],
     explanation:
       "点P・点Qそれぞれの動いた距離を使って、直角三角形APQの面積（AP×AQ÷2）を式に表します。",
@@ -144,7 +146,8 @@ function buildQTowardDQuestion({ templateId, heightValue, widthValue, qSpeed }) 
     hint:
       `APの長さはx、AQの長さは「${qSpeed}x」と表せます。` +
       "三角形の面積は「底辺×高さ÷2」で求められます。",
-    hintKeypadParts: [{ display: `${qSpeed}x`, value: `${qSpeed}*x`, ariaLabel: `${qSpeed}かけるx` }],
+    // valueは解答欄にそのまま挿入されるため、"*"を含めず暗黙の乗法に任せる。
+    hintKeypadParts: [{ display: `${qSpeed}x`, value: `${qSpeed}x`, ariaLabel: `${qSpeed}かけるx` }],
     explanation:
       "点P・点Qそれぞれの動いた距離を使って、直角三角形APQの面積（AP×AQ÷2）を式に表します。",
 

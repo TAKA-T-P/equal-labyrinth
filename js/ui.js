@@ -895,11 +895,53 @@ function createKeypadButton(label, inputValue, extraClass) {
   return button;
 }
 
+const NUMBER_FRACTION_PATTERN = /^(\d+)\/(\d+)$/;
+
+/**
+ * 「1/2」のような分数の数字カードを、上下型分数の見た目で作る。
+ * data-inputValue・data-keyTypeはkey-button--numberと同じ（"1/2"という文字列を
+ * そのまま解答欄へ挿入する）ため、押したときの処理（onKeyPress）は変わらない。
+ * 見た目だけを、ヒントパーツの分数カードと同じ組み方（分子・分数線・分母）にする。
+ */
+function createFractionNumberButton(numberText, numerator, denominator) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "key-button key-button--number key-button--number-fraction";
+  button.dataset.inputValue = numberText;
+  button.dataset.keyType = "number";
+
+  const fraction = document.createElement("span");
+  fraction.className = "math-fraction math-fraction--number-key";
+
+  const numeratorNode = document.createElement("span");
+  numeratorNode.className = "math-fraction__numerator";
+  numeratorNode.textContent = numerator;
+
+  const bar = document.createElement("span");
+  bar.className = "math-fraction__bar";
+
+  const denominatorNode = document.createElement("span");
+  denominatorNode.className = "math-fraction__denominator";
+  denominatorNode.textContent = denominator;
+
+  fraction.appendChild(numeratorNode);
+  fraction.appendChild(bar);
+  fraction.appendChild(denominatorNode);
+  button.appendChild(fraction);
+
+  return button;
+}
+
 function renderNumberKeys(numbers) {
   elements.keypadNumbers.innerHTML = "";
   numbers.forEach((numberText) => {
-    const button = createKeypadButton(numberText, numberText, "key-button--number");
-    button.dataset.keyType = "number";
+    const fractionMatch = numberText.match(NUMBER_FRACTION_PATTERN);
+    const button = fractionMatch
+      ? createFractionNumberButton(numberText, fractionMatch[1], fractionMatch[2])
+      : createKeypadButton(numberText, numberText, "key-button--number");
+    if (!fractionMatch) {
+      button.dataset.keyType = "number";
+    }
     elements.keypadNumbers.appendChild(button);
   });
 }

@@ -1045,6 +1045,24 @@ input[type="range"] {
   padding: 0 0.15em;
 }
 
+/* 「1/2」など、分数の数字カード（ヒントパーツではなく通常の数値ボタン） */
+.key-button--number-fraction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 3px 12px;
+}
+
+.key-button--number-fraction .math-fraction {
+  margin: 0;
+}
+
+.key-button--number-fraction .math-fraction__numerator,
+.key-button--number-fraction .math-fraction__denominator {
+  padding: 0 0.15em;
+}
+
 /* ヒントを開いたことが分かるよう、ヒントボタンの見た目を控えめに変える */
 #hint-button.is-revealed {
   border-style: dashed;
