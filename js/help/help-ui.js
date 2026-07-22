@@ -24,10 +24,12 @@ const elements = {
 
   howToPlayContent: document.getElementById("how-to-play-content"),
   howToPlayBackButton: document.getElementById("how-to-play-back-button"),
+  howToPlayBackButtonTop: document.getElementById("how-to-play-back-button-top"),
 
   itemCatalogSummary: document.getElementById("item-catalog-summary"),
   itemCatalogGrid: document.getElementById("item-catalog-grid"),
   itemCatalogBackButton: document.getElementById("item-catalog-back-button"),
+  itemCatalogBackButtonTop: document.getElementById("item-catalog-back-button-top"),
 
   resetBackdrop: document.getElementById("reset-confirm-backdrop"),
   resetStep1: document.getElementById("reset-confirm-step1"),
@@ -435,6 +437,8 @@ export function initHelpUI() {
 
   elements.howToPlayBackButton.addEventListener("click", backToHelpMenuFromHowToPlay);
   elements.itemCatalogBackButton.addEventListener("click", backToHelpMenuFromCatalog);
+  elements.howToPlayBackButtonTop?.addEventListener("click", backToHelpMenuFromHowToPlay);
+  elements.itemCatalogBackButtonTop?.addEventListener("click", backToHelpMenuFromCatalog);
 
   elements.resetStep1No.addEventListener("click", () => closeResetConfirm({ restoreFocus: true }));
   elements.resetStep1Yes.addEventListener("click", openResetStep2);

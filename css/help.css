@@ -39,6 +39,25 @@
   margin: 8px 0 4px;
 }
 
+/* 見出しと、画面右上の小さな「もどる」ボタンを並べる行
+   （このゲームの遊び方・アイテム図鑑の画面下部にある大きな「もどる」ボタンとは別に、
+   スクロール後すぐ押せるよう画面上部にも用意する）。 */
+.help-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.help-topbar .help-heading {
+  flex: 1 1 auto;
+  margin: 8px 0;
+}
+
+.help-topbar-back-button {
+  flex: 0 0 auto;
+}
+
 .help-back-button {
   width: 100%;
   min-height: 44px;

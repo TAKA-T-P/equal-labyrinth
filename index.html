@@ -511,7 +511,17 @@
   <!-- このゲームの遊び方 -->
   <section id="screen-how-to-play" class="screen" data-screen="how-to-play" hidden>
     <div class="screen-inner help-screen">
-      <h1 class="help-heading">このゲームの遊び方</h1>
+      <div class="help-topbar">
+        <h1 class="help-heading">このゲームの遊び方</h1>
+        <button
+          type="button"
+          id="how-to-play-back-button-top"
+          class="icon-button help-topbar-back-button"
+          aria-label="ヘルプメニューにもどる"
+        >
+          もどる
+        </button>
+      </div>
       <div id="how-to-play-content" class="help-accordion"></div>
       <button type="button" id="how-to-play-back-button" class="secondary-button help-back-button">
         ← ヘルプメニューにもどる
@@ -522,7 +532,17 @@
   <!-- アイテム図鑑 -->
   <section id="screen-item-catalog" class="screen" data-screen="item-catalog" hidden>
     <div class="screen-inner help-screen">
-      <h1 class="help-heading">アイテム図鑑</h1>
+      <div class="help-topbar">
+        <h1 class="help-heading">アイテム図鑑</h1>
+        <button
+          type="button"
+          id="item-catalog-back-button-top"
+          class="icon-button help-topbar-back-button"
+          aria-label="ヘルプメニューにもどる"
+        >
+          もどる
+        </button>
+      </div>
       <p id="item-catalog-summary" class="help-catalog-summary" aria-live="polite"></p>
       <div id="item-catalog-grid" class="help-item-grid"></div>
       <button type="button" id="item-catalog-back-button" class="secondary-button help-back-button">
