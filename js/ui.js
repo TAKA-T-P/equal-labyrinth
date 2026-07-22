@@ -531,9 +531,10 @@ export function renderQuestionPrompt(prompt) {
 
 /**
  * 2次方程式の図形問題（十字路・ふたのない箱・動点）の図を準備する。
- * 図はこの時点では表示しない。「図を表示」ボタンを押すまでは前面カードを開かず、
+ * 描画に成功した場合は、出題と同時に図の前面カードを自動的に開く
+ * （閉じたあとは「図を表示」ボタンでいつでも再び開ける）。
  * diagramがnull、または描画に失敗した問題（quadratic-diagram-renderer.js側の責務）では
- * 「図を表示」ボタン自体を表示しない。
+ * 「図を表示」ボタン自体を表示せず、前面カードも開かない。
  */
 export function renderDiagram(diagram) {
   if (!elements.diagramContainer) return;
@@ -557,7 +558,11 @@ export function renderDiagram(diagram) {
     }
   }
 
-  hideDiagramPanel();
+  if (renderedSuccessfully) {
+    showDiagramPanel();
+  } else {
+    hideDiagramPanel();
+  }
 }
 
 export function showDiagramPanel() {
