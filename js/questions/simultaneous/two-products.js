@@ -99,33 +99,33 @@ export const twoProductsTemplates = [
 
         prompt:
           `1個${priceCake}円のケーキを、1個${priceCookie}円のクッキーより${diff}個多く買いました。` +
-          `代金の合計は${total}円です。クッキーの個数をx個、ケーキの個数をy個として、` +
+          `代金の合計は${total}円です。ケーキの個数をx個、クッキーの個数をy個として、` +
           `連立方程式を立てなさい。`,
 
         variableDefinitions: {
-          x: "クッキーの個数",
-          y: "ケーキの個数"
+          x: "ケーキの個数",
+          y: "クッキーの個数"
         },
 
-        expectedSolution: { x: cookieCount, y: cakeCount },
+        expectedSolution: { x: cakeCount, y: cookieCount },
 
         canonicalEquations: [
-          { internal: `y=x+${diff}`, display: `y＝x＋${diff}`, relationName: "個数の関係" },
+          { internal: `x=y+${diff}`, display: `x＝y＋${diff}`, relationName: "個数の関係" },
           {
-            internal: `${priceCookie}*x+${priceCake}*y=${total}`,
-            display: `${priceCookie}x＋${priceCake}y＝${total}`,
+            internal: `${priceCake}*x+${priceCookie}*y=${total}`,
+            display: `${priceCake}x＋${priceCookie}y＝${total}`,
             relationName: "代金の合計"
           }
         ],
 
-        solutionDisplay: `x＝${cookieCount}、y＝${cakeCount}`,
+        solutionDisplay: `x＝${cakeCount}、y＝${cookieCount}`,
 
         keypadNumbers: buildKeypadNumbers([diff, priceCookie, priceCake, total]),
         keypadSymbols: KEYPAD_SYMBOLS_DIFF,
 
         hint: `ケーキの個数は「クッキーの個数＋${diff}」と表せます。`,
         hintKeypadParts: [
-          { display: `x＋${diff}`, value: `x+${diff}`, ariaLabel: `xたす${diff}` }
+          { display: `y＋${diff}`, value: `y+${diff}`, ariaLabel: `yたす${diff}` }
         ],
 
         explanation: "個数の関係と、代金の合計から2本の式を作ります。"
