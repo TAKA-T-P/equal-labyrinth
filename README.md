@@ -992,7 +992,7 @@ STAGE 3/5　Hの部屋
 制限時間は「問題ごと」ではなく「部屋ごと」に1本のタイマーを共有する。たとえば必要正解数2問・
 制限時間54秒の部屋なら、1問目の開始時点で54秒からカウントダウンが始まり、1問目に正解しても
 リセットされず、2問目もそのまま同じカウントダウンを引き継ぐ。制限時間は、単元ごとの基準時間
-`UNIT_CONFIG[unit].baseTimeSeconds`（1次方程式12秒／連立方程式20秒／2次方程式14秒）に、
+`UNIT_CONFIG[unit].baseTimeSeconds`（1次方程式12秒／連立方程式20秒／2次方程式16秒）に、
 部屋データの`timeLimitMultiplier`を掛けて算出する（`null`の部屋は制限時間なし）。
 時間切れは、段位認定モードのような30秒の猶予期間を設けず、即座に部屋の失敗になる。
 
@@ -1419,7 +1419,7 @@ HARDを選ぶと、**HARD専用カテゴリだけでなくNORMALのカテゴリ�
 ## コンボ継続ゲージ計算
 
 単元ごとの基準時間`timeB`を`js/config.js`の`UNIT_CONFIG[unit].baseTimeSeconds`から取得し
-（1次方程式＝12秒、連立方程式＝20秒、2次方程式＝14秒）、ゲージの基本継続時間を`timeB × 2`とする。
+（1次方程式＝12秒、連立方程式＝20秒、2次方程式＝16秒）、ゲージの基本継続時間を`timeB × 2`とする。
 現在のコンボ数を`n`とすると、ゲージの減少速度は`1 + 0.05n`倍になり、
 実際にゲージが空になるまでの時間は`(timeB × 2) ÷ (1 + 0.05n)`秒になる。
 この計算式自体は単元によらず共通で、`js/rank/combo-manager.js`の`createComboState(baseTimeSeconds)`が
@@ -1463,7 +1463,7 @@ HARDを選ぶと、**HARD専用カテゴリだけでなくNORMALのカテゴリ�
 ## 段位計算（`js/rank/rank-calculator.js`）
 
 正解した問題の解答時間の平均を`timeA`、基準時間`timeB`（`UNIT_CONFIG[unit].baseTimeSeconds`。
-1次方程式は12秒、連立方程式は20秒、2次方程式は14秒）として、次の式で基本段位係数を計算する
+1次方程式は12秒、連立方程式は20秒、2次方程式は16秒）として、次の式で基本段位係数を計算する
 （小数点以下切り上げ）。
 
 ```javascript
@@ -1563,7 +1563,7 @@ console.log(result.displayRankName); // "皆伝"
 同様に`js/rank/combo-manager.js`（`createComboState(baseTimeSeconds)` → `registerCorrect()` /
 `tick()` / `registerPass()`）、`js/rank/score-manager.js`
 （`calculateCorrectPoints()` / `calculateIncorrectPoints()`）も、ブラウザなしで
-単体テストできる。連立方程式の基準時間（20秒）・2次方程式の基準時間（14秒）でコンボゲージを
+単体テストできる。連立方程式の基準時間（20秒）・2次方程式の基準時間（16秒）でコンボゲージを
 検証する場合は、`createComboState(20)` / `createComboState(14)`のように明示的に渡す
 （省略時は1次方程式の12秒がデフォルト）。
 

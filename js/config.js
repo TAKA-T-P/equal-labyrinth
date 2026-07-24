@@ -47,7 +47,7 @@ export const UNIT_CONFIG = {
   },
   [UNIT_IDS.QUADRATIC]: {
     displayName: "2次方程式",
-    baseTimeSeconds: 14,
+    baseTimeSeconds: 16,
     inputMode: INPUT_MODES.SINGLE
   }
 };
