@@ -395,6 +395,7 @@ function renderEmojiList(container, entries) {
 export function renderQuestSummary(data) {
   elements.summaryHeading.textContent = data.heading;
   elements.summaryMessage.textContent = data.message;
+  elements.summaryMessage.hidden = !data.message;
 
   // ボス撃破エンディングのときだけ、画面に光が差し込むような背景演出を出す
   // （敗走エンディング・リタイア結果には出さない）

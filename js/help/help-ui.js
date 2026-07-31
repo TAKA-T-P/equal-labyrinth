@@ -9,7 +9,7 @@ import { showScreen, appendStyledVariableParts } from "../ui.js";
 import { HOW_TO_PLAY_SECTIONS } from "./help-content.js";
 import { buildItemCatalog } from "./item-catalog.js";
 import { resetAllEqualLabyrinthData } from "./data-reset.js";
-import { resetExampleCatalogView } from "./example-ui.js";
+import { openExampleCatalogFromHelpMenu } from "./example-ui.js";
 
 // 第2確認を開いた直後、短時間だけ「はい」を無効にする猶予（誤操作防止）
 const RESET_STEP2_INITIAL_DISABLE_MS = 500;
@@ -27,9 +27,6 @@ const elements = {
   howToPlayContent: document.getElementById("how-to-play-content"),
   howToPlayBackButton: document.getElementById("how-to-play-back-button"),
   howToPlayBackButtonTop: document.getElementById("how-to-play-back-button-top"),
-
-  exampleCatalogBackButton: document.getElementById("example-catalog-back-button"),
-  exampleCatalogBackButtonTop: document.getElementById("example-catalog-back-button-top"),
 
   itemCatalogSummary: document.getElementById("item-catalog-summary"),
   itemCatalogGrid: document.getElementById("item-catalog-grid"),
@@ -84,12 +81,8 @@ function backToHelpMenuFromHowToPlay() {
 }
 
 function openExampleCatalog() {
-  resetExampleCatalogView();
+  openExampleCatalogFromHelpMenu();
   showScreen("example-catalog");
-}
-
-function backToHelpMenuFromExampleCatalog() {
-  showScreen("help-menu");
 }
 
 function openItemCatalog() {
@@ -464,8 +457,6 @@ export function initHelpUI() {
   elements.itemCatalogBackButton.addEventListener("click", backToHelpMenuFromCatalog);
   elements.howToPlayBackButtonTop?.addEventListener("click", backToHelpMenuFromHowToPlay);
   elements.itemCatalogBackButtonTop?.addEventListener("click", backToHelpMenuFromCatalog);
-  elements.exampleCatalogBackButton?.addEventListener("click", backToHelpMenuFromExampleCatalog);
-  elements.exampleCatalogBackButtonTop?.addEventListener("click", backToHelpMenuFromExampleCatalog);
 
   elements.resetStep1No.addEventListener("click", () => closeResetConfirm({ restoreFocus: true }));
   elements.resetStep1Yes.addEventListener("click", openResetStep2);

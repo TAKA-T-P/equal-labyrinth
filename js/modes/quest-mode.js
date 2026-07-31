@@ -788,10 +788,7 @@ async function handleRetireConfirmYes() {
   ui.showScreen("quest");
   questUi.showQuestScreen();
   await questEffects.playRetreatEffect();
-  await showQuestSummaryScreen(
-    "リタイアしました",
-    "今回手に入れた財宝は、次の冒険にも引き継がれます。"
-  );
+  await showQuestSummaryScreen("リタイアしました", "");
 }
 
 // ============================================================

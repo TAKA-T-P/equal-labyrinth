@@ -65,16 +65,22 @@ export const agesTemplates = [
     categoryId: CATEGORY_ID,
 
     generate() {
-      return buildMotherChildPastQuestion({
-        childPastAge: randomInt(2, 15),
-        multiplier: randomInt(2, 5),
-        yearsAgo: randomInt(3, 10)
-      });
+      const childPastAge = randomInt(2, 15);
+      const multiplier = randomInt(2, 5);
+      const yearsAgo = randomInt(3, 10);
+
+      // 母と子の年齢差は、現在も過去も変わらず(multiplier-1)*childPastAgeになる。
+      // 非現実的に年齢が近い親子（差18歳未満）にならないよう、その場合は生成し直す。
+      if ((multiplier - 1) * childPastAge < 18) {
+        return this.generate();
+      }
+
+      return buildMotherChildPastQuestion({ childPastAge, multiplier, yearsAgo });
     },
 
     // 例題確認（ヘルプメニュー）専用：固定値で毎回同じ代表例題を返す。
     generateExample() {
-      return buildMotherChildPastQuestion({ childPastAge: 8, multiplier: 3, yearsAgo: 5 });
+      return buildMotherChildPastQuestion({ childPastAge: 8, multiplier: 4, yearsAgo: 5 });
     }
   },
 
@@ -92,7 +98,9 @@ export const agesTemplates = [
       const x = fatherFutureAge - yearsLater; // 父の現在の年齢
       const sum = x + y;
 
-      if (y <= 0 || x <= 0) {
+      // 父と娘の年齢差は、現在も未来も変わらず(multiplier-1)*daughterFutureAgeになる。
+      // 非現実的に年齢が近い親子（差18歳未満）にならないよう、その場合は生成し直す。
+      if (y <= 0 || x <= 0 || x - y < 18) {
         return this.generate();
       }
 

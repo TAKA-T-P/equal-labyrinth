@@ -43,7 +43,7 @@ import { tokenize, TokenType } from "./equation/tokenizer.js";
 import * as rankMode from "./modes/rank-mode.js";
 import * as questMode from "./modes/quest-mode.js";
 import { initHelpUI } from "./help/help-ui.js";
-import { initExampleUI } from "./help/example-ui.js";
+import { initExampleUI, openExampleCatalogForQuestion } from "./help/example-ui.js";
 
 let questionQueue = [];
 
@@ -208,6 +208,7 @@ export function initGame() {
     onNextQuestion: handleNextQuestion,
     onRetryQuestion: handleRetryQuestion,
     onHintRequest: handleHintRequest,
+    onHintExampleRequest: handleHintExampleRequest,
     onPass: handlePass,
     onPassConfirmYes: handlePassConfirmYes,
     onPassConfirmNo: handlePassConfirmNo,
@@ -1128,6 +1129,9 @@ function handleHintRequest() {
 
   gameState.hintVisible = true;
   ui.showHintPanel(gameState.currentQuestion.hint);
+  // 「例題確認」ボタンは、時間制限のないトレーニングでのみ表示する
+  // （段位認定・クエストなど時間制限があるモードでは出現しない）。
+  ui.setHintExampleButtonVisible(gameState.mode === "training");
 
   // 二重実行防止：式パーツの公開は最初の1回だけ行う
   if (gameState.currentQuestionHintUsed) return;
@@ -1143,6 +1147,19 @@ function handleHintRequest() {
   }
 
   ui.setHintButtonRevealed(true);
+}
+
+/**
+ * ヒントウィンドウの「例題確認」ボタン。現在出題されているカテゴリの代表例題を、
+ * ヘルプメニューの「例題確認」と同じ画面で表示する（時間制限のあるモードでは
+ * ボタン自体を表示していないため、ここでもgameState.modeを保険として確認する）。
+ */
+function handleHintExampleRequest() {
+  if (gameState.mode !== "training" || !gameState.currentQuestion) return;
+
+  ui.hideHintPanel();
+  openExampleCatalogForQuestion(gameState.unit, gameState.currentQuestion.categoryId);
+  ui.showScreen("example-catalog");
 }
 
 // ============================================================

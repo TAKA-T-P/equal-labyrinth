@@ -181,9 +181,16 @@ body.is-hint-open .prompt-card {
   width: 100%;
 }
 
-.hint-close-button {
+.hint-panel-actions {
+  display: flex;
+  gap: 8px;
   margin-top: 12px;
-  width: 100%;
+}
+
+.hint-panel-actions .hint-close-button,
+.hint-panel-actions .hint-example-button {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .quadratic-diagram-container {

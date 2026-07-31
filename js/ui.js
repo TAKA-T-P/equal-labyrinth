@@ -91,6 +91,7 @@ const elements = {
   hintPanel: document.getElementById("hint-panel"),
   hintText: document.getElementById("hint-text"),
   hintCloseButton: document.getElementById("hint-close-button"),
+  hintExampleButton: document.getElementById("hint-example-button"),
   passConfirmBackdrop: document.getElementById("pass-confirm-backdrop"),
   passConfirmPanel: document.getElementById("pass-confirm-panel"),
   passConfirmYesButton: document.getElementById("pass-confirm-yes"),
@@ -806,6 +807,16 @@ export function hideHintPanel() {
   elements.hintPanel.hidden = true;
   elements.hintBackdrop.hidden = true;
   document.body.classList.remove("is-hint-open");
+}
+
+/**
+ * ヒントウィンドウ内の「例題確認」ボタンの表示・非表示を切り替える。
+ * 段位認定・クエストなど時間制限があるモードでは表示しない（トレーニングのみ）。
+ */
+export function setHintExampleButtonVisible(visible) {
+  if (elements.hintExampleButton) {
+    elements.hintExampleButton.hidden = !visible;
+  }
 }
 
 export function isHintPanelOpen() {
@@ -1599,6 +1610,12 @@ export function initUI(callbacks) {
   elements.hintButton.addEventListener("click", () => {
     callbacks.onHintRequest();
   });
+
+  if (elements.hintExampleButton) {
+    elements.hintExampleButton.addEventListener("click", () => {
+      callbacks.onHintExampleRequest();
+    });
+  }
 
   elements.passButton.addEventListener("click", () => {
     callbacks.onPass();
