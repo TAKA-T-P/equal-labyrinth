@@ -1,13 +1,20 @@
 // localStorageの読み書きを担当するモジュール
 // 保存に失敗しても、アプリが停止しないようにする。
 
-import { APP_CONFIG, SELECTABLE_MODE_IDS, SELECTABLE_UNIT_IDS } from "./config.js";
+import {
+  APP_CONFIG,
+  SELECTABLE_MODE_IDS,
+  SELECTABLE_UNIT_IDS,
+  SELECTABLE_TRAINING_ANSWER_FORMATS,
+  DEFAULT_TRAINING_ANSWER_FORMAT
+} from "./config.js";
 
 const KEYS = {
   soundEnabled: `${APP_CONFIG.storageKeyPrefix}.soundEnabled`,
   totalQuestions: `${APP_CONFIG.storageKeyPrefix}.totalQuestions`,
   selectedMode: `${APP_CONFIG.storageKeyPrefix}.selectedMode`,
-  selectedUnit: `${APP_CONFIG.storageKeyPrefix}.selectedUnit`
+  selectedUnit: `${APP_CONFIG.storageKeyPrefix}.selectedUnit`,
+  trainingAnswerFormat: `${APP_CONFIG.storageKeyPrefix}.training.answerFormat`
 };
 
 function selectedCategoriesKey(unit) {
@@ -90,6 +97,26 @@ export function loadSelectedUnit(defaultValue) {
   const raw = safeGetItem(KEYS.selectedUnit);
   if (raw === null || !SELECTABLE_UNIT_IDS.includes(raw)) {
     return defaultValue;
+  }
+  return raw;
+}
+
+/**
+ * トレーニングモードの出題形式（"easy"＝おてがる／"standard"＝スタンダード）を保存する
+ * （キー：equalLabyrinth.training.answerFormat）。
+ */
+export function saveTrainingAnswerFormat(format) {
+  safeSetItem(KEYS.trainingAnswerFormat, format);
+}
+
+/**
+ * 出題形式を読み込む。未設定・旧バージョン・不正な値の場合は、
+ * 従来どおりの「スタンダード」へフォールバックする。
+ */
+export function loadTrainingAnswerFormat() {
+  const raw = safeGetItem(KEYS.trainingAnswerFormat);
+  if (raw === null || !SELECTABLE_TRAINING_ANSWER_FORMATS.includes(raw)) {
+    return DEFAULT_TRAINING_ANSWER_FORMAT;
   }
   return raw;
 }

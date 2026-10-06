@@ -1,6 +1,6 @@
 // ゲーム状態の一元管理
 
-import { APP_CONFIG } from "./config.js";
+import { APP_CONFIG, DEFAULT_TRAINING_ANSWER_FORMAT } from "./config.js";
 
 export const gameState = {
   screen: "title",
@@ -8,6 +8,18 @@ export const gameState = {
   mode: "training", // "training" | "rank"
   unit: "linear",
   rankDifficulty: "NORMAL", // "NORMAL" | "HARD"（段位認定モードでのみ使用）
+
+  // トレーニングモードの出題形式（"easy"＝おてがる／"standard"＝スタンダード）
+  trainingAnswerFormat: DEFAULT_TRAINING_ANSWER_FORMAT,
+
+  // ============================================================
+  // トレーニング「おてがる」（4択）専用：数式入力トークンとは別に管理する
+  // ============================================================
+  currentEasyChoices: [],
+  currentEasyCorrectChoiceId: null,
+  selectedEasyChoiceId: null,
+  eliminatedEasyChoiceIds: [],
+  easyChoiceAttempts: [],
 
   selectedCategories: [],
   totalQuestions: APP_CONFIG.defaultQuestions,
@@ -150,6 +162,8 @@ export function resetQuestionState() {
   gameState.passAvailable = false;
 
   gameState.inputLocked = false;
+
+  resetEasyChoiceState();
 }
 
 export function setScreen(screenName) {
@@ -379,4 +393,66 @@ export function clearActiveSystemInput() {
 
 export function getCurrentSystemInputStrings() {
   return gameState.currentSystemInputTokens.map((tokens) => serializeInputTokens(tokens));
+}
+
+// ============================================================
+// トレーニングの出題形式・「おてがる」（4択）の状態を操作する専用関数
+// 4択の選択状態は、数式入力トークン（currentInputTokensなど）とは混ぜずに管理する。
+// ============================================================
+
+export function setTrainingAnswerFormat(format) {
+  gameState.trainingAnswerFormat = format;
+}
+
+/**
+ * 4択の選択状態（選択中・×をつけた選択肢・選択履歴）だけを初期化する。
+ * 選択肢そのもの（currentEasyChoices）は、問題ごとにsetEasyChoices()で設定する。
+ */
+export function resetEasyChoiceState() {
+  gameState.currentEasyChoices = [];
+  gameState.currentEasyCorrectChoiceId = null;
+  gameState.selectedEasyChoiceId = null;
+  gameState.eliminatedEasyChoiceIds = [];
+  gameState.easyChoiceAttempts = [];
+}
+
+/**
+ * 問題を表示する前に1回だけ作った4択を、現在の問題の状態として保存する。
+ */
+export function setEasyChoices(choices, correctChoiceId) {
+  gameState.currentEasyChoices = choices;
+  gameState.currentEasyCorrectChoiceId = correctChoiceId;
+  gameState.selectedEasyChoiceId = null;
+  gameState.eliminatedEasyChoiceIds = [];
+  gameState.easyChoiceAttempts = [];
+}
+
+export function getEasyChoiceById(choiceId) {
+  return gameState.currentEasyChoices.find((choice) => choice.id === choiceId) || null;
+}
+
+export function selectEasyChoice(choiceId) {
+  gameState.selectedEasyChoiceId = choiceId;
+}
+
+export function clearEasyChoiceSelection() {
+  gameState.selectedEasyChoiceId = null;
+}
+
+export function eliminateEasyChoice(choiceId) {
+  if (!gameState.eliminatedEasyChoiceIds.includes(choiceId)) {
+    gameState.eliminatedEasyChoiceIds.push(choiceId);
+  }
+}
+
+/**
+ * 解答した選択肢を、選んだ順に記録する（問題履歴のselectedChoiceHistoryになる）。
+ */
+export function recordEasyChoiceAttempt(choice, correct) {
+  gameState.easyChoiceAttempts.push({
+    choiceId: choice.id,
+    label: choice.label,
+    equations: [...choice.equations],
+    correct
+  });
 }

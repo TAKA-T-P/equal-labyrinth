@@ -3,7 +3,10 @@
 
 import { APP_CONFIG, UNIT_CONFIG, UNIT_IDS } from "./config.js";
 import { formatScore } from "./rank/score-manager.js";
-import { renderFormattedEquation } from "./equation/equation-formatter.js";
+import {
+  renderFormattedEquation,
+  formatEquationForDisplay
+} from "./equation/equation-formatter.js";
 import { renderQuadraticDiagram } from "./diagrams/quadratic-diagram-renderer.js";
 
 const elements = {
@@ -32,6 +35,8 @@ const elements = {
   difficultyNormalButton: document.getElementById("difficulty-normal"),
   difficultyHardButton: document.getElementById("difficulty-hard"),
   trainingOnlySettings: document.getElementById("training-only-settings"),
+  answerFormatEasyButton: document.getElementById("answer-format-easy"),
+  answerFormatStandardButton: document.getElementById("answer-format-standard"),
   questionCountRow: document.getElementById("question-count-row"),
   questionCountSlider: document.getElementById("question-count-slider"),
   questionCountLabel: document.getElementById("question-count-label"),
@@ -87,9 +92,14 @@ const elements = {
   ],
   inputGuidance: document.getElementById("input-guidance"),
   judgeMessage: document.getElementById("judge-message"),
+  easyChoicePanel: document.getElementById("easy-choice-panel"),
+  easyChoiceList: document.getElementById("easy-choice-list"),
+  easyChoiceFeedback: document.getElementById("easy-choice-feedback"),
   hintBackdrop: document.getElementById("hint-backdrop"),
   hintPanel: document.getElementById("hint-panel"),
   hintText: document.getElementById("hint-text"),
+  hintReference: document.getElementById("hint-reference"),
+  hintReferenceList: document.getElementById("hint-reference-list"),
   hintCloseButton: document.getElementById("hint-close-button"),
   hintExampleButton: document.getElementById("hint-example-button"),
   passConfirmBackdrop: document.getElementById("pass-confirm-backdrop"),
@@ -101,6 +111,8 @@ const elements = {
   answerRevealStatus: document.getElementById("answer-reveal-status"),
   modelEquationsContainer: document.getElementById("model-equations-container"),
   solutionText: document.getElementById("solution-text"),
+  answerRevealPoint: document.getElementById("answer-reveal-point"),
+  answerRevealPointText: document.getElementById("answer-reveal-point-text"),
   nextQuestionButton: document.getElementById("next-question-button"),
   retryQuestionButton: document.getElementById("retry-question-button"),
   hintButton: document.getElementById("hint-button"),
@@ -112,6 +124,7 @@ const elements = {
 
   // 結果画面（トレーニング）
   resultHeading: document.getElementById("result-heading"),
+  statAnswerFormat: document.getElementById("stat-answer-format"),
   statTotal: document.getElementById("stat-total"),
   statCorrect: document.getElementById("stat-correct"),
   statIncorrect: document.getElementById("stat-incorrect"),
@@ -556,6 +569,23 @@ export function renderModeSelection(mode) {
   elements.screens.title.classList.toggle("mode-tint-quest", isQuest);
 }
 
+/**
+ * トレーニングの出題形式（おてがる／スタンダード）の選択状態を表示する。
+ * この設定欄は#training-only-settingsの中にあるため、トレーニング選択時だけ表示される。
+ * @param {"easy"|"standard"} format
+ */
+export function renderTrainingAnswerFormatSelection(format) {
+  [
+    [elements.answerFormatEasyButton, "easy"],
+    [elements.answerFormatStandardButton, "standard"]
+  ].forEach(([button, buttonFormat]) => {
+    if (!button) return;
+    const isSelected = buttonFormat === format;
+    button.classList.toggle("is-selected", isSelected);
+    button.setAttribute("aria-pressed", String(isSelected));
+  });
+}
+
 export function renderDifficultySelection(difficulty) {
   const isNormal = difficulty === "NORMAL";
   elements.difficultyNormalButton.classList.toggle("is-selected", isNormal);
@@ -729,6 +759,151 @@ export function showEquationInputMode(unit) {
   elements.equationInputSingle.hidden = isSystem;
   elements.equationInputSystem.hidden = !isSystem;
   elements.equationSwitchButton.hidden = !isSystem;
+}
+
+// ============================================================
+// トレーニング「おてがる」（4択）
+// ============================================================
+
+/**
+ * 「おてがる」の画面構成へ切り替える（enabled=falseで通常の数式入力へ戻す）。
+ * おてがるでは、数式入力欄・数式キーボード（数字・記号・編集キー）・式切替ボタンを隠し、
+ * 4択の選択肢を表示する。問題文・図・ヒント・パス・解答ボタンはそのまま使う。
+ * enabled=falseのときは、数式入力欄（1本／2本）の表示はshowEquationInputMode()に任せる。
+ */
+export function showEasyChoiceMode(enabled) {
+  elements.easyChoicePanel.hidden = !enabled;
+  elements.mathKeyboard.hidden = enabled;
+  elements.screens.game.classList.toggle("is-easy-format", enabled);
+  if (enabled) {
+    elements.equationInputSingle.hidden = true;
+    elements.equationInputSystem.hidden = true;
+    elements.equationSwitchButton.hidden = true;
+  }
+}
+
+const CIRCLED_EQUATION_NUMBERS = ["①", "②"];
+
+function createEasyChoiceCard(choice, view) {
+  const isEliminated = view.eliminatedIds.includes(choice.id);
+  const isSelected = view.selectedId === choice.id;
+  const isRevealedCorrect = view.revealedCorrectId === choice.id;
+
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "easy-choice-card";
+  card.dataset.choiceId = choice.id;
+  card.setAttribute("role", "radio");
+  card.setAttribute("aria-checked", String(isSelected));
+  card.classList.toggle("is-selected", isSelected && !isEliminated);
+  card.classList.toggle("is-eliminated", isEliminated);
+  card.classList.toggle("is-correct", isRevealedCorrect);
+  card.disabled = isEliminated || view.locked;
+
+  const label = document.createElement("span");
+  label.className = "easy-choice-label";
+  label.textContent = choice.label;
+  card.appendChild(label);
+
+  const equations = document.createElement("span");
+  equations.className = "easy-choice-equations";
+  choice.equations.forEach((equation, index) => {
+    const row = document.createElement("span");
+    row.className = "easy-choice-equation-row";
+    if (choice.equations.length > 1) {
+      const number = document.createElement("span");
+      number.className = "easy-choice-equation-number";
+      number.textContent = CIRCLED_EQUATION_NUMBERS[index];
+      row.appendChild(number);
+    }
+    // 長い式は、カード全体ではなく式の表示部分だけを横スクロールさせる
+    const scroll = document.createElement("span");
+    scroll.className = "easy-choice-equation-scroll";
+    const value = document.createElement("span");
+    value.className = "easy-choice-equation";
+    renderFormattedEquation(value, equation);
+    scroll.appendChild(value);
+    row.appendChild(scroll);
+    equations.appendChild(row);
+  });
+  card.appendChild(equations);
+
+  const mark = document.createElement("span");
+  mark.className = "easy-choice-mark";
+  mark.setAttribute("aria-hidden", "true");
+  if (isRevealedCorrect) {
+    mark.textContent = "○";
+  } else if (isEliminated) {
+    mark.textContent = "×";
+  }
+  card.appendChild(mark);
+
+  const stateText = isRevealedCorrect ? "（正解）" : isEliminated ? "（不正解）" : "";
+  card.setAttribute(
+    "aria-label",
+    `${choice.label}：${choice.equations.map(formatEquationForDisplay).join("、")}${stateText}`
+  );
+
+  if (view.flashChoiceId === choice.id) {
+    card.classList.add("is-incorrect-flash");
+  }
+
+  return card;
+}
+
+/**
+ * 4択の選択肢を描画する。選択肢の順番は、問題生成時に1回だけシャッフルした
+ * choices配列の順番のまま（ヒント表示・不正解・再描画で並びが変わらない）。
+ * @param {Array<{id: string, label: string, equations: string[]}>} choices
+ * @param {{selectedId: string|null, eliminatedIds: string[], revealedCorrectId: string|null,
+ *   locked: boolean, flashChoiceId?: string|null}} view
+ */
+export function renderEasyChoices(choices, view) {
+  elements.easyChoiceList.innerHTML = "";
+  choices.forEach((choice) => {
+    elements.easyChoiceList.appendChild(createEasyChoiceCard(choice, view));
+  });
+}
+
+/**
+ * 4択の下に、不正解時の案内（「✕ B　もう一度、…」）などを表示する。空文字で消す。
+ */
+export function setEasyChoiceFeedback(text, status = "") {
+  elements.easyChoiceFeedback.textContent = text;
+  elements.easyChoiceFeedback.className = "easy-choice-feedback";
+  if (status) {
+    elements.easyChoiceFeedback.classList.add(`is-${status}`);
+  }
+}
+
+/**
+ * ヒントカード内に、ヒント式パーツを「参考」として読み取り専用で表示する（おてがる専用）。
+ * 押して入力するボタンにはせず、既存の数式フォーマッターで表示だけする。
+ * partsが空（スタンダード、または式パーツのない問題）のときは欄ごと隠す。
+ */
+export function setHintReferenceParts(parts) {
+  elements.hintReferenceList.innerHTML = "";
+  const list = Array.isArray(parts) ? parts : [];
+  list.forEach((part) => {
+    const item = document.createElement("span");
+    item.className = "hint-reference-item";
+    renderFormattedEquation(item, part.value);
+    elements.hintReferenceList.appendChild(item);
+  });
+  elements.hintReference.hidden = list.length === 0;
+}
+
+/**
+ * 正解・パス表示のカードに「ここがポイント！」（問題データのexplanation）を表示する
+ * （おてがる専用）。textが空・nullのときは欄ごと隠す。
+ */
+export function setAnswerRevealPoint(text) {
+  const hasText = typeof text === "string" && text.trim() !== "";
+  elements.answerRevealPointText.innerHTML = "";
+  if (hasText) {
+    appendTextWithInlineFractions(elements.answerRevealPointText, text);
+  }
+  elements.answerRevealPoint.hidden = !hasText;
 }
 
 function createCursorNode() {
@@ -1265,6 +1440,14 @@ export function resetGameScreenPanels() {
   setHintButtonEnabled(false);
   setPassButtonEnabled(false);
   setKeyboardEnabled(true);
+
+  // トレーニング「おてがる」の表示は、問題ごとにいったん通常の状態へ戻す
+  // （段位認定・クエストへ切り替えたときに4択が残らないようにするため）
+  showEasyChoiceMode(false);
+  elements.easyChoiceList.innerHTML = "";
+  setEasyChoiceFeedback("");
+  setHintReferenceParts([]);
+  setAnswerRevealPoint(null);
 }
 
 // ============================================================
@@ -1391,6 +1574,9 @@ export function renderRankComboGauge(ratio) {
 // ============================================================
 
 export function renderResultSummary(stats) {
+  if (elements.statAnswerFormat) {
+    elements.statAnswerFormat.textContent = stats.answerFormatText || "スタンダード";
+  }
   elements.statTotal.textContent = `${stats.totalQuestions}問`;
   elements.statCorrect.textContent = `${stats.correctCount}問`;
   elements.statIncorrect.textContent = `${stats.incorrectCount}回`;
@@ -1465,6 +1651,33 @@ function createHistoryItem(entry) {
   item.appendChild(head);
 
   item.appendChild(createHistoryRow("問題文", entry.prompt));
+
+  // トレーニング「おてがる」の履歴：出題形式と、最後に選んだ式を表示する
+  // （スタンダードの履歴の表示は従来のまま変えない）
+  if (entry.answerFormat === "easy") {
+    item.appendChild(createHistoryRow("出題形式", entry.answerFormatName || "おてがる"));
+    const lastChoice = Array.isArray(entry.selectedChoiceHistory)
+      ? entry.selectedChoiceHistory[entry.selectedChoiceHistory.length - 1]
+      : null;
+    if (entry.unit === "simultaneous") {
+      item.appendChild(
+        createHistoryEquationRow("選んだ式①", lastChoice ? lastChoice.equations[0] : "（未選択）")
+      );
+      item.appendChild(
+        createHistoryEquationRow("選んだ式②", lastChoice ? lastChoice.equations[1] : "（未選択）")
+      );
+      item.appendChild(createHistoryEquationRow("模範式①", entry.modelEquation1));
+      item.appendChild(createHistoryEquationRow("模範式②", entry.modelEquation2));
+    } else {
+      item.appendChild(
+        createHistoryEquationRow("選んだ式", lastChoice ? lastChoice.equations[0] : "（未選択）")
+      );
+      item.appendChild(createHistoryEquationRow("模範式", entry.modelEquation));
+    }
+    item.appendChild(createHistoryRow("解", entry.solutionDisplay));
+    item.appendChild(createHistoryRow("解答時間", `${entry.elapsedTimeText}秒`));
+    return item;
+  }
 
   if (entry.unit === "simultaneous") {
     item.appendChild(
@@ -1586,6 +1799,20 @@ export function initUI(callbacks) {
       callbacks.onUnitSelect("quadratic");
     });
   }
+
+  [elements.answerFormatEasyButton, elements.answerFormatStandardButton].forEach((button) => {
+    if (!button) return;
+    button.addEventListener("click", () => {
+      callbacks.onAnswerFormatSelect(button.dataset.answerFormat);
+    });
+  });
+
+  // 4択の選択肢（おてがる）：押しただけでは判定せず、選択状態にするだけ
+  elements.easyChoiceList.addEventListener("click", (event) => {
+    const card = event.target.closest(".easy-choice-card");
+    if (!card || card.disabled) return;
+    callbacks.onEasyChoiceSelect(card.dataset.choiceId);
+  });
 
   elements.difficultyNormalButton.addEventListener("click", () => {
     callbacks.onDifficultySelect("NORMAL");

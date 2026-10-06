@@ -140,6 +140,11 @@ function buildQTowardDQuestion({ templateId, heightValue, widthValue, qSpeed }) 
       display: `1/2×x×${qSpeed}x＝${target}`,
       relationName: "三角形の面積（底辺×高さ÷2）"
     },
+    // トレーニング「おてがる」の誤答候補：点Qの速さをかけ忘れる／点QがDへ近づく形と取り違える
+    easyDistractorCandidates: [
+      `1/2*x^2=${target}`,
+      `1/2*x*(${widthValue}-${qSpeed}*x)=${target}`
+    ],
     expectedRoots: roots,
     validXValues,
     solutionDisplay: `x＝${validXValues.join("、")}`,

@@ -90,6 +90,9 @@ export const integersTemplates = [
         displayEquation: `x＋(x＋2)＝${sum}`,
         solutionDisplay: `x＝${expectedX}`,
 
+        // トレーニング「おてがる」の誤答候補：連続する偶数を「＋1」と取り違える
+        easyDistractorCandidates: [`x+(x+1)=${sum}`],
+
         keypadNumbers: buildKeypadNumbers(["2", sum]),
         keypadSymbols: KEYPAD_SYMBOLS,
 

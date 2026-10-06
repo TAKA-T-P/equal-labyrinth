@@ -33,6 +33,8 @@ function buildConsecutiveQuestion({ n }) {
       display: `x(x＋1)＝${product}`,
       relationName: "連続する2整数の積"
     },
+    // トレーニング「おてがる」の誤答候補：連続する整数を「＋2」と取り違える
+    easyDistractorCandidates: [`x*(x+2)=${product}`],
     expectedRoots: roots,
     validXValues: [n],
     solutionDisplay: `x＝${n}（2つの整数は${n}と${n + 1}）`,
@@ -89,6 +91,8 @@ export const consecutiveIntegersTemplates = [
           display: `x(x＋2)＝${product}`,
           relationName: "連続する2偶数の積"
         },
+        // トレーニング「おてがる」の誤答候補：連続する偶数を「＋1」と取り違える
+        easyDistractorCandidates: [`x*(x+1)=${product}`],
         expectedRoots: roots,
         validXValues: [n],
         solutionDisplay: `x＝${n}（2つの偶数は${n}と${n + 2}）`,
@@ -130,6 +134,8 @@ export const consecutiveIntegersTemplates = [
           display: `x(x＋2)＝${product}`,
           relationName: "連続する2奇数の積"
         },
+        // トレーニング「おてがる」の誤答候補：連続する奇数を「＋1」と取り違える
+        easyDistractorCandidates: [`x*(x+1)=${product}`],
         expectedRoots: roots,
         validXValues: [n],
         solutionDisplay: `x＝${n}（2つの奇数は${n}と${n + 2}）`,

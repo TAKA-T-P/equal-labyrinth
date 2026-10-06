@@ -140,6 +140,8 @@ export const rectangleAreaTemplates = [
           display: `x(${sum}−x)＝${area}`,
           relationName: "縦×横＝面積（縦＋横は一定）"
         },
+        // トレーニング「おてがる」の誤答候補：縦と横を同じ長さとする／和から縦を2回ひく
+        easyDistractorCandidates: [`x^2=${area}`, `x*(${sum}-2*x)=${area}`],
         expectedRoots: roots,
         validXValues: [p],
         solutionDisplay: `x＝${p}（縦${p}cm、横${qVal}cm）`,

@@ -97,6 +97,20 @@
       </div>
 
       <div id="training-only-settings">
+        <div class="setting-card answer-format-setting-card">
+          <h2 class="setting-heading">出題形式</h2>
+          <div class="answer-format-group" role="group" aria-label="出題形式">
+            <button type="button" class="answer-format-button" id="answer-format-easy" data-answer-format="easy" aria-pressed="false">
+              <span class="answer-format-name">おてがる</span>
+              <span class="answer-format-description">4つの式から正しい式を選びます</span>
+            </button>
+            <button type="button" class="answer-format-button is-selected" id="answer-format-standard" data-answer-format="standard" aria-pressed="true">
+              <span class="answer-format-name">スタンダード</span>
+              <span class="answer-format-description">数字や記号を使って自分で式を作ります</span>
+            </button>
+          </div>
+        </div>
+
         <div class="setting-card category-setting-card">
           <div class="setting-heading-row">
             <h2 class="setting-heading">出題するカテゴリ</h2>
@@ -169,6 +183,13 @@
           <p id="question-prompt" class="question-prompt">問題文がここに表示されます。</p>
         </div>
 
+        <!-- トレーニング「おてがる」専用：4つの方程式から1つを選ぶ（スタンダードでは常にhidden） -->
+        <div id="easy-choice-panel" class="easy-choice-panel" hidden>
+          <p class="easy-choice-instruction">次のうち、正しい方程式を選びましょう。</p>
+          <div id="easy-choice-list" class="easy-choice-list" role="radiogroup" aria-label="方程式の選択肢"></div>
+          <p id="easy-choice-feedback" class="easy-choice-feedback" aria-live="polite"></p>
+        </div>
+
         <div class="equation-input-row">
           <div class="equation-input-card" id="equation-input-single">
             <div id="equation-input-scroll" class="equation-input-scroll">
@@ -219,6 +240,11 @@
       <div id="hint-panel" class="hint-panel" hidden role="dialog" aria-label="ヒント">
         <p class="hint-panel-title">ヒント</p>
         <p id="hint-text" class="hint-panel-text"></p>
+        <!-- トレーニング「おてがる」専用：ヒント式パーツを読み取り専用で表示する（入力ボタンにはしない） -->
+        <div id="hint-reference" class="hint-reference" hidden>
+          <span class="hint-reference-label">参考：</span>
+          <span id="hint-reference-list" class="hint-reference-list"></span>
+        </div>
         <div class="hint-panel-actions">
           <button type="button" id="hint-example-button" class="secondary-button hint-example-button" hidden>例題確認</button>
           <button type="button" id="hint-close-button" class="secondary-button hint-close-button">閉じる</button>
@@ -248,6 +274,11 @@
         <p class="answer-reveal-row">
           方程式の解：<span id="solution-text"></span>
         </p>
+        <!-- トレーニング「おてがる」専用：問題データのexplanationがあるときだけ表示する -->
+        <div id="answer-reveal-point" class="answer-reveal-point" hidden>
+          <p class="answer-reveal-point-title">ここがポイント！</p>
+          <p id="answer-reveal-point-text" class="answer-reveal-point-text"></p>
+        </div>
         <div class="answer-reveal-actions">
           <button type="button" id="retry-question-button" class="secondary-button answer-reveal-retry" hidden>もう一度</button>
           <button type="button" id="next-question-button" class="primary-button answer-reveal-next" hidden>次へ</button>
@@ -290,6 +321,10 @@
       <h2 id="result-heading" class="result-heading">結果発表</h2>
 
       <div class="result-summary" id="result-summary">
+        <div class="result-stat result-stat--wide">
+          <span class="result-stat-label">出題形式</span>
+          <span id="stat-answer-format" class="result-stat-value">スタンダード</span>
+        </div>
         <div class="result-stat">
           <span class="result-stat-label">出題問題数</span>
           <span id="stat-total" class="result-stat-value">0問</span>

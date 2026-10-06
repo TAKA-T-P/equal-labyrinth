@@ -53,6 +53,12 @@ function buildDiscountPriceQuestion({ discountPercent, expectedX }) {
     keypadNumbers: buildKeypadNumbersWithDummy([decimal, finalPrice], dummyDecimal),
     keypadSymbols: KEYPAD_SYMBOLS,
 
+    // トレーニング「おてがる」の誤答候補：割引を上乗せと取り違える／割合そのものを引いてしまう
+    easyDistractorCandidates: [
+      `x+${dummyDecimal}*x=${finalPrice}`,
+      `x-${dummyDecimal}=${finalPrice}`
+    ],
+
     hintKeypadParts: [],
 
     hint:
@@ -118,6 +124,12 @@ export const percentageTemplates = [
         keypadNumbers: buildKeypadNumbersWithDummy([decimal, finalPrice], dummyDecimal),
         keypadSymbols: KEYPAD_SYMBOLS,
 
+        // トレーニング「おてがる」の誤答候補：上乗せを割引と取り違える／割合そのものを足してしまう
+        easyDistractorCandidates: [
+          `x-${dummyDecimal}*x=${finalPrice}`,
+          `x+${dummyDecimal}=${finalPrice}`
+        ],
+
         hintKeypadParts: [],
 
         hint:
@@ -165,6 +177,9 @@ export const percentageTemplates = [
 
         keypadNumbers: buildKeypadNumbersWithDummy([decimal, partCount], dummyDecimal),
         keypadSymbols: KEYPAD_SYMBOLS,
+
+        // トレーニング「おてがる」の誤答候補：％を小数に直し忘れる
+        easyDistractorCandidates: [`${percent}*x=${partCount}`],
 
         hintKeypadParts: [],
 

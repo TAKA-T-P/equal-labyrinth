@@ -63,3 +63,25 @@ export const MODE_IDS = {
 };
 
 export const SELECTABLE_MODE_IDS = [MODE_IDS.TRAINING, MODE_IDS.QUEST, MODE_IDS.RANK];
+
+// トレーニングモードの出題形式の内部識別子（段位認定・クエストには存在しない）
+// - easy：おてがる（4つの方程式から正しい式を選ぶ4択）
+// - standard：スタンダード（数字や記号を使って自分で式を作る、従来の形式）
+export const TRAINING_ANSWER_FORMAT = {
+  EASY: "easy",
+  STANDARD: "standard"
+};
+
+// 出題形式の表示名（内部値とは分離して管理する）
+export const TRAINING_ANSWER_FORMAT_NAMES = {
+  [TRAINING_ANSWER_FORMAT.EASY]: "おてがる",
+  [TRAINING_ANSWER_FORMAT.STANDARD]: "スタンダード"
+};
+
+// 既存ユーザーへの影響を避けるため、初期値は従来どおりの「スタンダード」
+export const DEFAULT_TRAINING_ANSWER_FORMAT = TRAINING_ANSWER_FORMAT.STANDARD;
+
+export const SELECTABLE_TRAINING_ANSWER_FORMATS = [
+  TRAINING_ANSWER_FORMAT.EASY,
+  TRAINING_ANSWER_FORMAT.STANDARD
+];

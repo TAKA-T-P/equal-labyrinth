@@ -293,3 +293,27 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* トレーニング「おてがる」：不正解の選択肢を一瞬赤く光らせる */
+.easy-choice-card.is-incorrect-flash {
+  animation: easy-choice-incorrect-flash 0.45s ease-in-out;
+}
+
+@keyframes easy-choice-incorrect-flash {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .easy-choice-card.is-incorrect-flash {
+    animation: none;
+  }
+}

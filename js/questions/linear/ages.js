@@ -254,6 +254,13 @@ export const agesTemplates = [
         displayEquation: `${currentAgeA}＋x＝${futureMultiplier}(${currentAgeB}＋x)`,
         solutionDisplay: `x＝${expectedX}`,
 
+        // トレーニング「おてがる」の誤答候補（自動生成だけでは3つそろわないときに使う）：
+        // 「何年前」と取り違える／何倍になるのが父と子のどちらかを取り違える
+        easyDistractorCandidates: [
+          `${currentAgeA}-x=${futureMultiplier}*(${currentAgeB}-x)`,
+          `${futureMultiplier}*(${currentAgeA}+x)=${currentAgeB}+x`
+        ],
+
         keypadNumbers: buildKeypadNumbers([
           currentAgeA,
           currentAgeB,

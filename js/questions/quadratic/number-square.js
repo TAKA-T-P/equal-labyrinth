@@ -36,6 +36,8 @@ function buildSquareEqualsLinearQuestion({ p, q }) {
       display: `x²＝${a}x＋${b}`,
       relationName: "2乗と1次式の関係"
     },
+    // トレーニング「おてがる」の誤答候補：「a倍にbを加える」のaとbを取り違える
+    easyDistractorCandidates: [`x^2=${b}*x+${a}`],
     expectedRoots: roots,
     validXValues: [p],
     solutionDisplay: `x＝${p}`,
@@ -97,6 +99,8 @@ export const numberSquareTemplates = [
           display: `x²＋${a}x＝${b}`,
           relationName: "2乗と1次式の和の関係"
         },
+        // トレーニング「おてがる」の誤答候補：「2乗に加える」と「加えて2乗」の取り違え／xのかけ忘れ
+        easyDistractorCandidates: [`(x+${a})^2=${b}`, `x^2+${a}=${b}`],
         expectedRoots: roots,
         validXValues: [p],
         solutionDisplay: `x＝${p}`,
@@ -140,6 +144,8 @@ export const numberSquareTemplates = [
           display: `x²＋(x＋1)²＝${sum}`,
           relationName: "連続する2整数のそれぞれの2乗の和"
         },
+        // トレーニング「おてがる」の誤答候補：2乗の和を積・和の2乗と取り違える／連続する整数を「＋2」と取り違える
+        easyDistractorCandidates: [`x*(x+1)=${sum}`, `(x+x+1)^2=${sum}`, `x^2+(x+2)^2=${sum}`],
         expectedRoots: roots,
         validXValues: [x],
         solutionDisplay: `x＝${x}`,

@@ -43,6 +43,8 @@ function buildOpenBoxQuestion({ templateId, scenario, cutSideValue, n: fixedN })
       display: `${cutSideValue}(x−${doubledCut})²＝${volume}`,
       relationName: "箱の容積＝高さ×底面積"
     },
+    // トレーニング「おてがる」の誤答候補：切り取る長さを片側の分しかひかない
+    easyDistractorCandidates: [`${cutSideValue}*(x-${cutSideValue})^2=${volume}`],
     expectedRoots: roots,
     validXValues: [n],
     solutionDisplay: `x＝${n}`,

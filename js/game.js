@@ -2,11 +2,24 @@
 // 数式解析の詳細はequation/、問題生成の詳細はquestions/、
 // DOM操作の詳細はui.jsへ任せる。
 
-import { APP_CONFIG, UNIT_IDS } from "./config.js";
+import {
+  APP_CONFIG,
+  UNIT_IDS,
+  TRAINING_ANSWER_FORMAT,
+  TRAINING_ANSWER_FORMAT_NAMES,
+  SELECTABLE_TRAINING_ANSWER_FORMATS
+} from "./config.js";
 import {
   gameState,
   resetGameState,
   resetQuestionState,
+  setTrainingAnswerFormat,
+  setEasyChoices,
+  getEasyChoiceById,
+  selectEasyChoice,
+  clearEasyChoiceSelection,
+  eliminateEasyChoice,
+  recordEasyChoiceAttempt,
   insertCharacterAtCursor,
   moveCursorLeft,
   moveCursorRight,
@@ -36,9 +49,13 @@ import * as storage from "./storage.js";
 import {
   buildTrainingQuestionQueue,
   validateSelectedCategories,
-  getCategoriesForUnit
+  getCategoriesForUnit,
+  getTemplatesForUnit,
+  generateQuestionFromTemplate
 } from "./questions/question-manager.js";
 import { validateCurrentAnswer } from "./equation/answer-validator.js";
+import { buildEasyChoices } from "./training/easy-choice-builder.js";
+import { toValidatorInput } from "./training/distractor-validator.js";
 import { tokenize, TokenType } from "./equation/tokenizer.js";
 import * as rankMode from "./modes/rank-mode.js";
 import * as questMode from "./modes/quest-mode.js";
@@ -47,8 +64,30 @@ import { initExampleUI, openExampleCatalogForQuestion } from "./help/example-ui.
 
 let questionQueue = [];
 
+// トレーニング「おてがる」：問題ごとに1回だけ作った4択を、問題オブジェクトに結びつけて保持する
+// （「もう一度」で同じ問題に再挑戦するときも、作り直さず同じ並びを使う）
+let easyChoicesByQuestion = new WeakMap();
+
+// 4択を作れなかった問題を、同じテンプレートから作り直す最大回数
+const EASY_REPLACEMENT_ATTEMPTS = 10;
+const EASY_SKIP_MESSAGE_MILLISECONDS = 1800;
+
+// ゲームの開始・終了ごとに増やす番号（スキップ表示の待ち時間中に画面を離れたかの判定用）
+let trainingSessionId = 0;
+
 function sleep(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+/**
+ * 現在のゲームが、トレーニングの「おてがる」（4択）形式かどうか。
+ * 段位認定・クエストでは、出題形式の設定に関わらず常にfalse。
+ */
+function isEasyTrainingFormat() {
+  return (
+    gameState.mode === "training" &&
+    gameState.trainingAnswerFormat === TRAINING_ANSWER_FORMAT.EASY
+  );
 }
 
 // ============================================================
@@ -166,6 +205,7 @@ export function initGame() {
   // タイトル画面のモード・単元の選択状態も、前回の続きから始められるよう復元する。
   gameState.mode = storage.loadSelectedMode(gameState.mode);
   gameState.unit = storage.loadSelectedUnit(gameState.unit);
+  setTrainingAnswerFormat(storage.loadTrainingAnswerFormat());
 
   const validCategoryIds = getCategoriesForUnit(gameState.unit).map(
     (category) => category.id
@@ -189,6 +229,8 @@ export function initGame() {
     onModeSelect: handleModeSelect,
     onUnitSelect: handleUnitSelect,
     onDifficultySelect: handleDifficultySelect,
+    onAnswerFormatSelect: handleAnswerFormatSelect,
+    onEasyChoiceSelect: handleEasyChoiceSelect,
     onStart: handleStart,
     onKeyPress: handleKeyPress,
     onHintPartPress: handleHintPartPress,
@@ -236,6 +278,7 @@ export function initGame() {
   ui.renderModeSelection(gameState.mode);
   ui.renderUnitSelection(gameState.unit);
   ui.renderDifficultySelection(gameState.rankDifficulty);
+  ui.renderTrainingAnswerFormatSelection(gameState.trainingAnswerFormat);
   updateStartButtonAvailability();
   ui.showScreen("title");
 }
@@ -289,6 +332,16 @@ function handleUnitSelect(unit) {
 function handleDifficultySelect(difficulty) {
   gameState.rankDifficulty = difficulty;
   ui.renderDifficultySelection(difficulty);
+}
+
+/**
+ * トレーニングの出題形式（おてがる／スタンダード）を切り替え、localStorageへ保存する。
+ */
+function handleAnswerFormatSelect(format) {
+  if (!SELECTABLE_TRAINING_ANSWER_FORMATS.includes(format)) return;
+  setTrainingAnswerFormat(format);
+  storage.saveTrainingAnswerFormat(format);
+  ui.renderTrainingAnswerFormatSelection(format);
 }
 
 function handleQuestionCountChange(value) {
@@ -361,6 +414,7 @@ async function handleStart() {
 }
 
 async function startNewGame() {
+  trainingSessionId += 1;
   resetGameState();
 
   if (gameState.mode === "quest") {
@@ -412,6 +466,12 @@ function beginQuestion(index) {
   gameState.currentQuestionIndex = index;
   gameState.currentQuestion = questionQueue[index];
 
+  const isEasy = isEasyTrainingFormat();
+  if (isEasy && !prepareEasyChoicesForQuestion(index)) {
+    skipQuestionWithoutEasyChoices(index);
+    return;
+  }
+
   ui.showScreen("game");
   ui.resetGameScreenPanels();
   ui.showRankHud(false);
@@ -428,6 +488,12 @@ function beginQuestion(index) {
   ui.renderEquationKeypad(gameState.currentQuestion);
   ui.setSubmitButtonEnabled(false);
 
+  // おてがる：数式入力欄・数式キーボードの代わりに4択を表示する（スタンダードでは何もしない）
+  if (isEasy) {
+    ui.showEasyChoiceMode(true);
+    refreshEasyChoices();
+  }
+
   // トレーニングモードでは、段位認定と異なりヒント・パスを最初から使用できる
   gameState.hintAvailable = true;
   gameState.passAvailable = true;
@@ -435,6 +501,173 @@ function beginQuestion(index) {
   ui.setPassButtonEnabled(true);
 
   timer.startQuestionTimer({});
+}
+
+// ============================================================
+// トレーニング「おてがる」（4択）
+// ============================================================
+
+/**
+ * 4択を作れなかった問題の代わりに、同じテンプレート（なければ同じカテゴリ）から
+ * 問題を作り直す。
+ */
+function regenerateQuestionForEasy(question) {
+  const templates = getTemplatesForUnit(gameState.unit);
+  let candidates = templates.filter((template) => template.templateId === question.templateId);
+  if (candidates.length === 0) {
+    candidates = templates.filter((template) => template.categoryId === question.categoryId);
+  }
+  if (candidates.length === 0) return null;
+  const template = candidates[Math.floor(Math.random() * candidates.length)];
+  return generateQuestionFromTemplate(template, gameState.unit);
+}
+
+/**
+ * 出題する問題の4択を（問題ごとに1回だけ）用意し、状態へ保存する。
+ * 不正確な4択を表示しないよう、4択を作れない問題は同じテンプレートから作り直す。
+ * それでも作れない場合はfalseを返す（呼び出し側でその問題をスキップする）。
+ */
+function prepareEasyChoicesForQuestion(index) {
+  let question = questionQueue[index];
+  let built = easyChoicesByQuestion.get(question) || buildEasyChoices(question, gameState.unit);
+
+  for (let attempt = 0; !built && attempt < EASY_REPLACEMENT_ATTEMPTS; attempt += 1) {
+    const replacement = regenerateQuestionForEasy(question);
+    if (!replacement) break;
+    const replacementChoices = buildEasyChoices(replacement, gameState.unit);
+    if (replacementChoices) {
+      console.warn(
+        `おてがるの4択を作れなかったため、問題を作り直しました（${question.templateId}）。`
+      );
+      questionQueue[index] = replacement;
+      question = replacement;
+      built = replacementChoices;
+    }
+  }
+
+  if (!built) return false;
+
+  easyChoicesByQuestion.set(question, built);
+  gameState.currentQuestion = question;
+  setEasyChoices(built.choices, built.correctChoiceId);
+  return true;
+}
+
+/**
+ * 4択をどうしても作れなかった問題を飛ばし、次の問題（または結果画面）へ進む。
+ */
+function skipQuestionWithoutEasyChoices(index) {
+  console.warn(
+    `おてがるの4択を作れなかったため、第${index + 1}問をスキップしました` +
+      `（${gameState.currentQuestion && gameState.currentQuestion.templateId}）。`
+  );
+  gameState.inputLocked = true;
+  ui.showScreen("game");
+  ui.resetGameScreenPanels();
+  ui.showEquationInputMode(gameState.unit);
+  ui.showEasyChoiceMode(true);
+  ui.renderQuestionProgress(index + 1, gameState.totalQuestions);
+  ui.renderQuestionPrompt("この問題を読み込めませんでした。次の問題へ進みます。");
+  ui.renderDiagram(null);
+  ui.setSubmitButtonEnabled(false);
+  ui.setHintButtonEnabled(false);
+  ui.setPassButtonEnabled(false);
+
+  const sessionId = trainingSessionId;
+  setTimeout(() => {
+    // 待っている間にタイトルへ戻った・リタイアした・やり直した場合は何もしない
+    if (sessionId === trainingSessionId && gameState.currentQuestionIndex === index) {
+      advanceToNextQuestionOrResult();
+    }
+  }, EASY_SKIP_MESSAGE_MILLISECONDS);
+}
+
+/**
+ * 現在の4択の状態（選択中・×・○）を画面へ反映する。並び順は問題生成時のまま。
+ */
+function refreshEasyChoices({ revealCorrect = false, flashChoiceId = null } = {}) {
+  ui.renderEasyChoices(gameState.currentEasyChoices, {
+    selectedId: gameState.selectedEasyChoiceId,
+    eliminatedIds: gameState.eliminatedEasyChoiceIds,
+    revealedCorrectId: revealCorrect ? gameState.currentEasyCorrectChoiceId : null,
+    locked: gameState.inputLocked,
+    flashChoiceId
+  });
+}
+
+/**
+ * 選択肢をタップしたときの処理。誤タップで不正解にならないよう、ここでは判定せず
+ * 選択状態にして「解答」ボタンを有効にするだけ。×がついた選択肢は選べない。
+ */
+function handleEasyChoiceSelect(choiceId) {
+  if (!isEasyTrainingFormat() || gameState.inputLocked) return;
+  if (gameState.eliminatedEasyChoiceIds.includes(choiceId)) return;
+  if (!getEasyChoiceById(choiceId)) return;
+
+  selectEasyChoice(choiceId);
+  audio.playKeySound();
+  ui.setEasyChoiceFeedback("");
+  refreshEasyChoices();
+  ui.setSubmitButtonEnabled(true);
+}
+
+/**
+ * 「解答」ボタンで、選択中の式を既存の正誤判定（validateCurrentAnswer）へ渡して判定する。
+ * 選択肢のisCorrectフラグだけでは判定しない（問題データと選択肢がずれていないかも確かめるため）。
+ */
+function handleEasySubmit() {
+  if (gameState.inputLocked) return;
+  const choice = getEasyChoiceById(gameState.selectedEasyChoiceId);
+  if (!choice || gameState.eliminatedEasyChoiceIds.includes(choice.id)) return;
+
+  const result = validateCurrentAnswer(
+    gameState.unit,
+    toValidatorInput(gameState.unit, choice.equations),
+    gameState.currentQuestion
+  );
+
+  if (result.status === "correct") {
+    recordEasyChoiceAttempt(choice, true);
+    handleCorrectAnswer();
+    return;
+  }
+
+  if (result.status === "incorrect") {
+    recordEasyChoiceAttempt(choice, false);
+    eliminateEasyChoice(choice.id);
+    clearEasyChoiceSelection();
+    ui.setSubmitButtonEnabled(false);
+    handleIncorrectAnswer();
+    ui.setEasyChoiceFeedback(
+      `✕ ${choice.label}　もう一度、問題文と式を見比べてみよう！`,
+      "incorrect"
+    );
+    refreshEasyChoices({ flashChoiceId: choice.id });
+    return;
+  }
+
+  // 検証済みの選択肢ではinput-errorは起こらない想定だが、念のため既存の案内を表示する
+  console.warn("おてがるの選択肢が入力エラーと判定されました。", choice.equations, result);
+  handleInputError(result);
+}
+
+function handleEasyPhysicalKeyDown(event) {
+  const key = event.key.toUpperCase();
+  const index = ["A", "B", "C", "D"].indexOf(key);
+  const numberIndex = ["1", "2", "3", "4"].indexOf(event.key);
+  const choiceIndex = index >= 0 ? index : numberIndex;
+  if (choiceIndex >= 0) {
+    const choice = gameState.currentEasyChoices[choiceIndex];
+    if (choice) {
+      event.preventDefault();
+      handleEasyChoiceSelect(choice.id);
+    }
+    return;
+  }
+  if (event.key === "Enter" && gameState.selectedEasyChoiceId) {
+    event.preventDefault();
+    handleEasySubmit();
+  }
 }
 
 // ============================================================
@@ -833,6 +1066,12 @@ const PHYSICAL_KEY_MAP = {
 function handlePhysicalKeyDown(event) {
   if (gameState.inputLocked) return;
 
+  // おてがるでは数式入力欄がないため、A〜D（1〜4）で選択・Enterで解答だけを受け付ける
+  if (isEasyTrainingFormat()) {
+    handleEasyPhysicalKeyDown(event);
+    return;
+  }
+
   if (event.key === "Backspace") {
     event.preventDefault();
     handleBackspace();
@@ -923,6 +1162,11 @@ function handleSubmit() {
 function handleTrainingSubmit() {
   if (gameState.inputLocked) return;
 
+  if (isEasyTrainingFormat()) {
+    handleEasySubmit();
+    return;
+  }
+
   const input =
     gameState.unit === UNIT_IDS.SIMULTANEOUS
       ? getCurrentSystemInputStrings()
@@ -967,9 +1211,21 @@ function handleIncorrectAnswer() {
   ui.showJudgeMessage("incorrect", "もう一度考えよう");
 }
 
+/**
+ * おてがるで、正解・パス時に正解の選択肢へ○をつけ、「ここがポイント！」を用意する
+ * （スタンダードでは何もしない）。
+ */
+function revealEasyCorrectChoice() {
+  if (!isEasyTrainingFormat()) return;
+  refreshEasyChoices({ revealCorrect: true });
+  ui.setEasyChoiceFeedback("");
+  ui.setAnswerRevealPoint(gameState.currentQuestion.explanation || null);
+}
+
 function handleCorrectAnswer() {
   const elapsedSeconds = timer.stopQuestionTimer();
   lockQuestionInput();
+  revealEasyCorrectChoice();
 
   audio.playCorrectSound();
   ui.showAnswerReveal(
@@ -1042,6 +1298,7 @@ function handleTrainingPass() {
 
   const elapsedSeconds = timer.stopQuestionTimer();
   lockQuestionInput();
+  revealEasyCorrectChoice();
 
   audio.playPassSound();
   ui.showAnswerReveal(
@@ -1069,8 +1326,37 @@ function lockQuestionInput() {
   ui.clearJudgeMessage();
 }
 
+/**
+ * おてがるの問題履歴用データ（出題形式・選択した式の順番・4択の内容）。
+ * スタンダードでは出題形式だけを記録する（表示内容は従来どおり）。
+ */
+function buildAnswerFormatHistoryFields() {
+  const answerFormat = gameState.trainingAnswerFormat;
+  const fields = {
+    answerFormat,
+    answerFormatName: TRAINING_ANSWER_FORMAT_NAMES[answerFormat]
+  };
+  if (!isEasyTrainingFormat()) return fields;
+
+  return {
+    ...fields,
+    selectedChoiceHistory: gameState.easyChoiceAttempts.map((attempt) => ({
+      label: attempt.label,
+      equations: [...attempt.equations],
+      correct: attempt.correct
+    })),
+    easyChoices: gameState.currentEasyChoices.map((choice) => ({
+      label: choice.label,
+      equations: [...choice.equations],
+      isCorrect: choice.isCorrect,
+      distractorType: choice.distractorType
+    }))
+  };
+}
+
 function recordHistory(result, elapsedSeconds) {
   const baseEntry = {
+    ...buildAnswerFormatHistoryFields(),
     questionNumber: gameState.currentQuestionIndex + 1,
     unit: gameState.unit,
     categoryName: gameState.currentQuestion.categoryName,
@@ -1133,17 +1419,24 @@ function handleHintRequest() {
   // （段位認定・クエストなど時間制限があるモードでは出現しない）。
   ui.setHintExampleButtonVisible(gameState.mode === "training");
 
+  const hintParts = Array.isArray(gameState.currentQuestion.hintKeypadParts)
+    ? gameState.currentQuestion.hintKeypadParts
+    : [];
+  const isEasy = isEasyTrainingFormat();
+
+  // おてがるには数式キーボードがないため、式パーツは入力ボタンにせず、
+  // ヒントカード内に「参考」として読み取り専用で表示する（開くたびに表示する）
+  ui.setHintReferenceParts(isEasy ? hintParts : []);
+
   // 二重実行防止：式パーツの公開は最初の1回だけ行う
   if (gameState.currentQuestionHintUsed) return;
   gameState.currentQuestionHintUsed = true;
 
-  const hintParts = Array.isArray(gameState.currentQuestion.hintKeypadParts)
-    ? gameState.currentQuestion.hintKeypadParts
-    : [];
-
   if (hintParts.length > 0) {
     gameState.currentQuestionHintPartsRevealed = true;
-    ui.renderHintKeypadParts(hintParts);
+    if (!isEasy) {
+      ui.renderHintKeypadParts(hintParts);
+    }
   }
 
   ui.setHintButtonRevealed(true);
@@ -1190,6 +1483,7 @@ function computeResultSummary() {
         ).toFixed(2)}秒`;
 
   return {
+    answerFormatText: TRAINING_ANSWER_FORMAT_NAMES[gameState.trainingAnswerFormat],
     totalQuestions,
     correctCount,
     incorrectCount,
@@ -1200,6 +1494,7 @@ function computeResultSummary() {
 }
 
 function endGame() {
+  trainingSessionId += 1;
   timer.stopQuestionTimer();
   ui.hideAnswerReveal();
   ui.hideHintPanel();
@@ -1251,6 +1546,7 @@ function handleReplay() {
 }
 
 function handleBackToTitle() {
+  trainingSessionId += 1;
   timer.stopQuestionTimer();
   if (gameState.mode === "rank") {
     rankMode.stopRankSession();

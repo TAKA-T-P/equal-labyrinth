@@ -124,6 +124,10 @@ function parsePrimary(cursor) {
     }
     cursor.advance();
 
+    // 入力にかっこがあったことを記録する（判定処理では使わない。トレーニング「おてがる」の
+    // 誤答生成で、式を文字列へ戻すときに元のかっこを保つためだけの目印）
+    inner.parenthesized = true;
+
     // "(...)²"（SQUAREトークン）は、かっこの中身をまとめて2乗するPOWERノードにする
     // （x²のPOWERノードと異なり、baseは変数1つではなく任意の式ASTになる）。
     if (!cursor.isAtEnd() && cursor.peek().type === TokenType.SQUARE) {
