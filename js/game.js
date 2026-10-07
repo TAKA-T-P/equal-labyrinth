@@ -1334,7 +1334,12 @@ function handleCorrectAnswer() {
     gameState.currentQuestion.solutionDisplay
   );
 
-  gameState.correctCount += 1;
+  // 「もう一度」で同じ問題に再び正解しても、正解問題数は1問につき1回だけ数える
+  // （正答率が100％を超えないようにするため）
+  if (!gameState.correctQuestionIndexes.includes(gameState.currentQuestionIndex)) {
+    gameState.correctQuestionIndexes.push(gameState.currentQuestionIndex);
+    gameState.correctCount += 1;
+  }
   recordHistory("correct", elapsedSeconds);
 
   // トレーニングモードでは、生徒が「次へ」を押すまで正解表示を残す

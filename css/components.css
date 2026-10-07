@@ -1700,3 +1700,60 @@ input[type="range"] {
 #screen-game.is-easy-format .game-bottom {
   flex: 0 0 auto;
 }
+
+/* ==========================================================
+   おてがるの選択肢カード：式がカードからはみ出さないための調整
+   ========================================================== */
+
+/* スクロールする選択肢リストの中で、カードが縦に押しつぶされないようにする
+   （iOS Safariでは、高さの決まったリストの中でカードが縮み、2段の式がはみ出すことがあった） */
+.easy-choice-list {
+  grid-auto-rows: max-content;
+}
+
+.easy-choice-card {
+  flex-shrink: 0;
+  height: auto;
+  min-height: max-content;
+  font-size: 0.95rem;
+}
+
+.easy-choice-equation {
+  line-height: 1.5;
+}
+
+/* 連立方程式：1枚に式①・式②の2段を表示するため、左右の余白を詰め、上下は広めにとる */
+.easy-choice-card--system {
+  gap: 6px;
+  padding: 10px 6px 10px 6px;
+}
+
+.easy-choice-card--system .easy-choice-equations {
+  gap: 8px;
+}
+
+.easy-choice-card--system .easy-choice-equation-row {
+  gap: 4px;
+}
+
+.easy-choice-card--system .easy-choice-label {
+  width: 26px;
+  height: 26px;
+  font-size: 0.85rem;
+}
+
+.easy-choice-card--system .easy-choice-mark {
+  width: 18px;
+  font-size: 1.25rem;
+}
+
+/* 分数を含む行は、分子・分母の分だけ高さが必要になる */
+.easy-choice-equation .math-fraction {
+  margin: 1px 0.1em;
+}
+
+@media (max-width: 360px) {
+  .easy-choice-card {
+    font-size: 0.9rem;
+  }
+}

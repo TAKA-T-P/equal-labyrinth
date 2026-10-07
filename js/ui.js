@@ -854,6 +854,8 @@ function createEasyChoiceCard(choice, view) {
   const card = document.createElement("button");
   card.type = "button";
   card.className = "easy-choice-card";
+  // 連立方程式（1枚に2式）は、余白を詰めた専用のレイアウトにする
+  card.classList.toggle("easy-choice-card--system", choice.equations.length > 1);
   card.dataset.choiceId = choice.id;
   card.setAttribute("role", "radio");
   card.setAttribute("aria-checked", String(isSelected));
@@ -925,7 +927,40 @@ export function renderEasyChoices(choices, view) {
   choices.forEach((choice) => {
     elements.easyChoiceList.appendChild(createEasyChoiceCard(choice, view));
   });
+  fitEasyChoiceEquations();
 }
+
+// 長い式を、カードの幅に収まるまで少しずつ小さくする下限（元の文字の大きさに対する割合）
+const EASY_EQUATION_MIN_SCALE = 0.7;
+
+/**
+ * 選択肢の式がカードの幅からはみ出す場合だけ、収まるまで文字を少しずつ小さくする
+ * （下限まで小さくしても収まらない長い式は、従来どおり式の部分だけ横スクロールできる）。
+ */
+export function fitEasyChoiceEquations() {
+  elements.easyChoiceList.querySelectorAll(".easy-choice-equation-scroll").forEach((scroll) => {
+    const equation = scroll.querySelector(".easy-choice-equation");
+    if (!equation) return;
+    equation.style.fontSize = "";
+    let scale = 1;
+    while (
+      scroll.clientWidth > 0 &&
+      equation.scrollWidth > scroll.clientWidth &&
+      scale > EASY_EQUATION_MIN_SCALE
+    ) {
+      scale = Math.max(EASY_EQUATION_MIN_SCALE, Math.round((scale - 0.05) * 100) / 100);
+      equation.style.fontSize = `${scale}em`;
+    }
+  });
+}
+
+// 画面の向き・幅が変わったときも、式の大きさを合わせ直す
+let easyFitTimeoutId = null;
+window.addEventListener("resize", () => {
+  if (elements.easyChoicePanel.hidden) return;
+  clearTimeout(easyFitTimeoutId);
+  easyFitTimeoutId = setTimeout(fitEasyChoiceEquations, 120);
+});
 
 /**
  * 4択の下に、不正解時の案内（「✕ B　もう一度、…」）などを表示する。空文字で消す。

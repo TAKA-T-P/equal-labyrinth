@@ -1,8 +1,8 @@
 // アプリ全体で利用する定数
 
 export const APP_CONFIG = {
-  minQuestions: 3,
-  maxQuestions: 20,
+  minQuestions: 1,
+  maxQuestions: 16,
   defaultQuestions: 5,
   hintDelaySeconds: 20,
   passDelaySeconds: 40,

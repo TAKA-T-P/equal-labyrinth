@@ -34,6 +34,9 @@ export const gameState = {
 
   correctCount: 0,
   incorrectCount: 0,
+  // トレーニング：すでに正解として数えた問題の番号（「もう一度」で同じ問題に再び正解しても、
+  // 正解問題数を重ねて数えないようにするため）
+  correctQuestionIndexes: [],
   passCount: 0,
 
   currentInputTokens: [],
@@ -108,6 +111,7 @@ export function resetGameState() {
   gameState.currentQuestion = null;
 
   gameState.correctCount = 0;
+  gameState.correctQuestionIndexes = [];
   gameState.incorrectCount = 0;
   gameState.passCount = 0;
 
