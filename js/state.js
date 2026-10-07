@@ -21,6 +21,9 @@ export const gameState = {
   eliminatedEasyChoiceIds: [],
   easyChoiceAttempts: [],
 
+  // トレーニングの「出題するカテゴリ」の選び方（"NORMAL"／"HARD"／"CUSTOM"）
+  trainingCategoryPreset: "NORMAL",
+  // カスタムで選んだカテゴリ（単元ごとにlocalStorageへ保存。NORMAL・HARDのときは使わない）
   selectedCategories: [],
   totalQuestions: APP_CONFIG.defaultQuestions,
 

@@ -7,7 +7,10 @@ import {
   UNIT_IDS,
   TRAINING_ANSWER_FORMAT,
   TRAINING_ANSWER_FORMAT_NAMES,
-  SELECTABLE_TRAINING_ANSWER_FORMATS
+  SELECTABLE_TRAINING_ANSWER_FORMATS,
+  SELECTABLE_UNIT_IDS,
+  TRAINING_CATEGORY_PRESET,
+  SELECTABLE_TRAINING_CATEGORY_PRESETS
 } from "./config.js";
 import {
   gameState,
@@ -51,7 +54,8 @@ import {
   validateSelectedCategories,
   getCategoriesForUnit,
   getTemplatesForUnit,
-  generateQuestionFromTemplate
+  generateQuestionFromTemplate,
+  getCategoryIdsForDifficulty
 } from "./questions/question-manager.js";
 import { validateCurrentAnswer } from "./equation/answer-validator.js";
 import { buildEasyChoices } from "./training/easy-choice-builder.js";
@@ -218,6 +222,7 @@ export function initGame() {
   gameState.totalQuestions = savedTotalQuestions;
   gameState.selectedCategories =
     savedCategories.length > 0 ? savedCategories : validCategoryIds;
+  gameState.trainingCategoryPreset = loadInitialCategoryPreset();
 
   audio.setSoundEnabled(gameState.soundEnabled);
 
@@ -225,6 +230,8 @@ export function initGame() {
     onQuestionCountChange: handleQuestionCountChange,
     onCategoryToggle: handleCategoryToggle,
     onCategorySelectToggle: handleCategorySelectToggle,
+    onCategoryPresetSelect: handleCategoryPresetSelect,
+    onCustomCategoryDialogClose: handleCustomCategoryDialogClose,
     onSoundToggle: handleSoundToggle,
     onModeSelect: handleModeSelect,
     onUnitSelect: handleUnitSelect,
@@ -287,9 +294,39 @@ export function initGame() {
 // タイトル・設定画面の操作
 // ============================================================
 
+/**
+ * 保存済みの「出題するカテゴリ」の選び方を読み込む。未保存の場合、以前のバージョンで
+ * カテゴリを自分で選んでいた（カテゴリ選択が保存されている）人は、その選択を引き続き
+ * 使えるよう「カスタム」に、それ以外は「NORMAL」にする。
+ */
+function loadInitialCategoryPreset() {
+  const saved = storage.loadTrainingCategoryPreset();
+  if (saved) return saved;
+  const hasCustomSelection = SELECTABLE_UNIT_IDS.some((unit) =>
+    storage.hasSavedSelectedCategories(unit)
+  );
+  return hasCustomSelection ? TRAINING_CATEGORY_PRESET.CUSTOM : TRAINING_CATEGORY_PRESET.NORMAL;
+}
+
+/**
+ * トレーニングで実際に出題するカテゴリIDを返す。
+ * NORMAL・HARDは段位認定モードと同じ規則（getCategoryIdsForDifficulty()）、
+ * カスタムはチェックボックスで選んだカテゴリ。
+ */
+function getTrainingCategoryIds() {
+  if (gameState.trainingCategoryPreset === TRAINING_CATEGORY_PRESET.CUSTOM) {
+    return gameState.selectedCategories;
+  }
+  return getCategoryIdsForDifficulty(gameState.unit, gameState.trainingCategoryPreset);
+}
+
 function updateStartButtonAvailability() {
-  ui.renderCategorySelectToggle(
-    gameState.selectedCategories.length === getCategoriesForUnit(gameState.unit).length
+  const totalCount = getCategoriesForUnit(gameState.unit).length;
+  ui.renderCategorySelectToggle(gameState.selectedCategories.length === totalCount);
+  ui.renderCategoryPresetSelection(
+    gameState.trainingCategoryPreset,
+    gameState.selectedCategories.length,
+    totalCount
   );
 
   // トレーニングでカテゴリが1つも選ばれていない場合も、スタートボタン自体は常に押せる
@@ -344,6 +381,38 @@ function handleAnswerFormatSelect(format) {
   ui.renderTrainingAnswerFormatSelection(format);
 }
 
+/**
+ * 「出題するカテゴリ」のNORMAL／HARD／カスタムを切り替えて保存する。
+ * カスタムを押したときは、カテゴリ一覧（チェックボックス）のウィンドウを開く
+ * （すでにカスタムを選んでいる場合も、押すたびに開いて選び直せる）。
+ */
+function handleCategoryPresetSelect(preset) {
+  if (!SELECTABLE_TRAINING_CATEGORY_PRESETS.includes(preset)) return;
+  gameState.trainingCategoryPreset = preset;
+  storage.saveTrainingCategoryPreset(preset);
+  updateStartButtonAvailability();
+
+  if (preset === TRAINING_CATEGORY_PRESET.CUSTOM) {
+    ui.renderCategoryCheckboxes(
+      getCategoriesForUnit(gameState.unit),
+      gameState.selectedCategories,
+      handleCategoryToggle
+    );
+    ui.openCustomCategoryDialog(gameState.unit);
+  }
+}
+
+/**
+ * カスタムのカテゴリ選択ウィンドウを閉じる。1つも選ばれていない場合は閉じずに案内を出す。
+ */
+function handleCustomCategoryDialogClose() {
+  if (gameState.selectedCategories.length === 0) {
+    ui.setCustomCategoryMessage("出題するカテゴリを1つ以上選んでください。");
+    return;
+  }
+  ui.hideCustomCategoryDialog();
+}
+
 function handleQuestionCountChange(value) {
   gameState.totalQuestions = value;
   ui.renderQuestionCountLabel(value);
@@ -361,6 +430,7 @@ function handleCategoryToggle(categoryId, checked) {
     );
   }
   storage.saveSelectedCategories(gameState.unit, gameState.selectedCategories);
+  if (gameState.selectedCategories.length > 0) ui.setCustomCategoryMessage("");
   updateStartButtonAvailability();
 }
 
@@ -369,6 +439,7 @@ function handleSelectAllCategories() {
     (category) => category.id
   );
   ui.setAllCategoryCheckboxes(getCategoriesForUnit(gameState.unit), true);
+  ui.setCustomCategoryMessage("");
   storage.saveSelectedCategories(gameState.unit, gameState.selectedCategories);
   updateStartButtonAvailability();
 }
@@ -403,7 +474,7 @@ function handleSoundToggle(enabled) {
 
 async function handleStart() {
   if (gameState.mode === "training") {
-    const result = validateSelectedCategories(gameState.selectedCategories, gameState.unit);
+    const result = validateSelectedCategories(getTrainingCategoryIds(), gameState.unit);
     if (!result.valid) {
       ui.showStartMessage(result.reason);
       return;
@@ -427,7 +498,7 @@ async function startNewGame() {
   if (gameState.mode === "training") {
     questionQueue = buildTrainingQuestionQueue(
       gameState.unit,
-      gameState.selectedCategories,
+      getTrainingCategoryIds(),
       gameState.totalQuestions
     );
   }

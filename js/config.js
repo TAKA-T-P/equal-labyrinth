@@ -81,6 +81,22 @@ export const TRAINING_ANSWER_FORMAT_NAMES = {
 // 既存ユーザーへの影響を避けるため、初期値は従来どおりの「スタンダード」
 export const DEFAULT_TRAINING_ANSWER_FORMAT = TRAINING_ANSWER_FORMAT.STANDARD;
 
+// トレーニングモードの「出題するカテゴリ」の選び方
+// - NORMAL・HARD：段位認定モードと同じ規則で出題カテゴリを決める
+//   （question-manager.jsのgetCategoryIdsForDifficulty()）
+// - CUSTOM：カテゴリ一覧のチェックボックスで、項目ごとに出題のON/OFFを選ぶ（単元ごとに保存）
+export const TRAINING_CATEGORY_PRESET = {
+  NORMAL: "NORMAL",
+  HARD: "HARD",
+  CUSTOM: "CUSTOM"
+};
+
+export const SELECTABLE_TRAINING_CATEGORY_PRESETS = [
+  TRAINING_CATEGORY_PRESET.NORMAL,
+  TRAINING_CATEGORY_PRESET.HARD,
+  TRAINING_CATEGORY_PRESET.CUSTOM
+];
+
 export const SELECTABLE_TRAINING_ANSWER_FORMATS = [
   TRAINING_ANSWER_FORMAT.EASY,
   TRAINING_ANSWER_FORMAT.STANDARD

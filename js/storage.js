@@ -6,7 +6,8 @@ import {
   SELECTABLE_MODE_IDS,
   SELECTABLE_UNIT_IDS,
   SELECTABLE_TRAINING_ANSWER_FORMATS,
-  DEFAULT_TRAINING_ANSWER_FORMAT
+  DEFAULT_TRAINING_ANSWER_FORMAT,
+  SELECTABLE_TRAINING_CATEGORY_PRESETS
 } from "./config.js";
 
 const KEYS = {
@@ -14,7 +15,8 @@ const KEYS = {
   totalQuestions: `${APP_CONFIG.storageKeyPrefix}.totalQuestions`,
   selectedMode: `${APP_CONFIG.storageKeyPrefix}.selectedMode`,
   selectedUnit: `${APP_CONFIG.storageKeyPrefix}.selectedUnit`,
-  trainingAnswerFormat: `${APP_CONFIG.storageKeyPrefix}.training.answerFormat`
+  trainingAnswerFormat: `${APP_CONFIG.storageKeyPrefix}.training.answerFormat`,
+  trainingCategoryPreset: `${APP_CONFIG.storageKeyPrefix}.training.categoryPreset`
 };
 
 function selectedCategoriesKey(unit) {
@@ -119,6 +121,33 @@ export function loadTrainingAnswerFormat() {
     return DEFAULT_TRAINING_ANSWER_FORMAT;
   }
   return raw;
+}
+
+/**
+ * トレーニングの「出題するカテゴリ」の選び方（"NORMAL"／"HARD"／"CUSTOM"）を保存する
+ * （キー：equalLabyrinth.training.categoryPreset。単元をまたいで共通）。
+ */
+export function saveTrainingCategoryPreset(preset) {
+  safeSetItem(KEYS.trainingCategoryPreset, preset);
+}
+
+/**
+ * 「出題するカテゴリ」の選び方を読み込む。未保存・不正な値の場合はnullを返す
+ * （初期値の決め方は呼び出し側（game.js）に任せる）。
+ */
+export function loadTrainingCategoryPreset() {
+  const raw = safeGetItem(KEYS.trainingCategoryPreset);
+  if (raw === null || !SELECTABLE_TRAINING_CATEGORY_PRESETS.includes(raw)) {
+    return null;
+  }
+  return raw;
+}
+
+/**
+ * 指定した単元のカテゴリ選択（カスタム）が、これまでに保存されたことがあるか。
+ */
+export function hasSavedSelectedCategories(unit) {
+  return safeGetItem(selectedCategoriesKey(unit)) !== null;
 }
 
 /**

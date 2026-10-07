@@ -254,7 +254,17 @@ equal-labyrinth/
 - 問題数設定（3〜20問、スライダー）
 - 出題形式の選択（おてがる＝4択／スタンダード＝自力立式。初期値はスタンダード。
   詳細は「トレーニングの出題形式（おてがる／スタンダード）」を参照）
-- カテゴリ選択（単元ごとの全カテゴリから複数選択・すべて選択／すべて解除）
+- 出題するカテゴリ（タイトル画面には「NORMAL」「HARD」「カスタム」の3ボタンだけを置く）
+  - NORMAL・HARD：段位認定モードと同じカテゴリから出題する（`question-manager.js`の
+    `getCategoryIdsForDifficulty(unit, difficulty)`を段位認定と共通で使う。NORMALは難易度NORMALの
+    カテゴリのみ、HARDはNORMAL・HARDの全カテゴリ）
+  - カスタム：押すとカテゴリ一覧（チェックボックス）の別ウィンドウが開き、カテゴリごとに
+    出題のON/OFF・すべて選択／すべて解除を選べる。選択は従来どおり単元ごとに保存し、
+    「カスタム」ボタンに選択数（例：8/11）を表示する。1つも選んでいない間は「決定」・背景タップ・
+    Escapeでウィンドウを閉じられない（「出題するカテゴリを1つ以上選んでください。」を表示）
+  - 選び方は`equalLabyrinth.training.categoryPreset`（`NORMAL`／`HARD`／`CUSTOM`、単元共通）に
+    保存する。未保存の場合、以前のバージョンでカテゴリを自分で選んでいた（カテゴリ選択が保存
+    されている）人は「カスタム」、それ以外は「NORMAL」で始まる
 - 正解後・パス後とも、「次へ」ボタンを押すまで表示を残す（段位認定モードは自動で次の問題へ進む点が異なる）
 - 結果画面（単元・出題形式・正解数・不正解回数・パス回数・正答率・平均正解時間）
 
@@ -1602,6 +1612,7 @@ equalLabyrinth.selectedMode
 equalLabyrinth.selectedUnit
 equalLabyrinth.training.{linear|simultaneous|quadratic}.categories
 equalLabyrinth.training.answerFormat
+equalLabyrinth.training.categoryPreset
 equalLabyrinth.rank.{linear|simultaneous|quadratic}.{NORMAL|HARD}
 equalLabyrinth.quest.inventory
 ```

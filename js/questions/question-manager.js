@@ -1035,24 +1035,29 @@ export function getNextQuestion(queue, index) {
 }
 
 /**
- * 指定した単元・難易度（NORMAL・HARD）のカテゴリだけからテンプレート候補を絞り込む。
- */
-/**
- * 段位認定モードの出題テンプレートを、難易度から絞り込む。
+ * 難易度（NORMAL・HARD）ごとの出題カテゴリIDを返す。段位認定モードと、
+ * トレーニングモードの「NORMAL」「HARD」ボタンで共通に使う（同じ規則で出題するため）。
  * NORMALは、そのカテゴリ難易度がNORMALのカテゴリのみを対象にする。
  * HARDは、NORMAL・HARD両方の全カテゴリを対象にする（HARD専用カテゴリだけでは
  * 出題の幅が狭いため、NORMAL問題も含めて全カテゴリから出題する）。
+ * @param {string} unit
+ * @param {"NORMAL"|"HARD"} difficulty
+ * @returns {string[]}
+ */
+export function getCategoryIdsForDifficulty(unit, difficulty) {
+  const categories = getCategoriesForUnit(unit);
+  if (difficulty === "HARD") {
+    return categories.map((c) => c.id);
+  }
+  return categories.filter((c) => c.difficulty === difficulty).map((c) => c.id);
+}
+
+/**
+ * 段位認定モードの出題テンプレートを、難易度から絞り込む
+ * （対象カテゴリはgetCategoryIdsForDifficulty()の規則に従う）。
  */
 function getTemplatesByDifficulty(unit, difficulty) {
-  if (difficulty === "HARD") {
-    return getTemplatesForUnit(unit);
-  }
-
-  const categoryIds = new Set(
-    getCategoriesForUnit(unit)
-      .filter((c) => c.difficulty === difficulty)
-      .map((c) => c.id)
-  );
+  const categoryIds = new Set(getCategoryIdsForDifficulty(unit, difficulty));
   return getTemplatesForUnit(unit).filter((template) =>
     categoryIds.has(template.categoryId)
   );

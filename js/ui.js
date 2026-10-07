@@ -41,6 +41,13 @@ const elements = {
   questionCountSlider: document.getElementById("question-count-slider"),
   questionCountLabel: document.getElementById("question-count-label"),
   categoryList: document.getElementById("category-list"),
+  categoryPresetButtons: Array.from(document.querySelectorAll("[data-category-preset]")),
+  categoryPresetCustomCount: document.getElementById("category-preset-custom-count"),
+  customCategoryBackdrop: document.getElementById("custom-category-backdrop"),
+  customCategoryDialog: document.getElementById("custom-category-dialog"),
+  customCategoryTitle: document.getElementById("custom-category-title"),
+  customCategoryMessage: document.getElementById("custom-category-message"),
+  customCategoryCloseButton: document.getElementById("custom-category-close-button"),
   startMessage: document.getElementById("start-message"),
   categorySelectToggleButton: document.getElementById("category-select-toggle"),
   soundToggleButton: document.getElementById("sound-toggle-button"),
@@ -510,6 +517,56 @@ export function renderCategorySelectToggle(allSelected) {
   elements.categorySelectToggleButton.textContent = allSelected
     ? "すべて解除"
     : "すべて選択";
+}
+
+/**
+ * トレーニングの「出題するカテゴリ」（NORMAL／HARD／カスタム）の選択状態を表示する。
+ * 「カスタム」ボタンには、カスタムで選んでいるカテゴリ数（例：8/11）を小さく添える。
+ * @param {"NORMAL"|"HARD"|"CUSTOM"} preset
+ * @param {number} customCount
+ * @param {number} totalCount
+ */
+export function renderCategoryPresetSelection(preset, customCount, totalCount) {
+  elements.categoryPresetButtons.forEach((button) => {
+    const isSelected = button.dataset.categoryPreset === preset;
+    button.classList.toggle("is-selected", isSelected);
+    button.setAttribute("aria-pressed", String(isSelected));
+  });
+  if (elements.categoryPresetCustomCount) {
+    elements.categoryPresetCustomCount.textContent = `${customCount}/${totalCount}`;
+  }
+}
+
+/**
+ * カスタムのカテゴリ選択ウィンドウを開く。タイトルに単元名を添える。
+ */
+export function openCustomCategoryDialog(unit) {
+  const unitConfig = UNIT_CONFIG[unit];
+  elements.customCategoryTitle.textContent = unitConfig
+    ? `出題するカテゴリ（${unitConfig.displayName}）`
+    : "出題するカテゴリ";
+  setCustomCategoryMessage("");
+  elements.customCategoryDialog.hidden = false;
+  elements.customCategoryBackdrop.hidden = false;
+  const firstCheckbox = elements.categoryList.querySelector('input[type="checkbox"]');
+  (firstCheckbox || elements.customCategoryCloseButton).focus();
+}
+
+export function hideCustomCategoryDialog() {
+  elements.customCategoryDialog.hidden = true;
+  elements.customCategoryBackdrop.hidden = true;
+  const customButton = elements.categoryPresetButtons.find(
+    (button) => button.dataset.categoryPreset === "CUSTOM"
+  );
+  if (customButton) customButton.focus();
+}
+
+export function isCustomCategoryDialogOpen() {
+  return !elements.customCategoryDialog.hidden;
+}
+
+export function setCustomCategoryMessage(text) {
+  elements.customCategoryMessage.textContent = text;
 }
 
 export function setStartButtonEnabled(enabled) {
@@ -1760,6 +1817,27 @@ export function initUI(callbacks) {
 
   elements.categorySelectToggleButton.addEventListener("click", () => {
     callbacks.onCategorySelectToggle();
+  });
+
+  elements.categoryPresetButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      callbacks.onCategoryPresetSelect(button.dataset.categoryPreset);
+    });
+  });
+
+  // カスタムのカテゴリ選択ウィンドウは、「決定」・背景タップ・Escapeで閉じる
+  // （閉じてよいかどうか（1つ以上選んでいるか）はgame.js側で判断する）
+  elements.customCategoryCloseButton.addEventListener("click", () => {
+    callbacks.onCustomCategoryDialogClose();
+  });
+  elements.customCategoryBackdrop.addEventListener("click", () => {
+    callbacks.onCustomCategoryDialogClose();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && isCustomCategoryDialogOpen()) {
+      event.preventDefault();
+      callbacks.onCustomCategoryDialogClose();
+    }
   });
 
   elements.soundToggleButton.addEventListener("click", () => {

@@ -42,10 +42,9 @@
 
 /* ---------------- タイトル画面 ---------------- */
 /* タイトル画面全体はスクロールさせず、画面の高さ内に固定する。
-   「出題するカテゴリ」のリスト部分だけが内部スクロールする
-   （#training-only-settings → .category-setting-card → #category-list の
-   3段のflex-growチェーンで、リスト以外は自然な高さのまま、リストだけが
-   残りの縦スペースを埋めてスクロールする）。 */
+   トレーニングの「出題するカテゴリ」はNORMAL／HARD／カスタムの3ボタンだけを置き、
+   カテゴリ一覧（チェックボックス）は「カスタム」で開く別ウィンドウ
+   （#custom-category-dialog）の中で内部スクロールする。 */
 
 #screen-title {
   overflow: hidden;
@@ -110,21 +109,12 @@
 }
 
 .category-setting-card {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-.category-setting-card .category-list {
-  flex: 1 1 auto;
-  min-height: 60px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.category-setting-card .setting-heading-row {
   flex: 0 0 auto;
+  padding: 8px 12px 10px;
+}
+
+.category-setting-card .setting-heading {
+  margin-bottom: 6px;
 }
 
 /* ---------------- カウントダウン画面 ---------------- */

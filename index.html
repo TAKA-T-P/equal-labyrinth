@@ -112,11 +112,19 @@
         </div>
 
         <div class="setting-card category-setting-card">
-          <div class="setting-heading-row">
-            <h2 class="setting-heading">出題するカテゴリ</h2>
-            <button type="button" class="small-button" id="category-select-toggle">すべて選択</button>
+          <h2 class="setting-heading">出題するカテゴリ</h2>
+          <div class="category-preset-group" role="group" aria-label="出題するカテゴリ">
+            <button type="button" class="category-preset-button" id="category-preset-normal" data-category-preset="NORMAL" aria-pressed="true">
+              NORMAL
+            </button>
+            <button type="button" class="category-preset-button" id="category-preset-hard" data-category-preset="HARD" aria-pressed="false">
+              HARD
+            </button>
+            <button type="button" class="category-preset-button" id="category-preset-custom" data-category-preset="CUSTOM" aria-pressed="false" aria-haspopup="dialog">
+              カスタム
+              <span id="category-preset-custom-count" class="category-preset-count"></span>
+            </button>
           </div>
-          <div id="category-list" class="category-list" role="group" aria-label="カテゴリ選択"></div>
         </div>
       </div>
 
@@ -127,6 +135,25 @@
       </footer>
     </div>
   </section>
+
+  <!-- トレーニング：カスタムのカテゴリ選択（「カスタム」を押すと開く） -->
+  <div id="custom-category-backdrop" class="hint-backdrop" hidden></div>
+  <div
+    id="custom-category-dialog"
+    class="hint-panel custom-category-dialog"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="custom-category-title"
+  >
+    <div class="setting-heading-row">
+      <h2 id="custom-category-title" class="custom-category-title">出題するカテゴリ</h2>
+      <button type="button" class="small-button" id="category-select-toggle">すべて選択</button>
+    </div>
+    <div id="category-list" class="category-list" role="group" aria-label="カテゴリ選択"></div>
+    <p id="custom-category-message" class="custom-category-message" aria-live="polite"></p>
+    <button type="button" id="custom-category-close-button" class="primary-button custom-category-close-button">決定</button>
+  </div>
 
   <!-- カウントダウン画面 -->
   <section id="screen-countdown" class="screen" data-screen="countdown" hidden>
