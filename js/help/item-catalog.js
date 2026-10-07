@@ -10,7 +10,8 @@
 // 図鑑には、その部屋で入手しうるすべてのアイテムを個別に一覧表示する。
 
 import { QUEST_ROOMS } from "../quest/quest-room-data.js";
-import { listInventoryItems } from "../quest/quest-storage.js";
+import { listInventoryItems, getTotalGold } from "../quest/quest-storage.js";
+import { isValidGoldValue } from "../quest/quest-room-data.js";
 
 /**
  * QUEST_ROOMSの各部屋のreward（アイテム候補の配列）から、アイテムのマスター一覧を構築する。
@@ -33,7 +34,7 @@ export function buildItemMasterList(rooms) {
       if (!rewardItem || typeof rewardItem.itemId !== "string") {
         return;
       }
-      const { itemId, emoji, name, description } = rewardItem;
+      const { itemId, emoji, name, description, goldValue } = rewardItem;
       if (seen.has(itemId)) {
         duplicates.push({ itemId, existingRoomId: seen.get(itemId).roomId, roomId: room.roomId });
         return;
@@ -43,6 +44,7 @@ export function buildItemMasterList(rooms) {
         emoji,
         name,
         description: typeof description === "string" && description ? description : null,
+        goldValue: isValidGoldValue(goldValue) ? goldValue : null,
         roomId: room.roomId,
         stage: room.stage,
         indexInRoom
@@ -88,10 +90,12 @@ function normalizeCount(rawCount) {
  *
  * @returns {{
  *   items: Array<{itemId, emoji, name, description: string|null, roomId: string|null,
- *     stage: number|null, obtained: boolean, count: number, isOrphan: boolean}>,
+ *     stage: number|null, goldValue: number|null, obtained: boolean, count: number,
+ *     isOrphan: boolean}>,
  *   totalCount: number,
  *   obtainedCount: number,
  *   collectionRate: number,
+ *   totalGold: number,
  *   loadFailed: boolean
  * }}
  */
@@ -112,6 +116,7 @@ export function buildItemCatalog() {
         description: master.description,
         roomId: master.roomId || null,
         stage: Number.isFinite(master.stage) ? master.stage : null,
+        goldValue: master.goldValue,
         obtained: count > 0,
         count,
         isOrphan: false
@@ -130,6 +135,8 @@ export function buildItemCatalog() {
           description: null,
           roomId: typeof entry.roomId === "string" && entry.roomId ? entry.roomId : null,
           stage: null,
+          // 旧アイテムは、最後に獲得したときに保存した価値を表示する（なければnull＝表示しない）
+          goldValue: isValidGoldValue(entry.goldValue) ? entry.goldValue : null,
           obtained: count > 0,
           count,
           isOrphan: true
@@ -140,9 +147,23 @@ export function buildItemCatalog() {
     const obtainedCount = items.filter((item) => item.obtained).length;
     const collectionRate = totalCount === 0 ? 0 : Math.floor((obtainedCount / totalCount) * 100);
 
-    return { items, totalCount, obtainedCount, collectionRate, loadFailed: false };
+    return {
+      items,
+      totalCount,
+      obtainedCount,
+      collectionRate,
+      totalGold: getTotalGold(),
+      loadFailed: false
+    };
   } catch (error) {
     console.warn("アイテム図鑑の読み込みに失敗しました。", error);
-    return { items: [], totalCount: 0, obtainedCount: 0, collectionRate: 0, loadFailed: true };
+    return {
+      items: [],
+      totalCount: 0,
+      obtainedCount: 0,
+      collectionRate: 0,
+      totalGold: 0,
+      loadFailed: true
+    };
   }
 }

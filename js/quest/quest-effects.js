@@ -104,6 +104,50 @@ export async function playItemRevealEffect(itemEmojiElement) {
   await withTemporaryClass(itemEmojiElement, className, duration);
 }
 
+/**
+ * 累計ゴールドを、獲得前の値から獲得後の値まで数え上げるように表示する
+ * （`prefers-reduced-motion`のときは、すぐに獲得後の値を表示する）。
+ * @param {HTMLElement} element 数値を表示する要素
+ * @param {number} fromGold
+ * @param {number} toGold
+ * @param {(value: number) => string} format 表示形式（例：formatGold）
+ */
+export function playGoldCountUpEffect(element, fromGold, toGold, format) {
+  if (prefersReducedMotion() || toGold <= fromGold) {
+    element.textContent = format(toGold);
+    return Promise.resolve();
+  }
+
+  const durationMs = 900;
+  const start = performance.now();
+  return new Promise((resolve) => {
+    function step(now) {
+      const progress = Math.min(1, (now - start) / durationMs);
+      // 終わりに向かってゆっくりになるように（ease-out）
+      const eased = 1 - Math.pow(1 - progress, 3);
+      element.textContent = format(Math.round(fromGold + (toGold - fromGold) * eased));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        resolve();
+      }
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+/**
+ * 称号ランクアップの演出（効果音と、称号カードのポップイン）。
+ * @param {HTMLElement} rankUpElement
+ */
+export async function playTitleRankUpEffect(rankUpElement) {
+  audio.playQuestClearSound();
+  const reduced = prefersReducedMotion();
+  const className = reduced ? "quest-anim-fade-in" : "quest-anim-title-rankup";
+  const duration = reduced ? 250 : 700;
+  await withTemporaryClass(rankUpElement, className, duration);
+}
+
 export function playRetreatEffect() {
   audio.playQuestRetreatSound();
   return Promise.resolve();

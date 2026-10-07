@@ -531,3 +531,110 @@
     gap: 6px;
   }
 }
+
+/* ---------------- アイテム図鑑：冒険者プロフィール（累計ゴールド・称号） ---------------- */
+
+.help-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  border: 2px solid var(--color-correct-gold);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(232, 201, 104, 0.14), var(--color-panel));
+  box-shadow: var(--shadow-panel);
+  text-align: center;
+}
+
+.help-profile-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.help-profile-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--color-correct-gold);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.help-profile-gold {
+  font-size: 1.6rem;
+  font-weight: 900;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.help-profile-next[hidden],
+.help-profile-max[hidden] {
+  display: none;
+}
+
+.help-profile-next {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.help-profile-next-name {
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.help-profile-next-remaining {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.help-profile-progress {
+  width: 100%;
+  height: 12px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.help-profile-progress-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-button-gold), var(--color-correct-gold));
+}
+
+.help-profile-progress-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-correct-gold);
+  margin: 0;
+}
+
+.help-profile-max {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--color-correct);
+  margin: 0;
+}
+
+.help-profile-note {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* アイテムカードの価値（G）。未獲得では「？？？G」 */
+.help-item-value {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--color-correct-gold);
+  margin: 0;
+}
+
+.help-item-card--locked .help-item-value {
+  color: var(--color-text-muted);
+}

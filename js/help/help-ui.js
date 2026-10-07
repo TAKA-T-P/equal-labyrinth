@@ -8,6 +8,12 @@
 import { showScreen, appendStyledVariableParts } from "../ui.js";
 import { HOW_TO_PLAY_SECTIONS } from "./help-content.js";
 import { buildItemCatalog } from "./item-catalog.js";
+import {
+  getQuestTitle,
+  getNextQuestTitle,
+  getQuestTitleProgressPercent,
+  formatGold
+} from "../quest/quest-titles.js";
 import { resetAllEqualLabyrinthData } from "./data-reset.js";
 import { openExampleCatalogFromHelpMenu } from "./example-ui.js";
 
@@ -29,6 +35,15 @@ const elements = {
   howToPlayBackButtonTop: document.getElementById("how-to-play-back-button-top"),
 
   itemCatalogSummary: document.getElementById("item-catalog-summary"),
+  itemCatalogTitle: document.getElementById("item-catalog-title"),
+  itemCatalogTotalGold: document.getElementById("item-catalog-total-gold"),
+  itemCatalogNextTitle: document.getElementById("item-catalog-next-title"),
+  itemCatalogNextTitleName: document.getElementById("item-catalog-next-title-name"),
+  itemCatalogNextTitleRemaining: document.getElementById("item-catalog-next-title-remaining"),
+  itemCatalogProgress: document.getElementById("item-catalog-progress"),
+  itemCatalogProgressFill: document.getElementById("item-catalog-progress-fill"),
+  itemCatalogProgressText: document.getElementById("item-catalog-progress-text"),
+  itemCatalogMaxTitle: document.getElementById("item-catalog-max-title"),
   itemCatalogGrid: document.getElementById("item-catalog-grid"),
   itemCatalogBackButton: document.getElementById("item-catalog-back-button"),
   itemCatalogBackButtonTop: document.getElementById("item-catalog-back-button-top"),
@@ -233,7 +248,12 @@ function createLockedItemCard() {
   room.className = "help-item-room";
   room.textContent = "入手場所：？";
 
-  card.append(emoji, name, status, room);
+  // 未獲得アイテムは価値も隠す（価値から高難度の部屋を推測できないようにするため）
+  const value = document.createElement("p");
+  value.className = "help-item-value";
+  value.textContent = "価値：？？？G";
+
+  card.append(emoji, name, value, status, room);
   return card;
 }
 
@@ -243,7 +263,11 @@ function createObtainedItemCard(item) {
   card.setAttribute("role", "group");
   const roomLabel = item.roomId ? `${item.roomId}の部屋` : "入手場所の記録なし";
   const descriptionLabel = item.description ? `、${item.description}` : "";
-  card.setAttribute("aria-label", `${item.name}、所持数${item.count}、${roomLabel}${descriptionLabel}`);
+  const valueLabel = item.goldValue ? `、価値${formatGold(item.goldValue)}` : "";
+  card.setAttribute(
+    "aria-label",
+    `${item.name}${valueLabel}、所持数${item.count}、${roomLabel}${descriptionLabel}`
+  );
 
   const emoji = document.createElement("p");
   emoji.className = "help-item-emoji";
@@ -262,7 +286,14 @@ function createObtainedItemCard(item) {
   room.className = "help-item-room";
   room.textContent = item.roomId ? `${item.roomId}の部屋` : "入手場所：記録なし";
 
-  card.append(emoji, name, count, room);
+  card.append(emoji, name);
+  if (item.goldValue) {
+    const value = document.createElement("p");
+    value.className = "help-item-value";
+    value.textContent = `価値：${formatGold(item.goldValue)}`;
+    card.appendChild(value);
+  }
+  card.append(count, room);
 
   // 説明文（description）は未設定（旧アイテムなど）の場合があるため、あるときだけ表示する。
   if (item.description) {
@@ -273,6 +304,31 @@ function createObtainedItemCard(item) {
   }
 
   return card;
+}
+
+/**
+ * 図鑑上部の「冒険者プロフィール」（現在の称号・累計ゴールド・次の称号までの進捗）を描画する。
+ * 称号名・必要Gはすべてquest-titles.jsのQUEST_TITLESから取得する（ここには書かない）。
+ */
+function renderAdventurerProfile(totalGold) {
+  if (!elements.itemCatalogTitle) return;
+  const current = getQuestTitle(totalGold);
+  const next = getNextQuestTitle(totalGold);
+
+  elements.itemCatalogTitle.textContent = current.title;
+  elements.itemCatalogTotalGold.textContent = formatGold(totalGold).replace(/G$/, " G");
+
+  elements.itemCatalogNextTitle.hidden = !next;
+  elements.itemCatalogMaxTitle.hidden = Boolean(next);
+  if (!next) return;
+
+  const percent = getQuestTitleProgressPercent(totalGold);
+  elements.itemCatalogNextTitleName.textContent = `「${next.title}」`;
+  elements.itemCatalogNextTitleRemaining.textContent = `あと ${formatGold(next.remainingGold)}`;
+  elements.itemCatalogProgressFill.style.width = `${percent}%`;
+  elements.itemCatalogProgress.setAttribute("aria-valuenow", String(percent));
+  elements.itemCatalogProgress.setAttribute("aria-label", `次の称号までの進み具合 ${percent}%`);
+  elements.itemCatalogProgressText.textContent = `${percent}%`;
 }
 
 function renderItemCatalog() {
@@ -289,6 +345,8 @@ function renderItemCatalog() {
     elements.itemCatalogGrid.appendChild(errorText);
     return;
   }
+
+  renderAdventurerProfile(catalog.totalGold);
 
   elements.itemCatalogSummary.textContent =
     `獲得種類　${catalog.obtainedCount} / ${catalog.totalCount}　　収集率　${catalog.collectionRate}%`;

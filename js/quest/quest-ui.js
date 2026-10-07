@@ -4,6 +4,8 @@
 // 表示するだけにする。カテゴリ名の解決（IDから日本語名へ）もquest-mode.js側で行い、
 // ここへは表示用の文字列として渡す。
 
+import { formatGold } from "./quest-titles.js";
+
 const elements = {
   screen: document.getElementById("screen-quest"),
 
@@ -42,6 +44,11 @@ const elements = {
   itemGetName: document.getElementById("quest-item-get-name"),
   itemGetCount: document.getElementById("quest-item-get-count"),
   itemGetNextButton: document.getElementById("quest-item-get-next-button"),
+  itemGetValue: document.getElementById("quest-item-get-value"),
+  itemGetTotalBefore: document.getElementById("quest-item-get-total-before"),
+  itemGetTotalAfter: document.getElementById("quest-item-get-total-after"),
+  titleRankUp: document.getElementById("quest-title-rankup"),
+  titleRankUpName: document.getElementById("quest-title-rankup-name"),
 
   failureMessage: document.getElementById("quest-failure-message"),
   failureNextButton: document.getElementById("quest-failure-next-button"),
@@ -56,6 +63,9 @@ const elements = {
   summaryRooms: document.getElementById("quest-summary-rooms"),
   summaryUnit: document.getElementById("quest-summary-unit"),
   summaryAnswerFormat: document.getElementById("quest-summary-answer-format"),
+  summaryEarnedGold: document.getElementById("quest-summary-earned-gold"),
+  summaryTotalGold: document.getElementById("quest-summary-total-gold"),
+  summaryTitle: document.getElementById("quest-summary-title"),
   summaryToTitleButton: document.getElementById("quest-summary-to-title-button"),
 
   retireBackdrop: document.getElementById("quest-retire-backdrop"),
@@ -330,11 +340,42 @@ export function getTreasureChestElement() {
   return elements.treasureChest;
 }
 
+/**
+ * アイテム獲得画面を描画する。アイテムの価値（G）と、累計ゴールドの変化
+ * （獲得前 → 獲得後）もあわせて表示する。称号ランクアップの表示は、いったん隠しておく。
+ * @param {{reward: object, count: number, goldValue: number,
+ *   previousTotalGold: number, totalGold: number}} data
+ */
 export function renderItemGet(data) {
   elements.itemGetEmoji.textContent = data.reward.emoji;
   elements.itemGetName.textContent = data.reward.name;
   elements.itemGetCount.textContent =
     data.count > 1 ? `所持数：${data.count}` : "";
+  elements.itemGetValue.textContent = formatGold(data.goldValue);
+  elements.itemGetTotalBefore.textContent = formatGold(data.previousTotalGold);
+  elements.itemGetTotalAfter.textContent = formatGold(data.previousTotalGold);
+  elements.titleRankUp.hidden = true;
+}
+
+/**
+ * アイテム獲得画面の「次へ」を押せるかどうか。G加算・称号ランクアップの演出が
+ * 終わるまでは押せないようにして、演出が別の画面に残らないようにする。
+ */
+export function setItemGetNextEnabled(enabled) {
+  elements.itemGetNextButton.disabled = !enabled;
+}
+
+export function getItemGetTotalAfterElement() {
+  return elements.itemGetTotalAfter;
+}
+
+/**
+ * 称号ランクアップを表示する（一度に複数の称号を飛び越えた場合も、最終的に到達した称号だけ）。
+ */
+export function showTitleRankUp(title) {
+  elements.titleRankUpName.textContent = `「${title.title}」`;
+  elements.titleRankUp.hidden = false;
+  return elements.titleRankUp;
 }
 
 export function getItemGetEmojiElement() {
@@ -412,6 +453,11 @@ export function renderQuestSummary(data) {
   elements.summaryUnit.textContent = data.unitDisplayName;
   if (elements.summaryAnswerFormat) {
     elements.summaryAnswerFormat.textContent = data.answerFormatName || "スタンダード";
+  }
+  if (elements.summaryEarnedGold) {
+    elements.summaryEarnedGold.textContent = formatGold(data.earnedGold);
+    elements.summaryTotalGold.textContent = formatGold(data.totalGold);
+    elements.summaryTitle.textContent = data.titleName;
   }
 }
 

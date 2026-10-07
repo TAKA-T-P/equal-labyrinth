@@ -488,6 +488,23 @@
         <p id="quest-item-get-name" class="quest-item-name"></p>
         <p id="quest-item-get-count" class="quest-item-count"></p>
         <p class="quest-view-subheading">を手に入れた！</p>
+        <!-- アイテムの価値（G）と、累計ゴールドの増加 -->
+        <div id="quest-item-get-gold" class="quest-item-gold">
+          <p class="quest-item-gold-label">価値</p>
+          <p id="quest-item-get-value" class="quest-item-gold-value"></p>
+          <p class="quest-item-gold-label">累計ゴールド</p>
+          <p class="quest-item-gold-total">
+            <span id="quest-item-get-total-before"></span>
+            <span class="quest-item-gold-arrow" aria-hidden="true">→</span>
+            <span id="quest-item-get-total-after" class="quest-item-gold-total-after"></span>
+          </p>
+        </div>
+        <!-- 称号ランクアップ（称号が上がったときだけ、アイテム獲得演出のあとに表示） -->
+        <div id="quest-title-rankup" class="quest-title-rankup" hidden role="status" aria-live="polite">
+          <p class="quest-title-rankup-heading">🏅 称号ランクアップ！</p>
+          <p id="quest-title-rankup-name" class="quest-title-rankup-name"></p>
+          <p class="quest-title-rankup-caption">になった！</p>
+        </div>
         <button type="button" id="quest-item-get-next-button" class="primary-button">次へ</button>
       </div>
 
@@ -532,6 +549,18 @@
           <div class="result-stat">
             <span class="result-stat-label">出題形式</span>
             <span id="quest-summary-answer-format" class="result-stat-value">―</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat-label">今回獲得したゴールド</span>
+            <span id="quest-summary-earned-gold" class="result-stat-value">0G</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat-label">累計ゴールド</span>
+            <span id="quest-summary-total-gold" class="result-stat-value">0G</span>
+          </div>
+          <div class="result-stat result-stat--wide">
+            <span class="result-stat-label">現在の称号</span>
+            <span id="quest-summary-title" class="result-stat-value quest-summary-title">―</span>
           </div>
         </div>
 
@@ -620,6 +649,28 @@
           もどる
         </button>
       </div>
+      <!-- 冒険者プロフィール（累計ゴールドと称号。内容はhelp-ui.jsがquest-titles.jsから描画する） -->
+      <section id="item-catalog-profile" class="help-profile" aria-label="冒険者プロフィール">
+        <div class="help-profile-row">
+          <p class="help-profile-label">🏆 現在の称号</p>
+          <p id="item-catalog-title" class="help-profile-title"></p>
+        </div>
+        <div class="help-profile-row">
+          <p class="help-profile-label">💰 累計ゴールド</p>
+          <p id="item-catalog-total-gold" class="help-profile-gold"></p>
+        </div>
+        <div id="item-catalog-next-title" class="help-profile-next">
+          <p class="help-profile-label">次の称号</p>
+          <p id="item-catalog-next-title-name" class="help-profile-next-name"></p>
+          <p id="item-catalog-next-title-remaining" class="help-profile-next-remaining"></p>
+          <div class="help-profile-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="item-catalog-progress">
+            <div id="item-catalog-progress-fill" class="help-profile-progress-fill"></div>
+          </div>
+          <p id="item-catalog-progress-text" class="help-profile-progress-text"></p>
+        </div>
+        <p id="item-catalog-max-title" class="help-profile-max" hidden>最高称号達成！</p>
+        <p class="help-profile-note">G＝ゴールド。獲得したアイテムの価値を表します。</p>
+      </section>
       <p id="item-catalog-summary" class="help-catalog-summary" aria-live="polite"></p>
       <div id="item-catalog-grid" class="help-item-grid"></div>
       <button type="button" id="item-catalog-back-button" class="secondary-button help-back-button">

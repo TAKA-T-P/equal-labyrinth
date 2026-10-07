@@ -548,3 +548,113 @@
     filter: drop-shadow(0 0 10px rgba(232, 201, 104, 0.5));
   }
 }
+
+/* ---------------- アイテムの価値（G）・累計ゴールド ---------------- */
+
+.quest-item-gold {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 6px auto 4px;
+  padding: 10px 18px;
+  min-width: min(100%, 260px);
+  border: 2px solid var(--color-correct-gold);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(232, 201, 104, 0.18), rgba(232, 201, 104, 0.04));
+}
+
+.quest-item-gold-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.quest-item-gold-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--color-correct-gold);
+  text-shadow: 0 0 12px rgba(232, 201, 104, 0.55);
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+
+.quest-item-gold-total {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.quest-item-gold-arrow {
+  color: var(--color-text-muted);
+}
+
+.quest-item-gold-total-after {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--color-correct-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------- 称号ランクアップ ---------------- */
+
+.quest-title-rankup {
+  margin: 6px auto 4px;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-correct);
+  background: rgba(53, 196, 106, 0.14);
+  text-align: center;
+}
+
+.quest-title-rankup[hidden] {
+  display: none;
+}
+
+.quest-title-rankup-heading {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-correct);
+  margin: 0;
+}
+
+.quest-title-rankup-name {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--color-correct-gold);
+  margin: 2px 0;
+}
+
+.quest-title-rankup-caption {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.quest-anim-title-rankup {
+  animation: quest-title-rankup-pop 0.7s ease-out;
+}
+
+@keyframes quest-title-rankup-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 冒険結果の「現在の称号」は長い名前もあるため、1段ぶんの横長の項目にする */
+.quest-summary-title {
+  font-size: 0.95rem;
+}

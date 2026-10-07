@@ -62,9 +62,12 @@ import {
   recordEnemyEncounter,
   recordItemAcquired,
   recordRoomResult,
+  claimRoomReward,
+  addEarnedGoldThisQuest,
   getQuestState
 } from "../quest/quest-state.js";
-import { recordItemObtained } from "../quest/quest-storage.js";
+import { recordItemAcquisition, getTotalGold } from "../quest/quest-storage.js";
+import { getQuestTitle, getTitleRankUp, formatGold } from "../quest/quest-titles.js";
 
 const HINT_MODE_LABELS = {
   immediate: "はじめから",
@@ -769,19 +772,50 @@ function pickRandomReward(rewardPool) {
   return rewardPool[index];
 }
 
+/**
+ * 宝箱を開ける。入手アイテムを確定したら、演出より先にアイテム（所持数）と価値（G）を
+ * まとめて保存する（演出の途中でブラウザを閉じても、アイテム・所持数・累計Gが残るように）。
+ * 1回の部屋クリアにつき報酬の保存は1回だけ（claimRoomReward()）で、ダブルクリックや
+ * 演出の再実行があっても、所持数とGが二重に増えることはない。
+ */
 async function handleOpenChest() {
+  if (!claimRoomReward()) return;
+
   const room = getRoom(questState.currentRoomId);
   const reward = pickRandomReward(room.reward);
+
+  const acquisition = recordItemAcquisition(reward, room.roomId);
+  recordItemAcquired(reward);
+  addEarnedGoldThisQuest(acquisition.goldValue);
+  const rankUpTitle = getTitleRankUp(acquisition.previousTotalGold, acquisition.totalGold);
 
   questUi.markTreasureChestOpen();
   await questEffects.playTreasureOpenEffect(questUi.getTreasureChestElement());
 
-  const updatedItem = recordItemObtained(reward);
-  recordItemAcquired(reward);
-
   questUi.showQuestView("item-get");
-  questUi.renderItemGet({ reward, count: updatedItem.count });
+  questUi.setItemGetNextEnabled(false);
+  questUi.renderItemGet({
+    reward,
+    count: acquisition.item.count,
+    goldValue: acquisition.goldValue,
+    previousTotalGold: acquisition.previousTotalGold,
+    totalGold: acquisition.totalGold
+  });
   await questEffects.playItemRevealEffect(questUi.getItemGetEmojiElement());
+  await questEffects.playGoldCountUpEffect(
+    questUi.getItemGetTotalAfterElement(),
+    acquisition.previousTotalGold,
+    acquisition.totalGold,
+    formatGold
+  );
+
+  // 称号が上がった場合だけ、アイテム獲得演出のあとに短く表示する
+  // （部屋はクリア済みで、部屋の制限時間も止まっているため、攻略上の時間には影響しない）
+  if (rankUpTitle) {
+    await sleep(300);
+    await questEffects.playTitleRankUpEffect(questUi.showTitleRankUp(rankUpTitle));
+  }
+  questUi.setItemGetNextEnabled(true);
 }
 
 async function handleItemGetNext() {
@@ -884,7 +918,10 @@ function buildQuestSummaryData(heading, message, isVictory) {
     hintUseCount: questState.totals.hintUseCount,
     clearedRoomCount: questState.roomResults.filter((r) => r.outcome === "success").length,
     unitDisplayName: UNIT_CONFIG[questState.unit].displayName,
-    answerFormatName: TRAINING_ANSWER_FORMAT_NAMES[gameState.questAnswerFormat]
+    answerFormatName: TRAINING_ANSWER_FORMAT_NAMES[gameState.questAnswerFormat],
+    earnedGold: questState.earnedGoldThisQuest,
+    totalGold: getTotalGold(),
+    titleName: getQuestTitle(getTotalGold()).title
   };
 }
 

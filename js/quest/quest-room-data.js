@@ -5,6 +5,12 @@
 // rewardは常に配列（1つ以上のアイテム候補）。ステージ1〜3（A〜Kの部屋）は複数候補を
 // 持たせており、宝箱を開けたときに配列からランダムで1つを選ぶ（js/modes/quest-mode.jsの
 // handleOpenChest()を参照）。ステージ4・5（L〜Zの部屋）は、これまでどおり要素1つの配列。
+//
+// goldValue：アイテムの価値（G＝ゴールド、0より大きい整数）。宝箱から入手するたびに
+// 累計ゴールドへ加算する（使用・消費はしない実績値。README「アイテム価値（G）と称号」を参照）。
+// 同じ部屋の候補は同じ価格にして、ランダム抽選の運で称号の成長速度が変わらないようにしている。
+// 迷宮の奥ほど高価：STAGE1 50〜100G／STAGE2 100〜200G／STAGE3 400〜1,000G／
+// STAGE4 1,000〜7,000G／STAGE5 8,000〜30,000G（Zの「覇王の冠」30,000Gが最高価値）。
 
 export const QUEST_ROOMS = [
   {
@@ -22,30 +28,35 @@ export const QUEST_ROOMS = [
         itemId: "item-A",
         emoji: "🍏",
         name: "熟した果実",
+        goldValue: 50,
         description: "ひと口かじれば元気いっぱい！冒険で減った体力を少し回復する。"
       },
       {
         itemId: "item-A2",
         emoji: "🍓",
         name: "妖精のいちご",
+        goldValue: 50,
         description: "妖精の森で育った甘い実で、食べると体がふわっと軽くなる。"
       },
       {
         itemId: "item-A3",
         emoji: "🍇",
         name: "ムラサキぶどう玉",
+        goldValue: 50,
         description: "魔力をたっぷり吸い込んだぶどうで、ひと粒ごとに元気がわいてくる。"
       },
       {
         itemId: "item-A4",
         emoji: "🍉",
         name: "オアシススイカ",
+        goldValue: 50,
         description: "砂漠の真ん中で育ったみずみずしいスイカで、疲れを吹き飛ばす。"
       },
       {
         itemId: "item-A5",
         emoji: "🍒",
         name: "ふたごチェリー",
+        goldValue: 50,
         description: "2つ同時に食べると、うれしい出来事が2倍になるといわれている。"
       }
     ],
@@ -67,30 +78,35 @@ export const QUEST_ROOMS = [
         itemId: "item-B",
         emoji: "🍖",
         name: "完熟ケモノ肉",
+        goldValue: 100,
         description: "うまみとパワーがぎっしり詰まった、野性味あふれる極上の肉。"
       },
       {
         itemId: "item-B2",
         emoji: "🍌",
         name: "パワーバナナ",
+        goldValue: 100,
         description: "食べた瞬間に力がみなぎり、重たい岩も持ち上げられそうになる。"
       },
       {
         itemId: "item-B3",
         emoji: "🍑",
         name: "天界のもも",
+        goldValue: 100,
         description: "雲の上で育った幻のももで、ひと口食べれば傷がたちまち癒える。"
       },
       {
         itemId: "item-B4",
         emoji: "🍍",
         name: "トゲトゲパイン",
+        goldValue: 100,
         description: "見た目は危険だが中身は極上で、食べると防御力が高まる。"
       },
       {
         itemId: "item-B5",
         emoji: "🍳",
         name: "ドラゴンエッグ焼き",
+        goldValue: 100,
         description: "ドラゴンの卵に似た巨大な目玉焼きで、食べれば力がぐんぐん湧いてくる。"
       }
     ],
@@ -113,30 +129,35 @@ export const QUEST_ROOMS = [
         itemId: "item-C",
         emoji: "💊",
         name: "ハーブカプセル",
+        goldValue: 100,
         description: "貴重な薬草の力を閉じ込めた、持ち運びに便利な回復カプセル。"
       },
       {
         itemId: "item-C2",
         emoji: "🥕",
         name: "俊足ニンジン",
+        goldValue: 100,
         description: "かじると足が速くなり、敵より先に動けるようになる。"
       },
       {
         itemId: "item-C3",
         emoji: "🍄",
         name: "巨大化キノコ",
+        goldValue: 100,
         description: "食べると一時的に体が大きくなり、いつも以上の力を発揮できる。"
       },
       {
         itemId: "item-C4",
         emoji: "🧲",
         name: "お宝マグネット",
+        goldValue: 100,
         description: "周囲に落ちているコインや小さな宝物を引き寄せる不思議な磁石。"
       },
       {
         itemId: "item-C5",
         emoji: "🌽",
         name: "黄金のとうもろこし",
+        goldValue: 100,
         description: "粒の一つ一つが金色に輝き、食べると幸運を呼び寄せる。"
       }
     ],
@@ -158,30 +179,35 @@ export const QUEST_ROOMS = [
         itemId: "item-D",
         emoji: "🌿",
         name: "毒消し草",
+        goldValue: 150,
         description: "かむと少し苦いが、体に回った毒をたちまち消してくれる。"
       },
       {
         itemId: "item-D2",
         emoji: "🍞",
         name: "勇者の焼きたてパン",
+        goldValue: 150,
         description: "冒険者たちに愛される香ばしいパンで、心と体を元気にする。"
       },
       {
         itemId: "item-D3",
         emoji: "🧀",
         name: "満月チーズ",
+        goldValue: 150,
         description: "満月の夜に完成する特別なチーズで、不思議な魔力を回復する。"
       },
       {
         itemId: "item-D4",
         emoji: "🔔",
         name: "精霊呼びの鈴",
+        goldValue: 150,
         description: "澄んだ音を鳴らすと、小さな精霊が冒険を助けに来てくれる。"
       },
       {
         itemId: "item-D5",
         emoji: "🃏",
         name: "切り札のジョーカー",
+        goldValue: 150,
         description: "ここぞという場面で使うと、思いもよらない奇跡を起こす。"
       }
     ],
@@ -203,30 +229,35 @@ export const QUEST_ROOMS = [
         itemId: "item-E",
         emoji: "🧪",
         name: "ハイポーション",
+        goldValue: 200,
         description: "虹色に輝く魔法の薬で、傷ついた体力を一気に回復する。"
       },
       {
         itemId: "item-E2",
         emoji: "🍨",
         name: "永久氷河アイス",
+        goldValue: 200,
         description: "決して溶けない氷で作られ、熱や炎の攻撃から身を守ってくれる。"
       },
       {
         itemId: "item-E3",
         emoji: "🍛",
         name: "灼熱ドラゴンカレー",
+        goldValue: 200,
         description: "口から火が出るほど辛いが、攻撃力を大きく高めてくれる。"
       },
       {
         itemId: "item-E4",
         emoji: "⏳",
         name: "時戻しの砂時計",
+        goldValue: 200,
         description: "砂が落ちきる前に使うと、少し前の時間まで戻ることができる。"
       },
       {
         itemId: "item-E5",
         emoji: "🧵",
         name: "アリアドネの糸",
+        goldValue: 200,
         description: "迷宮の入り口から伸び続け、迷わず元の場所へ戻れる魔法の糸。"
       }
     ],
@@ -249,12 +280,14 @@ export const QUEST_ROOMS = [
         itemId: "item-F",
         emoji: "⚙️",
         name: "古代文明の歯車",
+        goldValue: 400,
         description: "失われた機械を動かすという、謎のエネルギーを秘めた歯車。"
       },
       {
         itemId: "item-F2",
         emoji: "🕯️",
         name: "導きの聖火",
+        goldValue: 400,
         description: "暗い迷宮を明るく照らし、隠された道や宝箱を見つけ出す。"
       }
     ],
@@ -276,12 +309,14 @@ export const QUEST_ROOMS = [
         itemId: "item-G",
         emoji: "🧭",
         name: "真実の羅針盤",
+        goldValue: 600,
         description: "どんな迷宮でも、本当に進むべき道を指し示してくれる。"
       },
       {
         itemId: "item-G2",
         emoji: "🪶",
         name: "天空鳥の羽根",
+        goldValue: 600,
         description: "空を飛ぶ伝説の鳥の羽根で、高い場所へひと飛びできる。"
       }
     ],
@@ -303,12 +338,14 @@ export const QUEST_ROOMS = [
         itemId: "item-H",
         emoji: "🗺️",
         name: "秘境の古地図",
+        goldValue: 700,
         description: "誰も知らない洞窟や、秘密の宝箱の場所が描かれた古い地図。"
       },
       {
         itemId: "item-H2",
         emoji: "🎲",
         name: "運命のダイス",
+        goldValue: 700,
         description: "振るたびに何が起こるか分からない、幸運と危険を秘めたサイコロ。"
       }
     ],
@@ -330,12 +367,14 @@ export const QUEST_ROOMS = [
         itemId: "item-I",
         emoji: "💧",
         name: "流水の魔石",
+        goldValue: 800,
         description: "清らかな水の力を宿し、激しい水流を生み出す青き魔石。"
       },
       {
         itemId: "item-I2",
         emoji: "🪞",
         name: "真実を映す鏡",
+        goldValue: 800,
         description: "変身や幻を見破り、隠された本当の姿を映し出す。"
       }
     ],
@@ -357,12 +396,14 @@ export const QUEST_ROOMS = [
         itemId: "item-J",
         emoji: "🔥",
         name: "烈火の魔石",
+        goldValue: 900,
         description: "触れるだけで熱が伝わる、燃えさかる炎の力を秘めた魔石。"
       },
       {
         itemId: "item-J2",
         emoji: "📖",
         name: "賢者の攻略書",
+        goldValue: 900,
         description: "強敵の弱点や迷宮の仕掛けが、読む者にだけ浮かび上がる。"
       }
     ],
@@ -384,12 +425,14 @@ export const QUEST_ROOMS = [
         itemId: "item-K",
         emoji: "🌟",
         name: "進化の輝星",
+        goldValue: 1000,
         description: "限界を超える力を与え、眠っていた新たな能力を目覚めさせる。"
       },
       {
         itemId: "item-K2",
         emoji: "💣",
         name: "びっくり魔法爆弾",
+        goldValue: 1000,
         description: "爆発と同時に星や煙が飛び出し、敵を驚かせて動きを止める。"
       }
     ],
@@ -412,6 +455,7 @@ export const QUEST_ROOMS = [
         itemId: "item-L",
         emoji: "🔑",
         name: "ゴールドキー",
+        goldValue: 1000,
         description: "黄金の宝箱や、固く閉ざされた秘密の扉を開く特別なカギ。"
       }
     ],
@@ -433,6 +477,7 @@ export const QUEST_ROOMS = [
         itemId: "item-M",
         emoji: "🪙",
         name: "マジカルコイン",
+        goldValue: 1500,
         description: "集めるほど不思議な力が高まり、珍しいアイテムと交換できる。"
       }
     ],
@@ -454,6 +499,7 @@ export const QUEST_ROOMS = [
         itemId: "item-N",
         emoji: "🎁",
         name: "サンタの贈り物",
+        goldValue: 2000,
         description: "開けるまで中身は分からない、夢と驚きが詰まった贈り物。"
       }
     ],
@@ -475,6 +521,7 @@ export const QUEST_ROOMS = [
         itemId: "item-O",
         emoji: "💴",
         name: "袖の下",
+        goldValue: 2500,
         description: "こっそり渡すと、気むずかしい相手の態度が少し変わるらしい。"
       }
     ],
@@ -496,6 +543,7 @@ export const QUEST_ROOMS = [
         itemId: "item-P",
         emoji: "🪄",
         name: "魔導士の杖",
+        goldValue: 3000,
         description: "ひと振りすれば魔力があふれ、強力な魔法を呼び起こす。"
       }
     ],
@@ -517,6 +565,7 @@ export const QUEST_ROOMS = [
         itemId: "item-Q",
         emoji: "💍",
         name: "幸運の指輪",
+        goldValue: 3500,
         description: "身につけた者に幸運を呼び込み、珍しい宝との出会いを増やす。"
       }
     ],
@@ -538,6 +587,7 @@ export const QUEST_ROOMS = [
         itemId: "item-R",
         emoji: "🛡️",
         name: "守護神のシールド",
+        goldValue: 4500,
         description: "守護神の加護を宿し、どんな強烈な攻撃も受け止める伝説の盾。"
       }
     ],
@@ -559,6 +609,7 @@ export const QUEST_ROOMS = [
         itemId: "item-S",
         emoji: "🏹",
         name: "天駆ける精霊の弓",
+        goldValue: 5500,
         description: "風の精霊が矢を導き、はるか遠くの敵さえ正確に射抜く。"
       }
     ],
@@ -580,6 +631,7 @@ export const QUEST_ROOMS = [
         itemId: "item-T",
         emoji: "⚔️",
         name: "聖剣エクスカリバー",
+        goldValue: 7000,
         description: "選ばれし勇者だけが使える、闇を切り裂く最強の聖剣。"
       }
     ],
@@ -602,6 +654,7 @@ export const QUEST_ROOMS = [
         itemId: "item-U",
         emoji: "📜",
         name: "禁忌の召喚書",
+        goldValue: 8000,
         description: "封印された魔物を呼び出す、決して開いてはならない禁断の書。"
       }
     ],
@@ -623,6 +676,7 @@ export const QUEST_ROOMS = [
         itemId: "item-V",
         emoji: "🔮",
         name: "時空の予言球",
+        goldValue: 12000,
         description: "過去と未来の景色を映し出し、これから起こる運命を告げる。"
       }
     ],
@@ -644,6 +698,7 @@ export const QUEST_ROOMS = [
         itemId: "item-W",
         emoji: "💎",
         name: "星屑のダイヤ",
+        goldValue: 16000,
         description: "夜空からこぼれ落ちた星の光が、長い年月をかけて結晶になった。"
       }
     ],
@@ -665,6 +720,7 @@ export const QUEST_ROOMS = [
         itemId: "item-X",
         emoji: "💰",
         name: "伝説の財宝袋",
+        goldValue: 20000,
         description: "金貨や宝石が次々にあふれ出す、底が見えない不思議な袋。"
       }
     ],
@@ -686,6 +742,7 @@ export const QUEST_ROOMS = [
         itemId: "item-Y",
         emoji: "🏆",
         name: "栄光のトロフィー",
+        goldValue: 24000,
         description: "数々の試練を乗り越えた、真の冒険者だけに贈られる証。"
       }
     ],
@@ -707,6 +764,7 @@ export const QUEST_ROOMS = [
         itemId: "item-Z",
         emoji: "👑",
         name: "覇王の冠",
+        goldValue: 30000,
         description: "最強の敵を打ち破り、世界の頂点に立った者がかぶる黄金の冠。"
       }
     ],
@@ -731,6 +789,13 @@ const VALID_CATEGORY_GROUPS = new Set([
   "speedGeometry",
   "percentage"
 ]);
+
+/**
+ * アイテムの価値（G）として正しい値か：0より大きい整数（NaN・小数・負数は不可）。
+ */
+export function isValidGoldValue(value) {
+  return Number.isInteger(value) && value > 0;
+}
 
 /**
  * A〜Zの部屋データを検証する（開発時チェック用）。
@@ -765,6 +830,15 @@ export function validateQuestRoomData() {
       problems.push(`${label}：rewardは1つ以上のアイテムを持つ配列である必要があります。`);
     } else if (room.reward.some((item) => !item || !item.name || !item.emoji || !item.itemId)) {
       problems.push(`${label}：rewardの中に、名前・絵文字・itemIdが不足しているアイテムがあります。`);
+    }
+    if (Array.isArray(room.reward)) {
+      room.reward.forEach((item) => {
+        if (item && !isValidGoldValue(item.goldValue)) {
+          problems.push(
+            `${label}：アイテム「${item.itemId}」のgoldValueは0より大きい整数である必要があります（${item.goldValue}）。`
+          );
+        }
+      });
     }
 
     const mission = room.mission || {};
