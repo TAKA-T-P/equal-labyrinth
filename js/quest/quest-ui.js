@@ -55,6 +55,7 @@ const elements = {
   summaryHints: document.getElementById("quest-summary-hints"),
   summaryRooms: document.getElementById("quest-summary-rooms"),
   summaryUnit: document.getElementById("quest-summary-unit"),
+  summaryAnswerFormat: document.getElementById("quest-summary-answer-format"),
   summaryToTitleButton: document.getElementById("quest-summary-to-title-button"),
 
   retireBackdrop: document.getElementById("quest-retire-backdrop"),
@@ -409,6 +410,9 @@ export function renderQuestSummary(data) {
   elements.summaryHints.textContent = `${data.hintUseCount}回`;
   elements.summaryRooms.textContent = `${data.clearedRoomCount}部屋`;
   elements.summaryUnit.textContent = data.unitDisplayName;
+  if (elements.summaryAnswerFormat) {
+    elements.summaryAnswerFormat.textContent = data.answerFormatName || "スタンダード";
+  }
 }
 
 // ============================================================

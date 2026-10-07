@@ -94,6 +94,16 @@
   display: none;
 }
 
+/* 出題形式（トレーニング・クエストで表示）。直後のトレーニング専用設定との間隔は8px */
+#answer-format-settings {
+  flex: 0 0 auto;
+  margin-top: -8px;
+}
+
+#answer-format-settings[hidden] {
+  display: none;
+}
+
 #training-only-settings {
   display: flex;
   flex-direction: column;

@@ -9,8 +9,10 @@ export const gameState = {
   unit: "linear",
   rankDifficulty: "NORMAL", // "NORMAL" | "HARD"（段位認定モードでのみ使用）
 
-  // トレーニングモードの出題形式（"easy"＝おてがる／"standard"＝スタンダード）
+  // 出題形式（"easy"＝おてがる／"standard"＝スタンダード）。
+  // トレーニングとクエストで、それぞれ別に選んで保存する（段位認定は常にスタンダード）
   trainingAnswerFormat: DEFAULT_TRAINING_ANSWER_FORMAT,
+  questAnswerFormat: DEFAULT_TRAINING_ANSWER_FORMAT,
 
   // ============================================================
   // トレーニング「おてがる」（4択）専用：数式入力トークンとは別に管理する
@@ -405,6 +407,34 @@ export function getCurrentSystemInputStrings() {
 
 export function setTrainingAnswerFormat(format) {
   gameState.trainingAnswerFormat = format;
+}
+
+export function setQuestAnswerFormat(format) {
+  gameState.questAnswerFormat = format;
+}
+
+/**
+ * 現在のモードで使う出題形式を返す（トレーニング・クエストはそれぞれの設定、
+ * 段位認定は常に"standard"）。
+ */
+export function getActiveAnswerFormat() {
+  if (gameState.mode === "training") return gameState.trainingAnswerFormat;
+  if (gameState.mode === "quest") return gameState.questAnswerFormat;
+  return "standard";
+}
+
+/**
+ * 4択を描画するための表示状態（ui.renderEasyChoices()へ渡す）を、現在の状態から作る。
+ * トレーニング・クエストで共通に使う。
+ */
+export function getEasyChoiceView({ revealCorrect = false, flashChoiceId = null } = {}) {
+  return {
+    selectedId: gameState.selectedEasyChoiceId,
+    eliminatedIds: gameState.eliminatedEasyChoiceIds,
+    revealedCorrectId: revealCorrect ? gameState.currentEasyCorrectChoiceId : null,
+    locked: gameState.inputLocked,
+    flashChoiceId
+  };
 }
 
 /**

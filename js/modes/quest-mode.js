@@ -8,13 +8,27 @@
 // 数式の正誤判定・問題生成は、既存のanswer-validator.js／question-manager.jsを
 // そのまま呼び出す（クエスト専用の判定ロジックは持たない）。
 
-import { APP_CONFIG, UNIT_CONFIG, UNIT_IDS } from "../config.js";
+import {
+  APP_CONFIG,
+  UNIT_CONFIG,
+  UNIT_IDS,
+  TRAINING_ANSWER_FORMAT,
+  TRAINING_ANSWER_FORMAT_NAMES
+} from "../config.js";
 import {
   gameState,
   resetQuestionState,
   getCurrentInputString,
-  getCurrentSystemInputStrings
+  getCurrentSystemInputStrings,
+  setEasyChoices,
+  getEasyChoiceById,
+  getEasyChoiceView,
+  eliminateEasyChoice,
+  clearEasyChoiceSelection,
+  recordEasyChoiceAttempt
 } from "../state.js";
+import { buildEasyChoices } from "../training/easy-choice-builder.js";
+import { toValidatorInput } from "../training/distractor-validator.js";
 import * as ui from "../ui.js";
 import * as questUi from "../quest/quest-ui.js";
 import * as timer from "../timer.js";
@@ -70,6 +84,9 @@ let pendingRoomCategoryAssignment = {};
 let pendingFailureNextRoomId = null;
 let pendingIsBossFailure = false;
 let lastUrgentTickSecond = null;
+
+// 「おてがる」：4択を作れなかった問題を、同じカテゴリから作り直す最大回数
+const EASY_REPLACEMENT_ATTEMPTS = 10;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -278,14 +295,108 @@ async function handleFight() {
   await beginQuestQuestion();
 }
 
+// ============================================================
+// 「おてがる」（4択）
+// トレーニングと同じ4択の作り方・判定（既存のvalidateCurrentAnswer()）を使う。
+// 部屋のルール（必要正解数・ミス上限・制限時間・ヒント条件）はスタンダードと同じ。
+// ============================================================
+
+function isQuestEasyFormat() {
+  return gameState.questAnswerFormat === TRAINING_ANSWER_FORMAT.EASY;
+}
+
+/**
+ * 現在の問題が4択で出題されているか（4択を作れずスタンダードで出題した問題はfalse）。
+ */
+function isCurrentQuestionEasy() {
+  return isQuestEasyFormat() && gameState.currentEasyChoices.length > 0;
+}
+
+/**
+ * 問題の4択を1回だけ用意する。作れない場合は同じカテゴリから問題を作り直し、
+ * それでも作れなければnullを返す（その問題はスタンダードで出題する）。
+ * @returns {{question: object, template: object, choices: object}|null}
+ */
+function prepareEasyQuestion(question, template, categoryId) {
+  let built = buildEasyChoices(question, questState.unit);
+  let currentQuestion = question;
+  let currentTemplate = template;
+
+  for (let attempt = 0; !built && attempt < EASY_REPLACEMENT_ATTEMPTS; attempt += 1) {
+    currentTemplate = pickTemplateForCategory(questState.unit, categoryId, null);
+    currentQuestion = generateQuestionFromTemplate(currentTemplate, questState.unit);
+    built = buildEasyChoices(currentQuestion, questState.unit);
+  }
+
+  if (!built) {
+    console.warn(
+      `おてがるの4択を作れなかったため、この問題はスタンダード（数式入力）で出題します（${question.templateId}）。`
+    );
+    return null;
+  }
+  return { question: currentQuestion, template: currentTemplate, choices: built };
+}
+
+function refreshQuestEasyChoices(options = {}) {
+  ui.renderEasyChoices(gameState.currentEasyChoices, getEasyChoiceView(options));
+}
+
+/**
+ * 4択で選んだ式を、既存の正誤判定へ渡して判定する（選択肢のisCorrectフラグでは判定しない）。
+ * 不正解の選択肢には×をつけて選べなくし、部屋のミス数を1つ増やす（ミス上限に達すれば失敗）。
+ */
+async function handleQuestEasySubmit() {
+  const choice = getEasyChoiceById(gameState.selectedEasyChoiceId);
+  if (!choice || gameState.eliminatedEasyChoiceIds.includes(choice.id)) return;
+
+  const result = validateCurrentAnswer(
+    questState.unit,
+    toValidatorInput(questState.unit, choice.equations),
+    gameState.currentQuestion
+  );
+
+  if (result.status === "correct") {
+    recordEasyChoiceAttempt(choice, true);
+    await handleQuestCorrectAnswer();
+    return;
+  }
+
+  if (result.status === "incorrect") {
+    recordEasyChoiceAttempt(choice, false);
+    eliminateEasyChoice(choice.id);
+    clearEasyChoiceSelection();
+    ui.setSubmitButtonEnabled(false);
+    ui.setEasyChoiceFeedback(
+      `✕ ${choice.label}　もう一度、問題文と式を見比べてみよう！`,
+      "incorrect"
+    );
+    refreshQuestEasyChoices({ flashChoiceId: choice.id });
+    await handleQuestIncorrectAnswer();
+    return;
+  }
+
+  console.warn("おてがるの選択肢が入力エラーと判定されました。", choice.equations, result);
+  ui.showJudgeMessage("input-error", result.message);
+}
+
 async function beginQuestQuestion() {
   questState.status = "playing";
   resetQuestionState();
 
   const room = getRoom(questState.currentRoomId);
   const categoryId = questState.currentRoom.questionCategorySequence[questState.currentRoom.currentQuestionIndex];
-  const template = pickTemplateForCategory(questState.unit, categoryId, questState.currentRoom.lastTemplateId);
-  const question = generateQuestionFromTemplate(template, questState.unit);
+  let template = pickTemplateForCategory(questState.unit, categoryId, questState.currentRoom.lastTemplateId);
+  let question = generateQuestionFromTemplate(template, questState.unit);
+
+  if (isQuestEasyFormat()) {
+    const prepared = prepareEasyQuestion(question, template, categoryId);
+    if (prepared) {
+      question = prepared.question;
+      template = prepared.template;
+      setEasyChoices(prepared.choices.choices, prepared.choices.correctChoiceId);
+    }
+  }
+
   questState.currentRoom.lastTemplateId = template.templateId;
   gameState.currentQuestion = question;
 
@@ -301,6 +412,12 @@ async function beginQuestQuestion() {
   refreshQuestEquationDisplay();
   ui.renderEquationKeypad(question);
   ui.setSubmitButtonEnabled(false);
+
+  // おてがる：数式入力欄・数式キーボードの代わりに4択を表示する
+  if (isCurrentQuestionEasy()) {
+    ui.showEasyChoiceMode(true);
+    refreshQuestEasyChoices();
+  }
 
   updateQuestHudDisplay();
   applyHintModeForQuestion(room.mission.hintMode);
@@ -397,6 +514,9 @@ function lockQuestQuestionInput() {
   ui.setSubmitButtonEnabled(false);
   ui.setHintButtonEnabled(false);
   ui.clearJudgeMessage();
+  if (isCurrentQuestionEasy()) {
+    refreshQuestEasyChoices();
+  }
 }
 
 function getQuestDisplayEquation() {
@@ -411,6 +531,11 @@ function getQuestDisplayEquation() {
 
 export async function handleSubmit() {
   if (gameState.inputLocked) return;
+
+  if (isCurrentQuestionEasy()) {
+    await handleQuestEasySubmit();
+    return;
+  }
 
   const input =
     questState.unit === UNIT_IDS.SIMULTANEOUS
@@ -454,6 +579,13 @@ async function handleQuestCorrectAnswer() {
   const elapsedSeconds = timer.stopQuestionTimer();
   lockQuestQuestionInput();
   questTimer.pauseRoomTimer();
+
+  // おてがる：正解の選択肢に○をつけ、「ここがポイント！」（explanation）を用意する
+  if (isCurrentQuestionEasy()) {
+    refreshQuestEasyChoices({ revealCorrect: true });
+    ui.setEasyChoiceFeedback("");
+    ui.setAnswerRevealPoint(gameState.currentQuestion.explanation || null);
+  }
 
   audio.playCorrectSound();
   ui.showAnswerReveal(
@@ -528,6 +660,27 @@ function recordQuestHistory(result, elapsedSeconds) {
     hintPartsRevealed: gameState.currentQuestionHintPartsRevealed,
     hintPartUsed: gameState.currentQuestionHintPartUsed,
     usedHintPartValues: [...gameState.usedHintPartValues],
+
+    // 出題形式（おてがるで出題した問題は、選んだ式の順番と4択の内容も記録する）
+    answerFormat: isCurrentQuestionEasy() ? TRAINING_ANSWER_FORMAT.EASY : TRAINING_ANSWER_FORMAT.STANDARD,
+    answerFormatName: TRAINING_ANSWER_FORMAT_NAMES[
+      isCurrentQuestionEasy() ? TRAINING_ANSWER_FORMAT.EASY : TRAINING_ANSWER_FORMAT.STANDARD
+    ],
+    ...(isCurrentQuestionEasy()
+      ? {
+          selectedChoiceHistory: gameState.easyChoiceAttempts.map((attempt) => ({
+            label: attempt.label,
+            equations: [...attempt.equations],
+            correct: attempt.correct
+          })),
+          easyChoices: gameState.currentEasyChoices.map((choice) => ({
+            label: choice.label,
+            equations: [...choice.equations],
+            isCorrect: choice.isCorrect,
+            distractorType: choice.distractorType
+          }))
+        }
+      : {}),
 
     // クエストモード専用の追加項目
     questMode: true,
@@ -730,7 +883,8 @@ function buildQuestSummaryData(heading, message, isVictory) {
     incorrectCount: questState.totals.incorrectCount,
     hintUseCount: questState.totals.hintUseCount,
     clearedRoomCount: questState.roomResults.filter((r) => r.outcome === "success").length,
-    unitDisplayName: UNIT_CONFIG[questState.unit].displayName
+    unitDisplayName: UNIT_CONFIG[questState.unit].displayName,
+    answerFormatName: TRAINING_ANSWER_FORMAT_NAMES[gameState.questAnswerFormat]
   };
 }
 

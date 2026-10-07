@@ -35,6 +35,7 @@ const elements = {
   difficultyNormalButton: document.getElementById("difficulty-normal"),
   difficultyHardButton: document.getElementById("difficulty-hard"),
   trainingOnlySettings: document.getElementById("training-only-settings"),
+  answerFormatSettings: document.getElementById("answer-format-settings"),
   answerFormatEasyButton: document.getElementById("answer-format-easy"),
   answerFormatStandardButton: document.getElementById("answer-format-standard"),
   questionCountRow: document.getElementById("question-count-row"),
@@ -595,7 +596,8 @@ const MODE_DESCRIPTIONS = {
 /**
  * モード選択（トレーニング／段位認定／クエスト）の見た目を切り替える。
  * トレーニング専用設定（問題数・カテゴリ）と、段位認定専用設定（難易度）の
- * 表示・非表示もあわせて切り替える（クエストは、どちらの設定も表示しない）。
+ * 表示・非表示もあわせて切り替える。出題形式（おてがる／スタンダード）は
+ * トレーニング・クエストで表示し、段位認定では表示しない。
  */
 export function renderModeSelection(mode) {
   const isTraining = mode === "training";
@@ -612,6 +614,9 @@ export function renderModeSelection(mode) {
   }
 
   elements.trainingOnlySettings.hidden = !isTraining;
+  if (elements.answerFormatSettings) {
+    elements.answerFormatSettings.hidden = !(isTraining || isQuest);
+  }
   if (elements.questionCountRow) {
     elements.questionCountRow.hidden = !isTraining;
   }
@@ -627,11 +632,11 @@ export function renderModeSelection(mode) {
 }
 
 /**
- * トレーニングの出題形式（おてがる／スタンダード）の選択状態を表示する。
- * この設定欄は#training-only-settingsの中にあるため、トレーニング選択時だけ表示される。
+ * 出題形式（おてがる／スタンダード）の選択状態を表示する。トレーニング・クエストで
+ * 別々に保存しているため、呼び出し側（game.js）が現在のモードの値を渡す。
  * @param {"easy"|"standard"} format
  */
-export function renderTrainingAnswerFormatSelection(format) {
+export function renderAnswerFormatSelection(format) {
   [
     [elements.answerFormatEasyButton, "easy"],
     [elements.answerFormatStandardButton, "standard"]

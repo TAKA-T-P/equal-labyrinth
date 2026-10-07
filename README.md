@@ -956,9 +956,11 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 
 ## トレーニングの出題形式（おてがる／スタンダード）
 
-トレーニングモードでは、設定画面で出題形式を2種類から選べる。段位認定・クエスト・例題確認には
-この設定はなく、これまでどおり数式入力形式だけを使う（設定欄は`#training-only-settings`の中に
-あるため、トレーニング選択時だけ表示される）。
+トレーニングモードとクエストモードでは、設定画面で出題形式を2種類から選べる。段位認定・
+例題確認にはこの設定はなく、これまでどおり数式入力形式だけを使う（設定欄`#answer-format-settings`は
+トレーニング・クエスト選択時だけ表示され、段位認定では隠れる）。トレーニングとクエストの出題形式は
+それぞれ別々に保存する（タイトル画面でモードを切り替えると、そのモードの設定が表示される）。
+クエストでの動き方は「[クエストモードの「おてがる」](#クエストモードのおてがる)」を参照。
 
 | 出題形式 | 内部値 | 内容 |
 |---|---|---|
@@ -980,8 +982,31 @@ MVPでは、ヒントや式パーツの使用によるスコア・段位への�
 - 選択は`localStorage`の`equalLabyrinth.training.answerFormat`へ`easy`／`standard`として保存し、
   再起動後も復元する（`storage.js`の`saveTrainingAnswerFormat()` / `loadTrainingAnswerFormat()`）。
   未設定・旧バージョン・不正な値は`standard`へフォールバックする
+- クエストの出題形式は`equalLabyrinth.quest.answerFormat`へ別に保存する
+  （`saveQuestAnswerFormat()` / `loadQuestAnswerFormat()`、初期値・フォールバックはスタンダード）
 - 「⚠️ データを消す」は`equalLabyrinth.`接頭辞のキーをすべて削除するため、この設定も削除され、
   再読み込み後はスタンダードに戻る
+
+### クエストモードの「おてがる」
+
+クエストで「おてがる」を選ぶと、部屋の問題がトレーニングと同じ4択（同じ作り方・同じ検証・
+既存の`validateCurrentAnswer()`による判定）で出題される。部屋のルールはスタンダードと同じで、
+変えていない。
+
+- 必要正解数・ミス上限・制限時間・ヒント条件（はじめから／20秒後／なし）は部屋データどおり。
+  クエストにはパスがない点も同じ
+- 選択肢を押しただけでは判定せず、「解答する」で判定する。不正解の選択肢は×で選べなくなり、
+  部屋のミスに1回数える（ミス上限に達するとミッション失敗）。問題は変わらず、残りの選択肢から選び直す
+- 正解すると正解の選択肢に○をつけ、模範式と「ここがポイント！」（`explanation`）を
+  クエストの通常の正解表示時間だけ表示し、次の問題（または部屋クリア）へ自動で進む
+- 4択はトレーニングと同じく問題ごとに1回だけ作る。作れない場合は同じカテゴリから問題を作り直し
+  （最大10回）、それでも作れない場合はその問題だけスタンダード（数式入力）で出題する
+  （クエストは途中の問題を飛ばせないため。コンソールへ警告）
+- 冒険結果の画面に「出題形式」を表示し、問題履歴の内部データには`answerFormat`と、
+  おてがるの問題では`selectedChoiceHistory`・`easyChoices`を記録する
+- 実装は`quest-mode.js`の`beginQuestQuestion()` / `handleSubmit()`に4択の分岐を追加しただけで、
+  選択肢のタップ・物理キーボード（A〜D・1〜4・Enter）・ヒントの「参考」表示は、
+  `game.js`の共通処理（`isEasyAnswerFormat()`）をトレーニングと共有している
 
 ### スタンダードを従来仕様のまま残した方法
 
@@ -1613,6 +1638,7 @@ equalLabyrinth.selectedUnit
 equalLabyrinth.training.{linear|simultaneous|quadratic}.categories
 equalLabyrinth.training.answerFormat
 equalLabyrinth.training.categoryPreset
+equalLabyrinth.quest.answerFormat
 equalLabyrinth.rank.{linear|simultaneous|quadratic}.{NORMAL|HARD}
 equalLabyrinth.quest.inventory
 ```

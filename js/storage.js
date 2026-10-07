@@ -16,7 +16,8 @@ const KEYS = {
   selectedMode: `${APP_CONFIG.storageKeyPrefix}.selectedMode`,
   selectedUnit: `${APP_CONFIG.storageKeyPrefix}.selectedUnit`,
   trainingAnswerFormat: `${APP_CONFIG.storageKeyPrefix}.training.answerFormat`,
-  trainingCategoryPreset: `${APP_CONFIG.storageKeyPrefix}.training.categoryPreset`
+  trainingCategoryPreset: `${APP_CONFIG.storageKeyPrefix}.training.categoryPreset`,
+  questAnswerFormat: `${APP_CONFIG.storageKeyPrefix}.quest.answerFormat`
 };
 
 function selectedCategoriesKey(unit) {
@@ -117,6 +118,25 @@ export function saveTrainingAnswerFormat(format) {
  */
 export function loadTrainingAnswerFormat() {
   const raw = safeGetItem(KEYS.trainingAnswerFormat);
+  if (raw === null || !SELECTABLE_TRAINING_ANSWER_FORMATS.includes(raw)) {
+    return DEFAULT_TRAINING_ANSWER_FORMAT;
+  }
+  return raw;
+}
+
+/**
+ * クエストモードの出題形式を保存する（キー：equalLabyrinth.quest.answerFormat）。
+ * トレーニングの出題形式とは別に保存する。
+ */
+export function saveQuestAnswerFormat(format) {
+  safeSetItem(KEYS.questAnswerFormat, format);
+}
+
+/**
+ * クエストモードの出題形式を読み込む。未設定・不正な値は「スタンダード」。
+ */
+export function loadQuestAnswerFormat() {
+  const raw = safeGetItem(KEYS.questAnswerFormat);
   if (raw === null || !SELECTABLE_TRAINING_ANSWER_FORMATS.includes(raw)) {
     return DEFAULT_TRAINING_ANSWER_FORMAT;
   }

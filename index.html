@@ -96,7 +96,8 @@
         </button>
       </div>
 
-      <div id="training-only-settings">
+      <!-- 出題形式：トレーニング・クエストで表示（段位認定では非表示）。モードごとに別々に保存する -->
+      <div id="answer-format-settings">
         <div class="setting-card answer-format-setting-card">
           <h2 class="setting-heading">出題形式</h2>
           <div class="answer-format-group" role="group" aria-label="出題形式">
@@ -110,6 +111,9 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <div id="training-only-settings">
 
         <div class="setting-card category-setting-card">
           <h2 class="setting-heading">出題するカテゴリ</h2>
@@ -524,6 +528,10 @@
           <div class="result-stat">
             <span class="result-stat-label">選択した単元</span>
             <span id="quest-summary-unit" class="result-stat-value">―</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat-label">出題形式</span>
+            <span id="quest-summary-answer-format" class="result-stat-value">―</span>
           </div>
         </div>
 

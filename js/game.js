@@ -17,6 +17,9 @@ import {
   resetGameState,
   resetQuestionState,
   setTrainingAnswerFormat,
+  setQuestAnswerFormat,
+  getActiveAnswerFormat,
+  getEasyChoiceView,
   setEasyChoices,
   getEasyChoiceById,
   selectEasyChoice,
@@ -85,13 +88,33 @@ function sleep(milliseconds) {
 
 /**
  * 現在のゲームが、トレーニングの「おてがる」（4択）形式かどうか。
- * 段位認定・クエストでは、出題形式の設定に関わらず常にfalse。
+ * （トレーニング専用の進行（「次へ」・結果画面・履歴など）の分岐に使う）
  */
 function isEasyTrainingFormat() {
   return (
     gameState.mode === "training" &&
     gameState.trainingAnswerFormat === TRAINING_ANSWER_FORMAT.EASY
   );
+}
+
+/**
+ * 現在のゲームが「おてがる」（4択）形式かどうか（トレーニング・クエスト共通）。
+ * 選択肢のタップ・物理キーボード・ヒントの「参考」表示など、両モードで共通の処理に使う。
+ * 段位認定では常にfalse。
+ */
+function isEasyAnswerFormat() {
+  // クエストで4択を作れずスタンダードで出題した問題では、数式入力として扱う
+  return (
+    getActiveAnswerFormat() === TRAINING_ANSWER_FORMAT.EASY &&
+    gameState.currentEasyChoices.length > 0
+  );
+}
+
+/**
+ * タイトル画面で選択中のモード（トレーニング・クエスト）の出題形式を返す。
+ */
+function getAnswerFormatForSelectedMode() {
+  return gameState.mode === "quest" ? gameState.questAnswerFormat : gameState.trainingAnswerFormat;
 }
 
 // ============================================================
@@ -210,6 +233,7 @@ export function initGame() {
   gameState.mode = storage.loadSelectedMode(gameState.mode);
   gameState.unit = storage.loadSelectedUnit(gameState.unit);
   setTrainingAnswerFormat(storage.loadTrainingAnswerFormat());
+  setQuestAnswerFormat(storage.loadQuestAnswerFormat());
 
   const validCategoryIds = getCategoriesForUnit(gameState.unit).map(
     (category) => category.id
@@ -285,7 +309,7 @@ export function initGame() {
   ui.renderModeSelection(gameState.mode);
   ui.renderUnitSelection(gameState.unit);
   ui.renderDifficultySelection(gameState.rankDifficulty);
-  ui.renderTrainingAnswerFormatSelection(gameState.trainingAnswerFormat);
+  ui.renderAnswerFormatSelection(getAnswerFormatForSelectedMode());
   updateStartButtonAvailability();
   ui.showScreen("title");
 }
@@ -338,6 +362,7 @@ function handleModeSelect(mode) {
   gameState.mode = mode;
   storage.saveSelectedMode(mode);
   ui.renderModeSelection(mode);
+  ui.renderAnswerFormatSelection(getAnswerFormatForSelectedMode());
   updateStartButtonAvailability();
 }
 
@@ -372,13 +397,21 @@ function handleDifficultySelect(difficulty) {
 }
 
 /**
- * トレーニングの出題形式（おてがる／スタンダード）を切り替え、localStorageへ保存する。
+ * 出題形式（おてがる／スタンダード）を切り替え、localStorageへ保存する。
+ * トレーニングとクエストは、それぞれ別々に保存する。
  */
 function handleAnswerFormatSelect(format) {
   if (!SELECTABLE_TRAINING_ANSWER_FORMATS.includes(format)) return;
-  setTrainingAnswerFormat(format);
-  storage.saveTrainingAnswerFormat(format);
-  ui.renderTrainingAnswerFormatSelection(format);
+  if (gameState.mode === "quest") {
+    setQuestAnswerFormat(format);
+    storage.saveQuestAnswerFormat(format);
+  } else if (gameState.mode === "training") {
+    setTrainingAnswerFormat(format);
+    storage.saveTrainingAnswerFormat(format);
+  } else {
+    return;
+  }
+  ui.renderAnswerFormatSelection(format);
 }
 
 /**
@@ -656,14 +689,8 @@ function skipQuestionWithoutEasyChoices(index) {
 /**
  * 現在の4択の状態（選択中・×・○）を画面へ反映する。並び順は問題生成時のまま。
  */
-function refreshEasyChoices({ revealCorrect = false, flashChoiceId = null } = {}) {
-  ui.renderEasyChoices(gameState.currentEasyChoices, {
-    selectedId: gameState.selectedEasyChoiceId,
-    eliminatedIds: gameState.eliminatedEasyChoiceIds,
-    revealedCorrectId: revealCorrect ? gameState.currentEasyCorrectChoiceId : null,
-    locked: gameState.inputLocked,
-    flashChoiceId
-  });
+function refreshEasyChoices(options = {}) {
+  ui.renderEasyChoices(gameState.currentEasyChoices, getEasyChoiceView(options));
 }
 
 /**
@@ -671,7 +698,7 @@ function refreshEasyChoices({ revealCorrect = false, flashChoiceId = null } = {}
  * 選択状態にして「解答」ボタンを有効にするだけ。×がついた選択肢は選べない。
  */
 function handleEasyChoiceSelect(choiceId) {
-  if (!isEasyTrainingFormat() || gameState.inputLocked) return;
+  if (!isEasyAnswerFormat() || gameState.inputLocked) return;
   if (gameState.eliminatedEasyChoiceIds.includes(choiceId)) return;
   if (!getEasyChoiceById(choiceId)) return;
 
@@ -737,7 +764,8 @@ function handleEasyPhysicalKeyDown(event) {
   }
   if (event.key === "Enter" && gameState.selectedEasyChoiceId) {
     event.preventDefault();
-    handleEasySubmit();
+    // トレーニング・クエストそれぞれの解答処理へ振り分ける
+    handleSubmit();
   }
 }
 
@@ -1138,7 +1166,7 @@ function handlePhysicalKeyDown(event) {
   if (gameState.inputLocked) return;
 
   // おてがるでは数式入力欄がないため、A〜D（1〜4）で選択・Enterで解答だけを受け付ける
-  if (isEasyTrainingFormat()) {
+  if (isEasyAnswerFormat()) {
     handleEasyPhysicalKeyDown(event);
     return;
   }
@@ -1493,7 +1521,7 @@ function handleHintRequest() {
   const hintParts = Array.isArray(gameState.currentQuestion.hintKeypadParts)
     ? gameState.currentQuestion.hintKeypadParts
     : [];
-  const isEasy = isEasyTrainingFormat();
+  const isEasy = isEasyAnswerFormat();
 
   // おてがるには数式キーボードがないため、式パーツは入力ボタンにせず、
   // ヒントカード内に「参考」として読み取り専用で表示する（開くたびに表示する）
