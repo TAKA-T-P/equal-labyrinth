@@ -638,3 +638,31 @@
 .help-item-card--locked .help-item-value {
   color: var(--color-text-muted);
 }
+
+/* 「このゲームの遊び方」「アイテム図鑑」「例題確認」の見出し行（右上の「もどる」ボタンを含む）は、
+   画面をスクロールしても常に画面上部に表示されたままにする */
+.help-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: -8px -4px 0;
+  padding: 8px 4px;
+  background: rgba(16, 10, 36, 0.94);
+  border-bottom: 1px solid rgba(106, 90, 205, 0.35);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* ヘルプメニューの「KEC数学科ラボへ」（外部サイトへのリンク。見た目はメニューボタンと同じ） */
+.help-menu-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  text-decoration: none;
+}
+
+.help-menu-link:hover,
+.help-menu-link:focus-visible {
+  border-color: var(--color-correct-gold);
+}

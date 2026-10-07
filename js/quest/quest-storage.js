@@ -202,6 +202,25 @@ export function recordItemAcquisition(reward, roomId) {
 }
 
 /**
+ * これまでに一度でもクリアした（＝宝箱からアイテムを入手した）部屋IDの集合を返す。
+ * 部屋をクリアすると必ずアイテムを1つ入手するため、保存済みのアイテムから求める
+ * （新しい保存データは増やさない）。部屋は現在の部屋データ（QUEST_ROOMS）を優先し、
+ * 部屋データにない旧アイテムは保存済みのroomIdを使う。
+ * @returns {Set<string>}
+ */
+export function getClearedRoomIds() {
+  const master = buildRewardMasterMap();
+  const roomIds = new Set();
+  Object.entries(loadInventory().items).forEach(([itemId, entry]) => {
+    if (!entry || toNonNegativeInteger(entry.count) <= 0) return;
+    const masterReward = master.get(itemId);
+    const roomId = masterReward ? masterReward.roomId : entry.roomId;
+    if (roomId) roomIds.add(roomId);
+  });
+  return roomIds;
+}
+
+/**
  * 保存済みの全アイテムを、獲得順（初回獲得日時の昇順）の配列で返す。
  */
 export function listInventoryItems() {

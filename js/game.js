@@ -1346,6 +1346,11 @@ function handleCorrectAnswer() {
  * トレーニングモードで、正解表示の「次へ」ボタンが押されたときの処理。
  */
 function handleNextQuestion() {
+  // クエストモードでも、正解表示は「次へ」を押すまで残す（進行はquest-mode.js側で行う）
+  if (gameState.mode === "quest") {
+    questMode.handleNextAfterCorrect();
+    return;
+  }
   ui.showNextQuestionButton(false);
   ui.showRetryQuestionButton(false);
   advanceToNextQuestionOrResult();

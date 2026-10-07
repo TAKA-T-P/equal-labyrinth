@@ -454,6 +454,9 @@
       <div id="quest-view-room-select" class="quest-view" hidden>
         <h2 class="quest-view-heading">目の前には、2つの扉がある。<br />どちらの部屋を選びますか？</h2>
         <div id="quest-room-select-choices" class="quest-room-choice-grid"></div>
+        <div class="quest-action-row">
+          <button type="button" id="quest-room-select-retire-button" class="secondary-button">リタイア</button>
+        </div>
       </div>
 
       <!-- 敵出現・ミッション確認 -->
@@ -464,6 +467,8 @@
         <dl id="quest-enemy-intro-mission" class="quest-mission-info"></dl>
         <div class="quest-action-row">
           <button type="button" id="quest-fight-button" class="primary-button">たたかう</button>
+          <!-- 部屋選択画面から入った部屋だけ表示（失敗ルート・ボス部屋への直行など、選択画面を経由しない入室では隠す） -->
+          <button type="button" id="quest-intro-back-button" class="secondary-button" hidden>もどる</button>
           <button type="button" id="quest-intro-retire-button" class="secondary-button">リタイア</button>
         </div>
       </div>
@@ -485,7 +490,10 @@
       <div id="quest-view-item-get" class="quest-view" hidden>
         <p class="quest-view-heading">宝箱の中から</p>
         <div id="quest-item-get-emoji" class="quest-item-emoji"></div>
-        <p id="quest-item-get-name" class="quest-item-name"></p>
+        <p class="quest-item-name-row">
+          <span id="quest-item-get-new" class="quest-new-badge" hidden>New!</span>
+          <span id="quest-item-get-name" class="quest-item-name"></span>
+        </p>
         <p id="quest-item-get-count" class="quest-item-count"></p>
         <p class="quest-view-subheading">を手に入れた！</p>
         <!-- アイテムの価値（G）と、累計ゴールドの増加 -->
@@ -498,12 +506,6 @@
             <span class="quest-item-gold-arrow" aria-hidden="true">→</span>
             <span id="quest-item-get-total-after" class="quest-item-gold-total-after"></span>
           </p>
-        </div>
-        <!-- 称号ランクアップ（称号が上がったときだけ、アイテム獲得演出のあとに表示） -->
-        <div id="quest-title-rankup" class="quest-title-rankup" hidden role="status" aria-live="polite">
-          <p class="quest-title-rankup-heading">🏅 称号ランクアップ！</p>
-          <p id="quest-title-rankup-name" class="quest-title-rankup-name"></p>
-          <p class="quest-title-rankup-caption">になった！</p>
         </div>
         <button type="button" id="quest-item-get-next-button" class="primary-button">次へ</button>
       </div>
@@ -518,6 +520,10 @@
       <div id="quest-view-summary" class="quest-view" hidden>
         <p id="quest-summary-heading" class="quest-view-heading"></p>
         <p id="quest-summary-message" class="quest-summary-message"></p>
+
+        <div class="result-actions">
+          <button type="button" id="quest-summary-to-title-button" class="primary-button">タイトルへ</button>
+        </div>
 
         <h3 class="quest-summary-subheading">出会った敵</h3>
         <div id="quest-summary-enemies" class="quest-summary-emoji-list"></div>
@@ -551,7 +557,7 @@
             <span id="quest-summary-answer-format" class="result-stat-value">―</span>
           </div>
           <div class="result-stat">
-            <span class="result-stat-label">今回獲得したゴールド</span>
+            <span class="result-stat-label">獲得ゴールド</span>
             <span id="quest-summary-earned-gold" class="result-stat-value">0G</span>
           </div>
           <div class="result-stat">
@@ -564,13 +570,26 @@
           </div>
         </div>
 
-        <div class="result-actions">
-          <button type="button" id="quest-summary-to-title-button" class="primary-button">タイトルへ</button>
-        </div>
       </div>
 
     </div>
   </section>
+
+  <!-- クエストモード：称号ランクアップ（アイテム獲得演出のあとに開くポップアップ） -->
+  <div id="quest-title-rankup-backdrop" class="hint-backdrop" hidden></div>
+  <div
+    id="quest-title-rankup"
+    class="hint-panel quest-title-rankup"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="quest-title-rankup-heading"
+  >
+    <p id="quest-title-rankup-heading" class="quest-title-rankup-heading">🏅 称号ランクアップ！</p>
+    <p id="quest-title-rankup-name" class="quest-title-rankup-name"></p>
+    <p class="quest-title-rankup-caption">になった！</p>
+    <button type="button" id="quest-title-rankup-close-button" class="primary-button quest-title-rankup-close">OK</button>
+  </div>
 
   <!-- クエストモード：リタイア確認モーダル -->
   <div id="quest-retire-backdrop" class="hint-backdrop" hidden></div>
@@ -604,6 +623,9 @@
         <button type="button" id="open-data-reset-button" class="help-menu-button help-menu-button--danger">
           ⚠️ データを消す
         </button>
+        <a href="https://taka-t-p.github.io/math-app-portal/" id="open-math-lab-link" class="help-menu-button help-menu-link">
+          KEC数学科ラボへ
+        </a>
       </nav>
 
       <button type="button" id="help-menu-back-button" class="secondary-button help-back-button">

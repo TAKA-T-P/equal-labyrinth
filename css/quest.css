@@ -640,21 +640,113 @@
   animation: quest-title-rankup-pop 0.7s ease-out;
 }
 
+/* ポップアップ（.hint-panel）は translate(-50%, -50%) で中央に置いているため、拡大の演出でも
+   その位置を保つ */
 @keyframes quest-title-rankup-pop {
   0% {
     opacity: 0;
-    transform: scale(0.6);
+    transform: translate(-50%, -50%) scale(0.6);
   }
   60% {
     opacity: 1;
-    transform: scale(1.08);
+    transform: translate(-50%, -50%) scale(1.08);
   }
   100% {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
 /* 冒険結果の「現在の称号」は長い名前もあるため、1段ぶんの横長の項目にする */
 .quest-summary-title {
   font-size: 0.95rem;
+}
+
+/* 称号ランクアップのポップアップ（hint-panelの見た目を流用し、中身だけ調整する） */
+.hint-panel.quest-title-rankup {
+  width: min(88vw, 360px);
+  margin: 0;
+  padding: 22px 18px 18px;
+  border-color: var(--color-correct-gold);
+  background: radial-gradient(circle at 50% 0%, rgba(232, 201, 104, 0.25), var(--color-panel) 70%);
+  box-shadow: 0 0 32px rgba(232, 201, 104, 0.45), 0 16px 40px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  z-index: 71;
+}
+
+#quest-title-rankup-backdrop {
+  z-index: 70;
+}
+
+.hint-panel.quest-title-rankup .quest-title-rankup-heading {
+  font-size: 1.1rem;
+}
+
+.quest-title-rankup-close {
+  width: 100%;
+  margin-top: 14px;
+}
+
+/* 「New!」（一度もクリアしていない部屋・初めて獲得したアイテム） */
+.quest-new-badge {
+  display: inline-block;
+  margin-right: 6px;
+  color: #ffe14d;
+  font-weight: 900;
+  font-style: italic;
+  text-shadow: 0 0 6px rgba(255, 225, 77, 0.6);
+  letter-spacing: 0.02em;
+}
+
+.quest-new-badge[hidden] {
+  display: none;
+}
+
+.quest-item-name-row {
+  margin: 0;
+  text-align: center;
+}
+
+/* 価値の高いアイテムの光（10,000G以上は金色に強く、1,000G以上は銀色に） */
+.quest-item-emoji--gold {
+  filter: drop-shadow(0 0 10px rgba(255, 215, 64, 0.95)) drop-shadow(0 0 26px rgba(255, 190, 30, 0.85));
+  animation: quest-item-gold-glow 1.4s ease-in-out infinite;
+}
+
+.quest-item-emoji--silver {
+  filter: drop-shadow(0 0 8px rgba(235, 240, 255, 0.9)) drop-shadow(0 0 18px rgba(190, 200, 225, 0.7));
+  animation: quest-item-silver-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes quest-item-gold-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(255, 215, 64, 0.9)) drop-shadow(0 0 20px rgba(255, 190, 30, 0.7));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(255, 230, 120, 1)) drop-shadow(0 0 40px rgba(255, 200, 40, 0.95));
+  }
+}
+
+@keyframes quest-item-silver-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(235, 240, 255, 0.8)) drop-shadow(0 0 14px rgba(190, 200, 225, 0.55));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(250, 252, 255, 1)) drop-shadow(0 0 26px rgba(200, 210, 235, 0.85));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quest-item-emoji--gold,
+  .quest-item-emoji--silver {
+    animation: none;
+  }
+}
+
+.hint-panel.quest-title-rankup .quest-title-rankup-name {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }

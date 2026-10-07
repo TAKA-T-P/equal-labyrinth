@@ -66,7 +66,11 @@ import {
   addEarnedGoldThisQuest,
   getQuestState
 } from "../quest/quest-state.js";
-import { recordItemAcquisition, getTotalGold } from "../quest/quest-storage.js";
+import {
+  recordItemAcquisition,
+  getTotalGold,
+  getClearedRoomIds
+} from "../quest/quest-storage.js";
 import { getQuestTitle, getTitleRankUp, formatGold } from "../quest/quest-titles.js";
 
 const HINT_MODE_LABELS = {
@@ -87,6 +91,15 @@ let pendingRoomCategoryAssignment = {};
 let pendingFailureNextRoomId = null;
 let pendingIsBossFailure = false;
 let lastUrgentTickSecond = null;
+
+// 直前に表示した部屋選択（オープニングのA・B、または部屋選択画面の2択）と、
+// 部屋を選ぶ直前の状態。敵出現画面の「もどる」で部屋選択画面へ戻すために使う。
+// 失敗ルート・ボス部屋への直行など、部屋選択を経由しない入室ではnull。
+let lastRoomChoiceContext = null;
+let pendingBackContext = null;
+
+// 正解表示の「次へ」が押されるのを待っている間の解決関数
+let resolveQuestNextAfterCorrect = null;
 
 // 「おてがる」：4択を作れなかった問題を、同じカテゴリから作り直す最大回数
 const EASY_REPLACEMENT_ATTEMPTS = 10;
@@ -120,11 +133,13 @@ function buildMissionDisplay(room, categoryLabel) {
   };
 }
 
-function buildRoomChoiceDisplay(room, categoryId) {
+function buildRoomChoiceDisplay(room, categoryId, clearedRoomIds) {
   const isHidden = isHiddenCategoryMission(room.mission.requiredCorrect);
   const categoryLabel = isHidden ? "？？？" : getCategoryNameById(questState.unit, categoryId);
   return {
     roomId: room.roomId,
+    // 一度もクリアしたことがない部屋には「New!」を付ける
+    isNew: !clearedRoomIds.has(room.roomId),
     enemy: room.enemy,
     reward: room.reward,
     missionDisplay: buildMissionDisplay(room, categoryLabel)
@@ -159,7 +174,11 @@ function buildTwoRoomChoices(roomIdA, roomIdB) {
   const [categoryIdA, categoryIdB] = pickCategoriesForRoomChoices(questState.unit, groupInfoA, groupInfoB);
   pendingRoomCategoryAssignment = { [roomIdA]: categoryIdA, [roomIdB]: categoryIdB };
 
-  return [buildRoomChoiceDisplay(roomA, categoryIdA), buildRoomChoiceDisplay(roomB, categoryIdB)];
+  const clearedRoomIds = getClearedRoomIds();
+  return [
+    buildRoomChoiceDisplay(roomA, categoryIdA, clearedRoomIds),
+    buildRoomChoiceDisplay(roomB, categoryIdB, clearedRoomIds)
+  ];
 }
 
 // ============================================================
@@ -187,6 +206,7 @@ export async function startQuest(unit) {
 
   await questUi.playOpeningLines(OPENING_LINES);
   const [choiceA, choiceB] = buildTwoRoomChoices(QUEST_OPENING_ROOM_IDS[0], QUEST_OPENING_ROOM_IDS[1]);
+  lastRoomChoiceContext = { view: "opening", choices: [choiceA, choiceB] };
   questUi.renderOpeningRoomChoices([choiceA, choiceB], handleRoomChoiceSelected);
   questUi.showOpeningRoomChoices();
 }
@@ -199,8 +219,13 @@ export function stopQuestSession() {
   questTimer.stopRoomTimer();
   timer.stopQuestionTimer();
   audio.stopQuestEffectSounds();
+  questUi.closeTitleRankUp();
   questUi.hideQuestScreen();
   ui.showQuestHud(false);
+  ui.showNextQuestionButton(false);
+  resolveQuestNextAfterCorrect = null;
+  lastRoomChoiceContext = null;
+  pendingBackContext = null;
 }
 
 // ============================================================
@@ -209,11 +234,63 @@ export function stopQuestSession() {
 
 function handleRoomChoiceSelected(roomId) {
   const categoryId = pendingRoomCategoryAssignment[roomId] || null;
-  enterRoomAndBeginMission(roomId, { preAssignedCategoryId: categoryId });
+
+  // 敵出現画面の「もどる」で、部屋を選ぶ前の状態へ戻せるよう記録しておく
+  pendingBackContext = lastRoomChoiceContext
+    ? {
+        ...lastRoomChoiceContext,
+        snapshot: {
+          status: questState.status,
+          currentRoomId: questState.currentRoomId,
+          currentStage: questState.currentStage,
+          currentRoom: questState.currentRoom,
+          visitedRoomIds: [...questState.visitedRoomIds],
+          encounteredEnemyCount: questState.encounteredEnemies.length,
+          pendingRoomCategoryAssignment: { ...pendingRoomCategoryAssignment }
+        }
+      }
+    : null;
+
+  enterRoomAndBeginMission(roomId, {
+    preAssignedCategoryId: categoryId,
+    canGoBack: pendingBackContext !== null
+  });
+}
+
+/**
+ * 敵出現画面の「もどる」：部屋を選ぶ前の状態（訪れた部屋・出会った敵・マップ）へ戻し、
+ * 同じ2択（同じ出題カテゴリ）の部屋選択画面を表示し直す。タイマーはまだ動いていない。
+ */
+function handleIntroBack() {
+  if (!pendingBackContext || questState.status !== "enemy-intro") return;
+  const { view, choices, snapshot } = pendingBackContext;
+  pendingBackContext = null;
+
+  questState.currentRoomId = snapshot.currentRoomId;
+  questState.currentStage = snapshot.currentStage;
+  questState.currentRoom = snapshot.currentRoom;
+  questState.visitedRoomIds = snapshot.visitedRoomIds;
+  questState.encounteredEnemies = questState.encounteredEnemies.slice(0, snapshot.encounteredEnemyCount);
+  pendingRoomCategoryAssignment = snapshot.pendingRoomCategoryAssignment;
+  questUi.renderQuestMap(buildVisitedRoomsForMap());
+
+  if (view === "opening") {
+    questState.status = snapshot.status;
+    questUi.showQuestView("opening");
+    questUi.renderOpeningRoomChoices(choices, handleRoomChoiceSelected);
+    questUi.showOpeningRoomChoices();
+  } else {
+    questState.status = "room-select";
+    questUi.showQuestView("room-select");
+    questUi.renderRoomSelectChoices(choices, handleRoomChoiceSelected);
+  }
 }
 
 async function enterRoomAndBeginMission(roomId, options = {}) {
-  const { preAssignedCategoryId = null } = options;
+  const { preAssignedCategoryId = null, canGoBack = false } = options;
+  if (!canGoBack) {
+    pendingBackContext = null;
+  }
   const room = getRoom(roomId);
   const previousCategoryId = questState.currentRoom.categoryId;
 
@@ -249,10 +326,10 @@ async function enterRoomAndBeginMission(roomId, options = {}) {
   questState.currentRoom.timeLimitMs = timeLimitSeconds === null ? null : timeLimitSeconds * 1000;
   questState.currentRoom.remainingTimeMs = questState.currentRoom.timeLimitMs;
 
-  showEnemyIntro(room, isHidden);
+  showEnemyIntro(room, isHidden, canGoBack);
 }
 
-function showEnemyIntro(room, isHidden) {
+function showEnemyIntro(room, isHidden, canGoBack = false) {
   const categoryLabel = isHidden ? "？？？" : getCategoryNameById(questState.unit, questState.currentRoom.categoryId);
   const isBoss = isBossRoom(room);
 
@@ -263,6 +340,7 @@ function showEnemyIntro(room, isHidden) {
     enemy: room.enemy,
     reward: room.reward,
     isBoss,
+    canGoBack,
     missionDisplay: buildMissionDisplay(room, categoryLabel)
   });
 
@@ -605,15 +683,14 @@ async function handleQuestCorrectAnswer() {
 
   const room = getRoom(questState.currentRoomId);
 
+  // 「次へ」を押すまで正解表示を残す（部屋の制限時間は止まったまま）
+  await waitForQuestNextAfterCorrect();
+  ui.hideAnswerReveal();
+
   if (questState.currentRoom.correctCount >= room.mission.requiredCorrect) {
-    await sleep(APP_CONFIG.correctDisplayMilliseconds);
-    ui.hideAnswerReveal();
     await handleMissionSuccess();
     return;
   }
-
-  await sleep(APP_CONFIG.correctDisplayMilliseconds);
-  ui.hideAnswerReveal();
 
   const remaining = room.mission.requiredCorrect - questState.currentRoom.correctCount;
   ui.showJudgeMessage("correct", `あと${remaining}問！`);
@@ -625,6 +702,27 @@ async function handleQuestCorrectAnswer() {
 
   await beginQuestQuestion();
   questTimer.resumeRoomTimer();
+}
+
+/**
+ * 正解表示の「次へ」ボタンを表示し、押されるまで待つ。
+ */
+function waitForQuestNextAfterCorrect() {
+  ui.showNextQuestionButton(true);
+  return new Promise((resolve) => {
+    resolveQuestNextAfterCorrect = resolve;
+  });
+}
+
+/**
+ * 正解表示の「次へ」が押されたとき（game.jsのhandleNextQuestion()から呼ばれる）。
+ */
+export function handleNextAfterCorrect() {
+  ui.showNextQuestionButton(false);
+  if (!resolveQuestNextAfterCorrect) return;
+  const resolve = resolveQuestNextAfterCorrect;
+  resolveQuestNextAfterCorrect = null;
+  resolve();
 }
 
 async function handleRoomTimeExpired() {
@@ -797,6 +895,8 @@ async function handleOpenChest() {
   questUi.renderItemGet({
     reward,
     count: acquisition.item.count,
+    // 初めて獲得したアイテムには「New!」を付ける
+    isNew: acquisition.item.count === 1,
     goldValue: acquisition.goldValue,
     previousTotalGold: acquisition.previousTotalGold,
     totalGold: acquisition.totalGold
@@ -811,9 +911,12 @@ async function handleOpenChest() {
 
   // 称号が上がった場合だけ、アイテム獲得演出のあとに短く表示する
   // （部屋はクリア済みで、部屋の制限時間も止まっているため、攻略上の時間には影響しない）
+  // 称号ランクアップはポップアップで表示し、閉じてから「次へ」を押せるようにする
   if (rankUpTitle) {
     await sleep(300);
-    await questEffects.playTitleRankUpEffect(questUi.showTitleRankUp(rankUpTitle));
+    const { panel, closed } = questUi.openTitleRankUp(rankUpTitle);
+    await questEffects.playTitleRankUpEffect(panel);
+    await closed;
   }
   questUi.setItemGetNextEnabled(true);
 }
@@ -837,6 +940,7 @@ async function handleItemGetNext() {
   const [choiceA, choiceB] = buildTwoRoomChoices(transition.roomIds[0], transition.roomIds[1]);
   questState.status = "room-select";
   questUi.showQuestView("room-select");
+  lastRoomChoiceContext = { view: "room-select", choices: [choiceA, choiceB] };
   questUi.renderRoomSelectChoices([choiceA, choiceB], handleRoomChoiceSelected);
 }
 
@@ -998,6 +1102,7 @@ export function initQuestModeUI(callbacks) {
   questUi.initQuestUI({
     onFight: handleFight,
     onIntroRetire: handleRetireRequest,
+    onIntroBack: handleIntroBack,
     onOpenChest: handleOpenChest,
     onItemGetNext: handleItemGetNext,
     onFailureNext: handleFailureNext,

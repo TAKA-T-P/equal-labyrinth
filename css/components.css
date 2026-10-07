@@ -1655,3 +1655,48 @@ input[type="range"] {
     padding: 14px 14px;
   }
 }
+
+/* おてがる：画面全体はスクロールさせず、A〜Dの選択肢の部分だけをスクロールさせる
+   （問題文・「ヒント」「パス」「解答する」ボタンの位置は動かない） */
+#screen-game.is-easy-format > .game-screen {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#screen-game.is-easy-format .game-main {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+#screen-game.is-easy-format .prompt-card,
+#screen-game.is-easy-format .equation-input-row,
+#screen-game.is-easy-format .input-guidance {
+  flex: 0 0 auto;
+}
+
+#screen-game.is-easy-format .easy-choice-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+#screen-game.is-easy-format .easy-choice-instruction,
+#screen-game.is-easy-format .easy-choice-feedback {
+  flex: 0 0 auto;
+}
+
+#screen-game.is-easy-format .easy-choice-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  /* カードの影・強調枠が切れないよう、少しだけ内側に余白を取る */
+  padding: 2px 4px 4px 2px;
+  align-content: start;
+}
+
+#screen-game.is-easy-format .game-bottom {
+  flex: 0 0 auto;
+}

@@ -33,6 +33,8 @@ const elements = {
   enemyIntroMission: document.getElementById("quest-enemy-intro-mission"),
   fightButton: document.getElementById("quest-fight-button"),
   introRetireButton: document.getElementById("quest-intro-retire-button"),
+  introBackButton: document.getElementById("quest-intro-back-button"),
+  roomSelectRetireButton: document.getElementById("quest-room-select-retire-button"),
 
   victoryEmoji: document.getElementById("quest-victory-emoji"),
   victoryMessage: document.getElementById("quest-victory-message"),
@@ -48,6 +50,9 @@ const elements = {
   itemGetTotalBefore: document.getElementById("quest-item-get-total-before"),
   itemGetTotalAfter: document.getElementById("quest-item-get-total-after"),
   titleRankUp: document.getElementById("quest-title-rankup"),
+  titleRankUpBackdrop: document.getElementById("quest-title-rankup-backdrop"),
+  titleRankUpCloseButton: document.getElementById("quest-title-rankup-close-button"),
+  itemGetNew: document.getElementById("quest-item-get-new"),
   titleRankUpName: document.getElementById("quest-title-rankup-name"),
 
   failureMessage: document.getElementById("quest-failure-message"),
@@ -228,7 +233,14 @@ function createRoomChoiceCard(choice, onSelect) {
 
   const title = document.createElement("p");
   title.className = "quest-room-card-title";
-  title.textContent = `${choice.roomId}の部屋`;
+  // 一度もクリアしたことがない部屋は、部屋名の左に黄色の「New!」を付ける
+  if (choice.isNew) {
+    const badge = document.createElement("span");
+    badge.className = "quest-new-badge";
+    badge.textContent = "New!";
+    title.appendChild(badge);
+  }
+  title.appendChild(document.createTextNode(`${choice.roomId}の部屋`));
 
   const emoji = document.createElement("div");
   emoji.className = "quest-room-card-emoji";
@@ -295,6 +307,9 @@ export function renderEnemyIntro(data) {
   elements.enemyIntroMission.appendChild(createMissionInfoList(data.missionDisplay));
 
   elements.fightButton.disabled = false;
+  // 部屋選択画面から入った部屋だけ「もどる」を表示する
+  elements.introBackButton.hidden = !data.canGoBack;
+  elements.introBackButton.disabled = false;
 }
 
 export function getEnemyIntroEmojiElement() {
@@ -354,7 +369,14 @@ export function renderItemGet(data) {
   elements.itemGetValue.textContent = formatGold(data.goldValue);
   elements.itemGetTotalBefore.textContent = formatGold(data.previousTotalGold);
   elements.itemGetTotalAfter.textContent = formatGold(data.previousTotalGold);
-  elements.titleRankUp.hidden = true;
+  elements.itemGetNew.hidden = !data.isNew;
+
+  // 価値の高い財宝ほど強く光らせる（10,000G以上は金色、1,000G以上は銀色）
+  elements.itemGetEmoji.classList.toggle("quest-item-emoji--gold", data.goldValue >= 10000);
+  elements.itemGetEmoji.classList.toggle(
+    "quest-item-emoji--silver",
+    data.goldValue >= 1000 && data.goldValue < 10000
+  );
 }
 
 /**
@@ -369,13 +391,32 @@ export function getItemGetTotalAfterElement() {
   return elements.itemGetTotalAfter;
 }
 
+let resolveTitleRankUpClosed = null;
+
 /**
- * 称号ランクアップを表示する（一度に複数の称号を飛び越えた場合も、最終的に到達した称号だけ）。
+ * 称号ランクアップのポップアップを開く（一度に複数の称号を飛び越えた場合も、
+ * 最終的に到達した称号だけ）。「OK」または背景のタップで閉じる。
+ * @returns {{panel: HTMLElement, closed: Promise<void>}} closedは閉じたときに解決する
  */
-export function showTitleRankUp(title) {
+export function openTitleRankUp(title) {
   elements.titleRankUpName.textContent = `「${title.title}」`;
   elements.titleRankUp.hidden = false;
-  return elements.titleRankUp;
+  elements.titleRankUpBackdrop.hidden = false;
+  elements.titleRankUpCloseButton.focus();
+  const closed = new Promise((resolve) => {
+    resolveTitleRankUpClosed = resolve;
+  });
+  return { panel: elements.titleRankUp, closed };
+}
+
+export function closeTitleRankUp() {
+  elements.titleRankUp.hidden = true;
+  elements.titleRankUpBackdrop.hidden = true;
+  if (resolveTitleRankUpClosed) {
+    const resolve = resolveTitleRankUpClosed;
+    resolveTitleRankUpClosed = null;
+    resolve();
+  }
 }
 
 export function getItemGetEmojiElement() {
@@ -501,6 +542,18 @@ export function initQuestUI(callbacks) {
   elements.introRetireButton.addEventListener("click", () => {
     callbacks.onIntroRetire();
   });
+
+  elements.roomSelectRetireButton.addEventListener("click", () => {
+    callbacks.onIntroRetire();
+  });
+
+  elements.introBackButton.addEventListener("click", () => {
+    elements.introBackButton.disabled = true;
+    callbacks.onIntroBack();
+  });
+
+  elements.titleRankUpCloseButton.addEventListener("click", closeTitleRankUp);
+  elements.titleRankUpBackdrop.addEventListener("click", closeTitleRankUp);
 
   elements.openChestButton.addEventListener("click", () => {
     elements.openChestButton.disabled = true;
