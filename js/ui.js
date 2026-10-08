@@ -1594,6 +1594,16 @@ export function renderQuestHud(data) {
 }
 
 /**
+ * クエストHUDの残り時間を赤く点滅させる（おてがるの時間ペナルティで残り時間が減ったとき）。
+ */
+export function flashQuestTimePenalty() {
+  const el = elements.questTopbarTime;
+  el.classList.remove("is-time-penalty");
+  void el.offsetWidth;
+  el.classList.add("is-time-penalty");
+}
+
+/**
  * トレーニングモードでは「リタイア」ボタンを、段位認定モードでは「リトライ」ボタンを表示する。
  */
 export function showRetireButton(show) {

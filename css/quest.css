@@ -750,3 +750,23 @@
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
+
+/* おてがるの時間ペナルティ：HUDの残り時間を赤く点滅させる */
+.quest-topbar-time.is-time-penalty {
+  animation: quest-time-penalty-flash 0.9s ease-out;
+}
+
+@keyframes quest-time-penalty-flash {
+  0%,
+  60% {
+    color: var(--color-incorrect);
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.quest-topbar-time.is-time-penalty {
+  display: inline-block;
+}

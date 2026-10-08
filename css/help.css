@@ -666,3 +666,124 @@
 .help-menu-link:focus-visible {
   border-color: var(--color-correct-gold);
 }
+
+/* ---------------- 現在の称号の右の「確認」ボタンと、獲得した称号の一覧 ---------------- */
+
+.help-profile-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.help-profile-title-row .help-profile-title {
+  min-width: 0;
+}
+
+.help-profile-titles-button {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-color: var(--color-correct-gold);
+  color: var(--color-correct-gold);
+  font-weight: 700;
+}
+
+.hint-panel.help-title-list-dialog {
+  width: min(92vw, 440px);
+  max-height: 85vh;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.hint-panel.help-title-list-dialog[hidden] {
+  display: none;
+}
+
+.help-title-list-heading {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-correct-gold);
+  text-align: center;
+  margin: 0;
+}
+
+.help-title-list-summary {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0;
+}
+
+.help-title-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0 2px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.help-title-list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.88rem;
+}
+
+.help-title-list-item.is-current {
+  border-color: var(--color-correct-gold);
+  background: rgba(232, 201, 104, 0.16);
+}
+
+.help-title-list-item.is-locked {
+  color: var(--color-text-muted);
+}
+
+.help-title-list-rank {
+  flex: 0 0 auto;
+}
+
+.help-title-list-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.help-title-list-item.is-earned .help-title-list-name {
+  color: var(--color-text-main);
+}
+
+.help-title-list-current {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--color-correct-gold);
+  color: var(--color-parchment-text);
+  font-size: 0.68rem;
+  font-weight: 800;
+  vertical-align: middle;
+}
+
+.help-title-list-gold {
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.help-title-list-close {
+  flex: 0 0 auto;
+  width: 100%;
+}

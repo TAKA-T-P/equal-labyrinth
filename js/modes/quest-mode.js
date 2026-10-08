@@ -633,6 +633,22 @@ export async function handleSubmit() {
   }
 }
 
+// おてがるの時間ペナルティ（同じ問題での誤答1回目・2回目・3回目、秒）
+const EASY_TIME_PENALTY_SECONDS = [3, 10, 30];
+
+/**
+ * 今回の誤答で減らす残り時間（秒）を返す。ペナルティの対象外なら0。
+ * 対象：4択（おてがる）で出題している問題で、部屋が「制限時間あり・ミス上限なし」のときだけ。
+ * 回数は、いま出題中の問題での誤答回数（問題が変わると1回目からに戻る）で数える。
+ */
+function getEasyTimePenaltySeconds(room) {
+  if (!isCurrentQuestionEasy()) return 0;
+  if (room.mission.timeLimitMultiplier === null || room.mission.maxIncorrect !== null) return 0;
+  const missIndex = gameState.currentQuestionIncorrectCount - 1;
+  if (missIndex < 0) return 0;
+  return EASY_TIME_PENALTY_SECONDS[Math.min(missIndex, EASY_TIME_PENALTY_SECONDS.length - 1)];
+}
+
 async function handleQuestIncorrectAnswer() {
   questState.currentRoom.incorrectCount += 1;
   questState.totals.incorrectCount += 1;
@@ -640,10 +656,24 @@ async function handleQuestIncorrectAnswer() {
 
   questTimer.pauseRoomTimer();
   audio.playIncorrectSound();
-  ui.showJudgeMessage("incorrect", "もう一度考えよう");
-  updateQuestHudDisplay();
 
   const room = getRoom(questState.currentRoomId);
+
+  // おてがる×「制限時間あり・ミス上限なし」の部屋では、4択を当てずっぽうに選んでいけば
+  // クリアできてしまうため、同じ問題での誤答ごとに残り時間を減らす（1回目3秒・2回目10秒・3回目30秒）
+  const penaltySeconds = getEasyTimePenaltySeconds(room);
+  if (penaltySeconds > 0) {
+    ui.showJudgeMessage("incorrect", `残り時間 −${penaltySeconds}秒`);
+    ui.flashQuestTimePenalty();
+    const expired = questTimer.deductRoomTime(penaltySeconds * 1000);
+    updateQuestHudDisplay();
+    // 残り時間が0になった場合は、通常の時間切れ（handleRoomTimeExpired）として部屋の失敗へ進む
+    if (expired) return;
+  } else {
+    ui.showJudgeMessage("incorrect", "もう一度考えよう");
+    updateQuestHudDisplay();
+  }
+
   if (room.mission.maxIncorrect !== null && questState.currentRoom.incorrectCount >= room.mission.maxIncorrect) {
     await sleep(700);
     const elapsedSeconds = timer.stopQuestionTimer();

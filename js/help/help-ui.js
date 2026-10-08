@@ -9,11 +9,13 @@ import { showScreen, appendStyledVariableParts } from "../ui.js";
 import { HOW_TO_PLAY_SECTIONS } from "./help-content.js";
 import { buildItemCatalog } from "./item-catalog.js";
 import {
+  QUEST_TITLES,
   getQuestTitle,
   getNextQuestTitle,
   getQuestTitleProgressPercent,
   formatGold
 } from "../quest/quest-titles.js";
+import { getTotalGold } from "../quest/quest-storage.js";
 import { resetAllEqualLabyrinthData } from "./data-reset.js";
 import { openExampleCatalogFromHelpMenu } from "./example-ui.js";
 
@@ -44,6 +46,12 @@ const elements = {
   itemCatalogProgressFill: document.getElementById("item-catalog-progress-fill"),
   itemCatalogProgressText: document.getElementById("item-catalog-progress-text"),
   itemCatalogMaxTitle: document.getElementById("item-catalog-max-title"),
+  itemCatalogTitlesButton: document.getElementById("item-catalog-titles-button"),
+  titleListBackdrop: document.getElementById("title-list-backdrop"),
+  titleListDialog: document.getElementById("title-list-dialog"),
+  titleListSummary: document.getElementById("title-list-summary"),
+  titleList: document.getElementById("title-list"),
+  titleListCloseButton: document.getElementById("title-list-close-button"),
   itemCatalogGrid: document.getElementById("item-catalog-grid"),
   itemCatalogBackButton: document.getElementById("item-catalog-back-button"),
   itemCatalogBackButtonTop: document.getElementById("item-catalog-back-button-top"),
@@ -331,6 +339,78 @@ function renderAdventurerProfile(totalGold) {
   elements.itemCatalogProgressText.textContent = `${percent}%`;
 }
 
+// ============================================================
+// 獲得した称号の一覧（アイテム図鑑の「確認」ボタン）
+// ============================================================
+
+/**
+ * これまでに獲得した称号の一覧を描画する。累計ゴールドは減らないため、
+ * 「必要Gが累計G以下の称号」＝これまでに獲得した称号になる（新しい保存データは使わない）。
+ * 称号名・必要GはQUEST_TITLESからだけ取得する。まだ獲得していない称号は、名前を隠して
+ * 必要Gだけを表示する（次の目標が分かるようにするため）。
+ */
+function renderTitleList(totalGold) {
+  const current = getQuestTitle(totalGold);
+  const earnedCount = current.index + 1;
+  elements.titleListSummary.textContent =
+    `獲得した称号　${earnedCount} / ${QUEST_TITLES.length}　（累計ゴールド ${formatGold(totalGold)}）`;
+
+  elements.titleList.innerHTML = "";
+  QUEST_TITLES.forEach((entry, index) => {
+    const earned = index <= current.index;
+    const item = document.createElement("li");
+    item.className = "help-title-list-item";
+    item.classList.toggle("is-earned", earned);
+    item.classList.toggle("is-current", index === current.index);
+    item.classList.toggle("is-locked", !earned);
+
+    const rank = document.createElement("span");
+    rank.className = "help-title-list-rank";
+    rank.textContent = earned ? "🏅" : "🔒";
+    rank.setAttribute("aria-hidden", "true");
+
+    const name = document.createElement("span");
+    name.className = "help-title-list-name";
+    name.textContent = earned ? entry.title : "？？？";
+
+    const gold = document.createElement("span");
+    gold.className = "help-title-list-gold";
+    gold.textContent = formatGold(entry.minGold);
+
+    item.append(rank, name, gold);
+    if (index === current.index) {
+      const badge = document.createElement("span");
+      badge.className = "help-title-list-current";
+      badge.textContent = "いまの称号";
+      name.appendChild(badge);
+    }
+    item.setAttribute(
+      "aria-label",
+      earned
+        ? `${entry.title}（${formatGold(entry.minGold)}）${index === current.index ? "、いまの称号" : ""}`
+        : `未獲得の称号（${formatGold(entry.minGold)}で獲得）`
+    );
+    elements.titleList.appendChild(item);
+  });
+}
+
+function openTitleList() {
+  renderTitleList(getTotalGold());
+  elements.titleListDialog.hidden = false;
+  elements.titleListBackdrop.hidden = false;
+  elements.titleListCloseButton.focus();
+  // いまの称号が見えるところまで一覧をスクロールしておく
+  const currentItem = elements.titleList.querySelector(".is-current");
+  if (currentItem) currentItem.scrollIntoView({ block: "nearest" });
+}
+
+function closeTitleList() {
+  if (elements.titleListDialog.hidden) return;
+  elements.titleListDialog.hidden = true;
+  elements.titleListBackdrop.hidden = true;
+  elements.itemCatalogTitlesButton.focus();
+}
+
 function renderItemCatalog() {
   if (!elements.itemCatalogGrid || !elements.itemCatalogSummary) return;
 
@@ -524,4 +604,16 @@ export function initHelpUI() {
   elements.resetBackdrop.addEventListener("click", handleBackdropClick);
 
   document.addEventListener("keydown", handleDialogKeydown);
+
+  if (elements.itemCatalogTitlesButton) {
+    elements.itemCatalogTitlesButton.addEventListener("click", openTitleList);
+    elements.titleListCloseButton.addEventListener("click", closeTitleList);
+    elements.titleListBackdrop.addEventListener("click", closeTitleList);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !elements.titleListDialog.hidden) {
+        event.preventDefault();
+        closeTitleList();
+      }
+    });
+  }
 }

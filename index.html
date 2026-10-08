@@ -675,7 +675,10 @@
       <section id="item-catalog-profile" class="help-profile" aria-label="冒険者プロフィール">
         <div class="help-profile-row">
           <p class="help-profile-label">🏆 現在の称号</p>
-          <p id="item-catalog-title" class="help-profile-title"></p>
+          <div class="help-profile-title-row">
+            <p id="item-catalog-title" class="help-profile-title"></p>
+            <button type="button" id="item-catalog-titles-button" class="small-button help-profile-titles-button" aria-haspopup="dialog">確認</button>
+          </div>
         </div>
         <div class="help-profile-row">
           <p class="help-profile-label">💰 累計ゴールド</p>
@@ -814,6 +817,22 @@
     <div id="example-diagram-container" class="quadratic-diagram-container"></div>
     <p id="example-diagram-note" class="quadratic-diagram-note" hidden></p>
     <button type="button" id="example-diagram-close-button" class="secondary-button quadratic-diagram-close-button">閉じる</button>
+  </div>
+
+  <!-- アイテム図鑑：これまでに獲得した称号の一覧（「確認」ボタンで開く） -->
+  <div id="title-list-backdrop" class="hint-backdrop" hidden></div>
+  <div
+    id="title-list-dialog"
+    class="hint-panel help-title-list-dialog"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="title-list-heading"
+  >
+    <h2 id="title-list-heading" class="help-title-list-heading">獲得した称号</h2>
+    <p id="title-list-summary" class="help-title-list-summary"></p>
+    <ol id="title-list" class="help-title-list"></ol>
+    <button type="button" id="title-list-close-button" class="primary-button help-title-list-close">閉じる</button>
   </div>
 
   <!-- データ消去：第1・第2確認モーダル -->

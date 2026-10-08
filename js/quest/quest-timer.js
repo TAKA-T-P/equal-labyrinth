@@ -81,6 +81,30 @@ export function resumeRoomTimer() {
 }
 
 /**
+ * 残り時間を指定した分だけ減らす（ペナルティ）。一時停止中でも減らせる。
+ * 残り時間が0になった場合は、通常の時間切れと同じくonExpiredを呼んでタイマーを止める。
+ * 制限時間なしの部屋・タイマーが動いていないときは何もしない。
+ * @param {number} ms 減らす時間（ミリ秒）
+ * @returns {boolean} 時間切れになった場合true
+ */
+export function deductRoomTime(ms) {
+  if (!running || remainingMs === null) return false;
+  remainingMs = Math.max(0, remainingMs - ms);
+  if (onTickCallback) {
+    onTickCallback(remainingMs);
+  }
+  if (remainingMs <= 0) {
+    const expiredCallback = onExpiredCallback;
+    stopRoomTimer();
+    if (expiredCallback) {
+      expiredCallback();
+    }
+    return true;
+  }
+  return false;
+}
+
+/**
  * 部屋タイマーを完全に停止する（部屋を退出する・部屋をクリアする・リタイアするなど）。
  */
 export function stopRoomTimer() {
