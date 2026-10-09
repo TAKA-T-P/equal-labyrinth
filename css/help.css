@@ -787,3 +787,16 @@
   flex: 0 0 auto;
   width: 100%;
 }
+
+/* ヘルプメニューのボタンどうしの間隔は、すべて同じ12pxにそろえる
+   （「データを消す」「KEC数学科ラボへ」の前の追加の余白はなくし、
+   「もどる」との間も、.help-screenの行間16px − 4px ＝ 12pxにする） */
+.help-menu {
+  gap: 12px;
+  margin-bottom: -4px;
+}
+
+.help-menu-button--danger,
+.help-menu-link {
+  margin-top: 0;
+}

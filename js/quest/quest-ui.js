@@ -34,6 +34,7 @@ const elements = {
   fightButton: document.getElementById("quest-fight-button"),
   introRetireButton: document.getElementById("quest-intro-retire-button"),
   introBackButton: document.getElementById("quest-intro-back-button"),
+  introCatalogButton: document.getElementById("quest-intro-catalog-button"),
   roomSelectRetireButton: document.getElementById("quest-room-select-retire-button"),
 
   victoryEmoji: document.getElementById("quest-victory-emoji"),
@@ -545,6 +546,10 @@ export function initQuestUI(callbacks) {
 
   elements.roomSelectRetireButton.addEventListener("click", () => {
     callbacks.onIntroRetire();
+  });
+
+  elements.introCatalogButton.addEventListener("click", () => {
+    callbacks.onIntroOpenCatalog();
   });
 
   elements.introBackButton.addEventListener("click", () => {

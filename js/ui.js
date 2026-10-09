@@ -1589,8 +1589,10 @@ export function renderQuestHud(data) {
   elements.questTopbarProgress.textContent =
     `正解 ${data.correctCount}/${data.requiredCorrect}` +
     (data.maxIncorrect === null ? "" : `　ミス ${data.incorrectCount}/${data.maxIncorrect}`);
-  elements.questTopbarTime.textContent =
-    data.remainingSecondsText === null ? "残り時間 なし" : `残り時間 ${data.remainingSecondsText}秒`;
+  // 表示スペースを節約するため「残り ○秒」と短く表示し、制限時間のない部屋では何も表示しない
+  const hasTimeLimit = data.remainingSecondsText !== null;
+  elements.questTopbarTime.textContent = hasTimeLimit ? `残り ${data.remainingSecondsText}秒` : "";
+  elements.questTopbarTime.hidden = !hasTimeLimit;
 }
 
 /**

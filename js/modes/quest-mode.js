@@ -72,6 +72,7 @@ import {
   getClearedRoomIds
 } from "../quest/quest-storage.js";
 import { getQuestTitle, getTitleRankUp, formatGold } from "../quest/quest-titles.js";
+import { openItemCatalogFromQuest } from "../help/help-ui.js";
 
 const HINT_MODE_LABELS = {
   immediate: "はじめから",
@@ -284,6 +285,17 @@ function handleIntroBack() {
     questUi.showQuestView("room-select");
     questUi.renderRoomSelectChoices(choices, handleRoomChoiceSelected);
   }
+}
+
+/**
+ * 敵出現画面の「アイテム図鑑」：ヘルプのアイテム図鑑画面を開き、「もどる」で同じ敵出現画面へ戻る
+ * （「たたかう」を押す前なので、部屋の制限時間はまだ動いていない）。
+ */
+function handleIntroOpenCatalog() {
+  if (questState.status !== "enemy-intro") return;
+  openItemCatalogFromQuest(() => {
+    ui.showScreen("quest");
+  });
 }
 
 async function enterRoomAndBeginMission(roomId, options = {}) {
@@ -1133,6 +1145,7 @@ export function initQuestModeUI(callbacks) {
     onFight: handleFight,
     onIntroRetire: handleRetireRequest,
     onIntroBack: handleIntroBack,
+    onIntroOpenCatalog: handleIntroOpenCatalog,
     onOpenChest: handleOpenChest,
     onItemGetNext: handleItemGetNext,
     onFailureNext: handleFailureNext,

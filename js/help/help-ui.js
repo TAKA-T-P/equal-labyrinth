@@ -108,12 +108,46 @@ function openExampleCatalog() {
   showScreen("example-catalog");
 }
 
+// アイテム図鑑の「もどる」で戻る先（null＝ヘルプメニュー。クエストから開いた場合はクエストへ戻す関数）
+let itemCatalogReturnHandler = null;
+
+/**
+ * アイテム図鑑の「もどる」ボタンの文言を、戻り先に合わせて切り替える。
+ */
+function applyItemCatalogReturnLabels(destinationName) {
+  elements.itemCatalogBackButton.textContent = `← ${destinationName}にもどる`;
+  elements.itemCatalogBackButtonTop?.setAttribute("aria-label", `${destinationName}にもどる`);
+}
+
 function openItemCatalog() {
+  itemCatalogReturnHandler = null;
+  applyItemCatalogReturnLabels("ヘルプメニュー");
   renderItemCatalog();
   showScreen("item-catalog");
 }
 
+/**
+ * クエストの敵出現画面から、アイテム図鑑を開く。「もどる」を押すとonReturnを呼んで
+ * クエストの画面へ戻る（ヘルプメニューへは戻らない）。
+ * @param {() => void} onReturn
+ */
+export function openItemCatalogFromQuest(onReturn) {
+  itemCatalogReturnHandler = onReturn;
+  applyItemCatalogReturnLabels("クエスト");
+  renderItemCatalog();
+  showScreen("item-catalog");
+  window.scrollTo(0, 0);
+}
+
 function backToHelpMenuFromCatalog() {
+  closeTitleList();
+  if (itemCatalogReturnHandler) {
+    const onReturn = itemCatalogReturnHandler;
+    itemCatalogReturnHandler = null;
+    applyItemCatalogReturnLabels("ヘルプメニュー");
+    onReturn();
+    return;
+  }
   showScreen("help-menu");
 }
 
