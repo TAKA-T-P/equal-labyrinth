@@ -113,9 +113,13 @@ function sleep(ms) {
 // 表示用の小さなヘルパー
 // ============================================================
 
+// 部屋の制限時間全体にかける倍率（部屋データの倍率×単元の基準時間×この値）。
+// 制限時間を一律に延ばす・縮めるときは、この値だけを変えればよい。
+const QUEST_TIME_LIMIT_SCALE = 2;
+
 function computeTimeLimitSeconds(timeLimitMultiplier, unit) {
   if (timeLimitMultiplier === null) return null;
-  return Math.round(timeLimitMultiplier * UNIT_CONFIG[unit].baseTimeSeconds);
+  return Math.round(timeLimitMultiplier * UNIT_CONFIG[unit].baseTimeSeconds * QUEST_TIME_LIMIT_SCALE);
 }
 
 function getCategoryNameById(unit, categoryId) {
@@ -912,6 +916,20 @@ function pickRandomReward(rewardPool) {
   return rewardPool[index];
 }
 
+// 出題形式「スタンダード」で、ステージ1・2の宝箱から一度に入手できる個数（最小・最大）
+const STANDARD_EARLY_STAGE_REWARD_QUANTITY = { min: 2, max: 3, maxStage: 2 };
+
+/**
+ * 宝箱から一度に入手するアイテムの個数を決める。
+ * 自分で式を立てるスタンダードは、ステージ1・2のランダムドロップのアイテムを2〜3個入手できる
+ * （例：ふたごチェリーを2個手に入れた！ 価値 50G×2）。それ以外（おてがる・ステージ3以降）は1個。
+ */
+function pickRewardQuantity(room) {
+  const { min, max, maxStage } = STANDARD_EARLY_STAGE_REWARD_QUANTITY;
+  if (isQuestEasyFormat() || room.stage > maxStage) return 1;
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+
 /**
  * 宝箱を開ける。入手アイテムを確定したら、演出より先にアイテム（所持数）と価値（G）を
  * まとめて保存する（演出の途中でブラウザを閉じても、アイテム・所持数・累計Gが残るように）。
@@ -923,10 +941,13 @@ async function handleOpenChest() {
 
   const room = getRoom(questState.currentRoomId);
   const reward = pickRandomReward(room.reward);
+  const quantity = pickRewardQuantity(room);
 
-  const acquisition = recordItemAcquisition(reward, room.roomId);
-  recordItemAcquired(reward);
-  addEarnedGoldThisQuest(acquisition.goldValue);
+  const acquisition = recordItemAcquisition(reward, room.roomId, quantity);
+  for (let i = 0; i < acquisition.quantity; i += 1) {
+    recordItemAcquired(reward);
+  }
+  addEarnedGoldThisQuest(acquisition.gainedGold);
   const rankUpTitle = getTitleRankUp(acquisition.previousTotalGold, acquisition.totalGold);
 
   questUi.markTreasureChestOpen();
@@ -937,8 +958,9 @@ async function handleOpenChest() {
   questUi.renderItemGet({
     reward,
     count: acquisition.item.count,
-    // 初めて獲得したアイテムには「New!」を付ける
-    isNew: acquisition.item.count === 1,
+    quantity: acquisition.quantity,
+    // 初めて獲得したアイテムには「New!」を付ける（今回の入手分＝所持数なら初めて）
+    isNew: acquisition.item.count === acquisition.quantity,
     goldValue: acquisition.goldValue,
     previousTotalGold: acquisition.previousTotalGold,
     totalGold: acquisition.totalGold

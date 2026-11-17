@@ -157,14 +157,18 @@ export function getTotalGold() {
 }
 
 /**
- * アイテムを1個獲得したことを記録する（即座にlocalStorageへ保存する）。
- * 所持数＋1・アイテム別totalGoldEarned＋goldValue・全体totalGold＋goldValueを、
+ * アイテムを獲得したことを記録する（即座にlocalStorageへ保存する）。
+ * 所持数＋quantity・アイテム別totalGoldEarned＋goldValue×quantity・全体totalGold＋goldValue×quantityを、
  * 1回の保存処理でまとめて行う（アイテムとGが別々に保存されてずれることがないようにする）。
  * @param {{itemId: string, emoji: string, name: string, goldValue: number}} reward
  * @param {string} roomId 入手した部屋
- * @returns {{item: object, goldValue: number, previousTotalGold: number, totalGold: number}}
+ * @param {number} [quantity=1] 一度に入手した個数（クエストのスタンダードでは、ステージ1・2で2〜3個）
+ * @returns {{item: object, goldValue: number, quantity: number, gainedGold: number,
+ *   previousTotalGold: number, totalGold: number}}
+ *   goldValueは1個あたりの価値、gainedGoldは今回増えたGの合計（goldValue×quantity）
  */
-export function recordItemAcquisition(reward, roomId) {
+export function recordItemAcquisition(reward, roomId, quantity = 1) {
+  const count = Number.isInteger(quantity) && quantity > 0 ? quantity : 1;
   const inventory = loadInventory();
   const nowIso = new Date().toISOString();
   const existing = inventory.items[reward.itemId];
@@ -177,28 +181,36 @@ export function recordItemAcquisition(reward, roomId) {
     ? {
         ...existing,
         roomId: existing.roomId || roomId,
-        count: toNonNegativeInteger(existing.count) + 1,
+        count: toNonNegativeInteger(existing.count) + count,
         goldValue,
-        totalGoldEarned: toNonNegativeInteger(existing.totalGoldEarned) + goldValue,
+        totalGoldEarned: toNonNegativeInteger(existing.totalGoldEarned) + goldValue * count,
         lastObtainedAt: nowIso
       }
     : {
         roomId,
         emoji: reward.emoji,
         name: reward.name,
-        count: 1,
+        count,
         goldValue,
-        totalGoldEarned: goldValue,
+        totalGoldEarned: goldValue * count,
         firstObtainedAt: nowIso,
         lastObtainedAt: nowIso
       };
 
   const previousTotalGold = inventory.totalGold;
   inventory.items[reward.itemId] = updatedEntry;
-  inventory.totalGold = previousTotalGold + goldValue;
+  const gainedGold = goldValue * count;
+  inventory.totalGold = previousTotalGold + gainedGold;
   saveInventory(inventory);
 
-  return { item: updatedEntry, goldValue, previousTotalGold, totalGold: inventory.totalGold };
+  return {
+    item: updatedEntry,
+    goldValue,
+    quantity: count,
+    gainedGold,
+    previousTotalGold,
+    totalGold: inventory.totalGold
+  };
 }
 
 /**

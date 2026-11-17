@@ -770,3 +770,15 @@
 .quest-topbar-time.is-time-penalty {
   display: inline-block;
 }
+
+/* 2個以上入手したときの合計の価値（例：合計 150G） */
+.quest-item-gold-value-total {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-correct-gold);
+  margin: -4px 0 4px;
+}
+
+.quest-item-gold-value-total[hidden] {
+  display: none;
+}

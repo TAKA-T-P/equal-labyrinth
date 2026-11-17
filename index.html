@@ -495,12 +495,13 @@
           <span id="quest-item-get-new" class="quest-new-badge" hidden>New!</span>
           <span id="quest-item-get-name" class="quest-item-name"></span>
         </p>
-        <p id="quest-item-get-count" class="quest-item-count"></p>
-        <p class="quest-view-subheading">を手に入れた！</p>
+        <p id="quest-item-get-message" class="quest-view-subheading">を手に入れた！</p>
         <!-- アイテムの価値（G）と、累計ゴールドの増加 -->
         <div id="quest-item-get-gold" class="quest-item-gold">
           <p class="quest-item-gold-label">価値</p>
           <p id="quest-item-get-value" class="quest-item-gold-value"></p>
+          <!-- 2個以上入手したときだけ、合計の価値を表示する -->
+          <p id="quest-item-get-value-total" class="quest-item-gold-value-total" hidden></p>
           <p class="quest-item-gold-label">累計ゴールド</p>
           <p class="quest-item-gold-total">
             <span id="quest-item-get-total-before"></span>

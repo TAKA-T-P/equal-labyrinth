@@ -45,7 +45,8 @@ const elements = {
 
   itemGetEmoji: document.getElementById("quest-item-get-emoji"),
   itemGetName: document.getElementById("quest-item-get-name"),
-  itemGetCount: document.getElementById("quest-item-get-count"),
+  itemGetMessage: document.getElementById("quest-item-get-message"),
+  itemGetValueTotal: document.getElementById("quest-item-get-value-total"),
   itemGetNextButton: document.getElementById("quest-item-get-next-button"),
   itemGetValue: document.getElementById("quest-item-get-value"),
   itemGetTotalBefore: document.getElementById("quest-item-get-total-before"),
@@ -359,15 +360,20 @@ export function getTreasureChestElement() {
 /**
  * アイテム獲得画面を描画する。アイテムの価値（G）と、累計ゴールドの変化
  * （獲得前 → 獲得後）もあわせて表示する。称号ランクアップの表示は、いったん隠しておく。
- * @param {{reward: object, count: number, goldValue: number,
+ * @param {{reward: object, count: number, quantity: number, goldValue: number,
  *   previousTotalGold: number, totalGold: number}} data
  */
 export function renderItemGet(data) {
   elements.itemGetEmoji.textContent = data.reward.emoji;
   elements.itemGetName.textContent = data.reward.name;
-  elements.itemGetCount.textContent =
-    data.count > 1 ? `所持数：${data.count}` : "";
-  elements.itemGetValue.textContent = formatGold(data.goldValue);
+  // 2個以上入手したときは「〇〇を2個手に入れた！」「価値 50G×2」のように表示する
+  // （所持数は表示しない）
+  const quantity = Number.isInteger(data.quantity) && data.quantity > 1 ? data.quantity : 1;
+  elements.itemGetMessage.textContent = quantity > 1 ? `を${quantity}個手に入れた！` : "を手に入れた！";
+  elements.itemGetValue.textContent =
+    quantity > 1 ? `${formatGold(data.goldValue)}×${quantity}` : formatGold(data.goldValue);
+  elements.itemGetValueTotal.textContent = quantity > 1 ? `合計 ${formatGold(data.goldValue * quantity)}` : "";
+  elements.itemGetValueTotal.hidden = quantity <= 1;
   elements.itemGetTotalBefore.textContent = formatGold(data.previousTotalGold);
   elements.itemGetTotalAfter.textContent = formatGold(data.previousTotalGold);
   elements.itemGetNew.hidden = !data.isNew;

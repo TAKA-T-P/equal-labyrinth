@@ -66,6 +66,22 @@ check(
 );
 check(saved.version === 2 && saved.items[b.itemId].roomId === "B", "version 2で保存され、入手した部屋も記録される");
 
+// 一度に複数個入手（クエストのスタンダード、ステージ1・2で2〜3個）
+reset();
+const cherry = findReward("A", 4);
+const multi = storage.recordItemAcquisition(cherry, "A", 3);
+const savedMulti = JSON.parse(memoryStore.get(INVENTORY_KEY));
+check(
+  multi.quantity === 3 && multi.gainedGold === 150 && savedMulti.items[cherry.itemId].count === 3 &&
+    savedMulti.items[cherry.itemId].totalGoldEarned === 150 && savedMulti.totalGold === 150,
+  `50Gのアイテムを一度に3個：所持数3・totalGoldEarned 150・totalGold 150（${cherry.name}）`
+);
+storage.recordItemAcquisition(cherry, "A", 2);
+check(storage.getTotalGold() === 250 && JSON.parse(memoryStore.get(INVENTORY_KEY)).items[cherry.itemId].count === 5, "続けて2個入手：所持数5・合計250G");
+// 以下の確認のため、100Gのアイテムを3回入手した状態（300G）に戻す
+reset();
+for (let i = 0; i < 3; i += 1) storage.recordItemAcquisition(b, "B");
+
 // 獲得時点の価値で積み上げる（後から価格を変えても過去分は変わらない）
 const originalValue = b.goldValue;
 b.goldValue = 200;
