@@ -5,24 +5,24 @@
 
 export const QUEST_TITLES = [
   { minGold: 0, title: "はじめての冒険者" },
-  { minGold: 10000, title: "駆け出しトレジャーハンター" },
-  { minGold: 20000, title: "財宝さがしの見習い" },
-  { minGold: 35000, title: "迷宮の探索者" },
-  { minGold: 50000, title: "宝箱ハンター" },
-  { minGold: 70000, title: "お宝コレクター" },
-  { minGold: 135000, title: "財宝の目利き" },
-  { minGold: 200000, title: "腕利きトレジャーハンター" },
-  { minGold: 265000, title: "迷宮の冒険家" },
-  { minGold: 330000, title: "黄金を追う者" },
-  { minGold: 395000, title: "一流トレジャーハンター" },
-  { minGold: 460000, title: "財宝の達人" },
-  { minGold: 525000, title: "黄金の冒険王" },
-  { minGold: 590000, title: "迷宮の富豪" },
-  { minGold: 655000, title: "伝説の財宝王" },
-  { minGold: 720000, title: "伝説のトレジャーハンター" },
-  { minGold: 790000, title: "ラビリンスマスター" },
-  { minGold: 860000, title: "秘宝を極めし者" },
-  { minGold: 930000, title: "イコール・レジェンド" },
+  { minGold: 15000, title: "駆け出しトレジャーハンター" },
+  { minGold: 30000, title: "財宝さがしの見習い" },
+  { minGold: 50000, title: "迷宮の探索者" },
+  { minGold: 70000, title: "宝箱ハンター" },
+  { minGold: 95000, title: "お宝コレクター" },
+  { minGold: 125000, title: "財宝の目利き" },
+  { minGold: 160000, title: "腕利きトレジャーハンター" },
+  { minGold: 200000, title: "迷宮の冒険家" },
+  { minGold: 250000, title: "黄金を追う者" },
+  { minGold: 300000, title: "一流トレジャーハンター" },
+  { minGold: 360000, title: "財宝の達人" },
+  { minGold: 420000, title: "黄金の冒険王" },
+  { minGold: 490000, title: "迷宮の富豪" },
+  { minGold: 560000, title: "伝説の財宝王" },
+  { minGold: 640000, title: "伝説のトレジャーハンター" },
+  { minGold: 720000, title: "ラビリンスマスター" },
+  { minGold: 800000, title: "秘宝を極めし者" },
+  { minGold: 900000, title: "イコール・レジェンド" },
   { minGold: 1000000, title: "イコール・ラビリンスの覇王" }
 ];
 
@@ -64,7 +64,7 @@ export function getNextQuestTitle(totalGold) {
 
 /**
  * 現在の称号から次の称号までの進捗率（0〜100、整数）を返す。最高称号到達時は100。
- * 例：現在称号460,000G・次称号525,000G・累計487,350G → (27,350 / 65,000) → 42
+ * 例：現在称号360,000G・次称号420,000G・累計387,000G → (27,000 / 60,000) → 45
  */
 export function getQuestTitleProgressPercent(totalGold) {
   const gold = normalizeGold(totalGold);

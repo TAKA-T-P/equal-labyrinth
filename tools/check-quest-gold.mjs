@@ -111,10 +111,10 @@ console.log("\n■ 称号");
 check(titles.QUEST_TITLES.length === 20 && titles.QUEST_TITLES[19].minGold === 1000000, "称号は20種類、最高は1,000,000G");
 const boundaries = [
   [0, "はじめての冒険者"],
-  [9999, "はじめての冒険者"],
-  [10000, "駆け出しトレジャーハンター"],
-  [69999, "宝箱ハンター"],
-  [70000, "お宝コレクター"],
+  [14999, "はじめての冒険者"],
+  [15000, "駆け出しトレジャーハンター"],
+  [94999, "宝箱ハンター"],
+  [95000, "お宝コレクター"],
   [999999, "イコール・レジェンド"],
   [1000000, "イコール・ラビリンスの覇王"],
   [1234500, "イコール・ラビリンスの覇王"]
@@ -122,16 +122,18 @@ const boundaries = [
 boundaries.forEach(([gold, title]) =>
   check(titles.getQuestTitle(gold).title === title, `${gold.toLocaleString("ja-JP")}G → ${title}`)
 );
-const next = titles.getNextQuestTitle(487350);
+const next = titles.getNextQuestTitle(387000);
 check(
-  titles.getQuestTitle(487350).title === "財宝の達人" && next.title === "黄金の冒険王" && next.requiredGold === 525000 && next.remainingGold === 37650,
-  "487,350G：財宝の達人／次「黄金の冒険王」525,000G・あと37,650G"
+  titles.getQuestTitle(387000).title === "財宝の達人" && next.title === "黄金の冒険王" && next.requiredGold === 420000 && next.remainingGold === 33000,
+  "387,000G：財宝の達人／次「黄金の冒険王」420,000G・あと33,000G"
 );
-check(titles.getQuestTitleProgressPercent(487350) === 42, "487,350Gの進捗率は42%");
+check(titles.getQuestTitleProgressPercent(387000) === 45, "387,000Gの進捗率は45%（(387,000−360,000)÷(420,000−360,000)）");
 check(titles.getNextQuestTitle(1000000) === null && titles.getQuestTitleProgressPercent(1500000) === 100, "最高称号では次の称号なし・進捗100%");
-const rankUp = titles.getTitleRankUp(19000, 49000);
-check(rankUp && rankUp.title === "迷宮の探索者", "19,000G＋30,000G＝49,000G：複数の称号を飛び越えても最終到達の「迷宮の探索者」だけ");
-check(titles.getTitleRankUp(10000, 19999) === null, "同じ称号の範囲内ではランクアップしない");
+const rankUp = titles.getTitleRankUp(14000, 44000);
+check(rankUp && rankUp.title === "財宝さがしの見習い", "14,000G＋30,000G＝44,000G：複数の称号を飛び越えても最終到達の「財宝さがしの見習い」だけ");
+check(titles.getTitleRankUp(15000, 29999) === null, "同じ称号の範囲内ではランクアップしない");
+const expectedThresholds = [0, 15000, 30000, 50000, 70000, 95000, 125000, 160000, 200000, 250000, 300000, 360000, 420000, 490000, 560000, 640000, 720000, 800000, 900000, 1000000];
+check(titles.QUEST_TITLES.map((t) => t.minGold).join(",") === expectedThresholds.join(","), "必要ゴールドが指定どおり（0／15,000／30,000／…／900,000／1,000,000）");
 check(titles.formatGold(1000000) === "1,000,000G" && titles.formatGold(100) === "100G", "3桁区切りの表示（1,000,000G）");
 
 console.log(failures === 0 ? "\nすべて成功" : `\n失敗：${failures}件`);

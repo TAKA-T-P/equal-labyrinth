@@ -41,21 +41,17 @@
 }
 
 /* ---------------- タイトル画面 ---------------- */
-/* タイトル画面全体はスクロールさせず、画面の高さ内に固定する。
+/* タイトル画面は少なくとも画面の高さを使い、内容が画面に収まらない場合（横向き・
+   小さな画面・文字を大きくしている場合など）は、画面全体を上下にスクロールできる。
    トレーニングの「出題するカテゴリ」はNORMAL／HARD／カスタムの3ボタンだけを置き、
    カテゴリ一覧（チェックボックス）は「カスタム」で開く別ウィンドウ
    （#custom-category-dialog）の中で内部スクロールする。 */
 
-#screen-title {
-  overflow: hidden;
-}
-
 .title-screen {
   position: relative;
   align-items: stretch;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .title-header {
